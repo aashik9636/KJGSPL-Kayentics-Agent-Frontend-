@@ -10,8 +10,7 @@ import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat/index';
-import BusinessHub from './pages/BusinessHub/BusinessHub';
-import ContentHub from './pages/ContentHub';
+import KnowledgeBase from './pages/KnowledgeBase';
 import Integrations from './pages/Integrations';
 
 function App() {
@@ -33,8 +32,7 @@ function App() {
             <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/chat" element={<Chat />} />
-              <Route path="/business-hub" element={<BusinessHub />} />
-              <Route path="/content" element={<ContentHub />} />
+              <Route path="/knowledge-base" element={<KnowledgeBase />} />
               <Route path="/integrations" element={<Integrations />} />
             </Route>
           </Route>
