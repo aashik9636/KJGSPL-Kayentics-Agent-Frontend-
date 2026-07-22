@@ -2,6 +2,11 @@ import apiClient from './apiClient';
 
 export const businessService = {
   // 1. Business Profile
+  getIndustries: async () => {
+    const response = await apiClient.get('/business-profile/industries');
+    // apiClient interceptor globally unwraps the payload, so response.data is the array
+    return response.data;
+  },
   getBusinessProfile: async () => {
     const response = await apiClient.get('/business-profile');
     return response.data;

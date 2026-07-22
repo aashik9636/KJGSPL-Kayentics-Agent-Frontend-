@@ -4,6 +4,9 @@ import { authService } from '../services/authService';
 import { toast } from 'react-toastify';
 
 export default function Signup() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [organizationName, setOrganizationName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,9 +35,9 @@ export default function Signup() {
       await authService.register({ 
         email, 
         password,
-        firstName: 'New',
-        lastName: 'User',
-        organizationName: 'New Organization'
+        firstName,
+        lastName,
+        organizationName
       });
       toast.success("Account created successfully!");
       navigate('/login');
@@ -81,13 +84,56 @@ export default function Signup() {
       </div>
 
       <form className="w-full space-y-5" onSubmit={handleSignup}>
+        {/* Name Row */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">First Name</label>
+            <input
+              type="text"
+              placeholder="John"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+            />
+          </div>
+          <div>
+            <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Last Name</label>
+            <input
+              type="text"
+              placeholder="Doe"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+            />
+          </div>
+        </div>
+
+        {/* Organization */}
+        <div>
+          <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            Organization Name
+          </label>
+          <input
+            type="text"
+            placeholder="Acme Corp"
+            value={organizationName}
+            onChange={(e) => setOrganizationName(e.target.value)}
+            required
+            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+          />
+        </div>
+
+        {/* Email */}
         <div>
           <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide flex items-center gap-1.5">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
             Email
           </label>
-          <input 
-            type="email" 
+          <input
+            type="email"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}

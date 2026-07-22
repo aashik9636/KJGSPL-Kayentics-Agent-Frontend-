@@ -1,27 +1,26 @@
 import apiClient from './apiClient';
 import { useWorkspaceStore } from '../store/workspaceStore';
 
-export const integrationService = {
-  getIntegrations: async () => {
+export const productService = {
+  getProducts: async () => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.get('/integrations', {
+    const response = await apiClient.get('/products', {
       params: { organizationId, workspaceId }
     });
     return response.data;
   },
 
-  connectIntegration: async (platform) => {
+  createProduct: async (data) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.post(`/integrations/${platform}/connect`, {
-      organizationId,
-      workspaceId
+    const response = await apiClient.post('/products', data, {
+      params: { organizationId, workspaceId }
     });
     return response.data;
   },
 
-  disconnectIntegration: async (id) => {
+  deleteProduct: async (id) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.delete(`/integrations/${id}`, {
+    const response = await apiClient.delete(`/products/${id}`, {
       params: { organizationId, workspaceId }
     });
     return response.data;

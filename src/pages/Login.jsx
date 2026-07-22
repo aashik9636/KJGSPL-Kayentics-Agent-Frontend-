@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { workspaceService } from '../services/workspaceService';
+import { rbacService } from '../services/rbacService';
 import { useAuthStore } from '../store/authStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
 import { toast } from 'react-toastify';
@@ -29,10 +31,59 @@ export default function Login() {
         return;
       }
 
+      // Store tokens first so subsequent requests are authenticated
       setAuth(user || null, accessToken, refreshToken);
+
+      // Set org/workspace IDs from login response (if provided)
       if (organizationId) useWorkspaceStore.getState().setOrganizationId(organizationId);
       if (workspaceId) useWorkspaceStore.getState().setWorkspaceId(workspaceId);
-      
+
+      // If login response didn't include user profile, fetch it now via GET /users/me
+      if (!user) {
+        try {
+          const profile = await authService.getCurrentUser();
+          useAuthStore.getState().setAuth(profile, accessToken, refreshToken);
+        } catch {
+          // Non-critical — user is still logged in
+        }
+      }
+
+      // Load organizations list for the Navbar switcher
+      try {
+        const orgs = await workspaceService.listOrganizations();
+        const orgList = Array.isArray(orgs) ? orgs : [];
+        useWorkspaceStore.getState().setOrganizations(orgList);
+
+        // Set the active organization object (for Navbar display)
+        const activeOrg = orgList.find((o) => o.id === organizationId) || orgList[0] || null;
+        if (activeOrg) {
+          useWorkspaceStore.getState().setActiveOrganization(activeOrg);
+
+          // Load workspaces for the active org
+          try {
+            const workspaces = await workspaceService.getWorkspacesByOrg(activeOrg.id);
+            const wsList = Array.isArray(workspaces) ? workspaces : [];
+            useWorkspaceStore.getState().setWorkspaces(wsList);
+
+            // Set active workspace object
+            const activeWs = wsList.find((w) => w.id === workspaceId) || wsList[0] || null;
+            if (activeWs) useWorkspaceStore.getState().setActiveWorkspace(activeWs);
+          } catch {
+            // Non-critical
+          }
+        }
+      } catch {
+        // Non-critical — navbar will show IDs as fallback
+      }
+
+      // Load RBAC permissions for the current org/workspace context
+      try {
+        const permissions = await rbacService.getPermissions();
+        useWorkspaceStore.getState().setPermissions(Array.isArray(permissions) ? permissions : []);
+      } catch {
+        // Non-critical — app still works, just no permission gating
+      }
+
       toast.success("Successfully logged in!");
       navigate('/');
     } catch (err) {

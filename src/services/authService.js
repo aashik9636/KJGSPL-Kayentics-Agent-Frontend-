@@ -16,6 +16,36 @@ export const authService = {
     return response.data;
   },
 
+  /**
+   * Step 1 of password reset flow.
+   * Sends a reset link to the user's email.
+   * Backend needs: POST /auth/forgot-password  { email }
+   */
+  forgotPassword: async (email) => {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  /**
+   * Step 2 of password reset flow.
+   * Called from the /reset-password?token=... page.
+   * Backend needs: POST /auth/reset-password  { token, password }
+   */
+  resetPassword: async (token, password) => {
+    const response = await apiClient.post('/auth/reset-password', { token, password });
+    return response.data;
+  },
+
+  /**
+   * Manually refresh the access token using the stored refresh token.
+   * Also called automatically inside apiClient on 401 errors.
+   * Backend needs: POST /auth/refresh  { refreshToken }
+   */
+  refresh: async (refreshToken) => {
+    const response = await apiClient.post('/auth/refresh', { refreshToken });
+    return response.data;
+  },
+
   logout: async (refreshToken) => {
     const response = await apiClient.post('/auth/logout', { refreshToken });
     return response.data;
@@ -27,7 +57,7 @@ export const authService = {
   },
 
   getCurrentUser: async () => {
-    const response = await apiClient.get('/auth/me');
+    const response = await apiClient.get('/users/me');
     return response.data;
   }
 };

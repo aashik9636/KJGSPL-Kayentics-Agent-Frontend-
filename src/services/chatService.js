@@ -37,9 +37,14 @@ export const chatService = {
     return response.data;
   },
 
-  appendMessage: async (data) => {
-    // data: { conversationId, role, content, attachments }
-    const response = await apiClient.post('/messages', data);
-    return response.data;
+  runMainBrainApi: async (userQuery, sessionId) => {
+    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const response = await apiClient.post('/api/brain/run', {
+      userQuery,
+      sessionId,
+      companyId: workspaceId,
+      organizationId
+    });
+    return response.data; // Expects JSON { success, data: { finalAnswer, targetOrchestrators, ... } }
   }
 };
