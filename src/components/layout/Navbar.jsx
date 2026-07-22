@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { useAuthStore } from '../../store/authStore';
@@ -7,6 +8,7 @@ import { rbacService } from '../../services/rbacService';
 import { toast } from 'react-toastify';
 
 export default function Navbar() {
+  const location = useLocation();
   const navbarRef = useRef(null);
   const orgDropdownRef = useRef(null);
   const wsDropdownRef = useRef(null);
@@ -113,7 +115,15 @@ export default function Navbar() {
       {/* Page Title */}
       <div className="navbar-title">
         <h2 className="text-[22px] font-bold text-[#111827] tracking-tight">
-          Dashboard
+          {(() => {
+            const p = location.pathname;
+            if (p.includes('/chat')) return 'Brain Agent';
+            if (p.includes('/content-hub')) return 'Content Hub';
+            if (p.includes('/profile')) return 'Profile';
+            if (p.includes('/team')) return 'Team Management';
+            if (p.includes('/integrations')) return 'Integrations';
+            return 'Dashboard';
+          })()}
         </h2>
       </div>
 

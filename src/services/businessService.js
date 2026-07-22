@@ -18,13 +18,23 @@ export const businessService = {
     return response.data;
   },
 
-  // 2. Brand Guidelines
-  getBrandGuidelines: async () => {
-    const response = await apiClient.get('/brand-guidelines');
+  // 2. Brand Profile
+  getBrandProfile: async () => {
+    const response = await apiClient.get('/brand-profile');
     return response.data;
   },
-  createOrUpdateBrandGuidelines: async (data) => {
-    const response = await apiClient.post('/brand-guidelines', data);
+  createOrUpdateBrandProfile: async (data) => {
+    const response = await apiClient.post('/brand-profile', data);
+    return response.data;
+  },
+
+  // 2b. Social Profiles
+  getSocialProfile: async () => {
+    const response = await apiClient.get('/social-profile');
+    return response.data;
+  },
+  createOrUpdateSocialProfile: async (data) => {
+    const response = await apiClient.put('/social-profile', data);
     return response.data;
   },
 
