@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 
 export default function AppLayout() {
   const layoutRef = useRef(null);
+  const location = useLocation();
+  const isChatRoute = location.pathname.includes('/chat');
   
   useEffect(() => {
     // Initial entry animation
@@ -22,8 +24,8 @@ export default function AppLayout() {
         ref={layoutRef}
         className="flex-1 flex flex-col min-w-0 bg-transparent relative"
       >
-        <Navbar />
-        <main className="flex-1 overflow-auto p-4 lg:p-8 relative">
+        {!isChatRoute && <Navbar />}
+        <main className={`flex-1 relative flex flex-col ${isChatRoute ? 'p-0 overflow-hidden' : 'p-4 lg:p-8 overflow-y-auto'}`}>
           <Outlet />
         </main>
       </div>

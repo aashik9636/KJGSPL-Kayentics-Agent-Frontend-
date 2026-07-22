@@ -27,26 +27,19 @@ export default function Chat() {
     loadConversations();
   }, []);
 
-  /**
-   * "New Chat" button clicked:
-   * 1. Call POST /api/chat/new  →  get session_id
-   * 2. Store session_id so ChatWindow can use it for /api/chat/orchestrator
-   */
   const handleNewChat = async () => {
     try {
       setCreatingSession(true);
-      // Reset window immediately so UI feels responsive
       setActiveSessionId(null);
-
       const session = await chatService.createChatSession();
       const newSessionId = session.session_id || session.sessionId;
-
       setActiveSessionId(newSessionId);
-      // Refresh sidebar so the new session appears in the history list
       loadConversations();
+      return newSessionId;
     } catch (err) {
       console.error('Failed to create chat session', err);
       toast.error('Could not start a new chat. Please try again.');
+      return null;
     } finally {
       setCreatingSession(false);
     }
@@ -57,26 +50,40 @@ export default function Chat() {
   };
 
   return (
-    <div className="bg-white/40 backdrop-blur-xl rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.04)] border border-white/60 flex h-full overflow-hidden w-full">
-      {/* Sidebar - History */}
-      <div className="w-1/4 min-w-[280px] max-w-[320px] border-r border-gray-100 bg-[#fafbfc] flex flex-col h-full">
-        <ChatSidebar
-          conversations={conversations}
-          activeId={activeSessionId}
-          onSelect={handleSelectConversation}
-          onNewChat={handleNewChat}
-          loading={loading}
-          creatingSession={creatingSession}
-          refreshConversations={loadConversations}
-        />
+    <div className="flex h-full w-full bg-[#fdfbfd] p-3 md:p-5 overflow-hidden relative font-sans">
+      
+      {/* Background Soft Glows */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-40 -left-40 w-[50rem] h-[50rem] bg-purple-300/20 rounded-full blur-[140px]" />
+        <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] bg-pink-300/10 rounded-full blur-[120px]" />
       </div>
 
-      {/* Main Chat Window */}
-      <div className="flex-1 flex flex-col h-full relative">
-        <ChatWindow
-          activeConversationId={activeSessionId}
-          creatingSession={creatingSession}
-        />
+      {/* Main Glass Window */}
+      <div className="flex flex-1 w-full h-full bg-white/80 backdrop-blur-3xl rounded-[28px] shadow-[0_8px_40px_rgba(0,0,0,0.06)] border border-white overflow-hidden relative z-10 transition-all duration-500">
+        
+        {/* Sidebar - History */}
+        {activeSessionId && (
+          <div className="w-[280px] flex-shrink-0 border-r border-gray-100/50 bg-[#fafbfc]/50 flex flex-col h-full animate-fade-in">
+            <ChatSidebar
+              conversations={conversations}
+              activeId={activeSessionId}
+              onSelect={handleSelectConversation}
+              onNewChat={handleNewChat}
+              loading={loading}
+              creatingSession={creatingSession}
+              refreshConversations={loadConversations}
+            />
+          </div>
+        )}
+
+        {/* Main Chat Window */}
+        <div className="flex-1 flex flex-col h-full relative bg-transparent">
+          <ChatWindow
+            activeConversationId={activeSessionId}
+            creatingSession={creatingSession}
+            onNewChat={handleNewChat}
+          />
+        </div>
       </div>
     </div>
   );
