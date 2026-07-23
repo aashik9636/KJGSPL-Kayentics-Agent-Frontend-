@@ -1,16 +1,84 @@
 ﻿import apiClient from './apiClient';
+import { useWorkspaceStore } from '../store/workspaceStore';
 
 export const rbacService = {
-  /**
-   * Fetch the active user's permissions for the current org/workspace context.
-   * Backend: GET /rbac/permissions
-   * Returns an array of Permission objects:
-   * [{ id, module, action, permissionKey, description }, ...]
-   *
-   * Call this after login AND after every workspace switch (new JWT = new context).
-   */
+  // ─── Permissions ───────────────────────────────────────────────────────────
   getPermissions: async () => {
-    const response = await apiClient.get('/rbac/permissions');
+    const response = await apiClient.get('/permissions');
     return response.data;
   },
+
+  createPermission: async (data) => {
+    const response = await apiClient.post('/permissions', data);
+    return response.data;
+  },
+
+  updatePermission: async (id, data) => {
+    const response = await apiClient.put(`/permissions/${id}`, data);
+    return response.data;
+  },
+
+  deletePermission: async (id) => {
+    const response = await apiClient.delete(`/permissions/${id}`);
+    return response.data;
+  },
+
+  // ─── Roles ────────────────────────────────────────────────────────────────
+  getRoles: async () => {
+    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const response = await apiClient.get('/roles', {
+      params: { organizationId, workspaceId }
+    });
+    return response.data;
+  },
+
+  getRole: async (id) => {
+    const response = await apiClient.get(`/roles/${id}`);
+    return response.data;
+  },
+
+  createRole: async (data) => {
+    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const response = await apiClient.post('/roles', {
+      ...data,
+      organizationId,
+      workspaceId
+    });
+    return response.data;
+  },
+
+  updateRole: async (id, data) => {
+    const response = await apiClient.put(`/roles/${id}`, data);
+    return response.data;
+  },
+
+  deleteRole: async (id) => {
+    const response = await apiClient.delete(`/roles/${id}`);
+    return response.data;
+  },
+
+  cloneRole: async (id) => {
+    const response = await apiClient.post(`/roles/${id}/clone`);
+    return response.data;
+  },
+
+  assignRole: async (data) => {
+    const response = await apiClient.post('/roles/assign', data);
+    return response.data;
+  },
+
+  removeRole: async (data) => {
+    const response = await apiClient.delete('/roles/remove', { data });
+    return response.data;
+  },
+
+  addPermissionsToRole: async (id, data) => {
+    const response = await apiClient.post(`/roles/${id}/permissions`, data);
+    return response.data;
+  },
+
+  removePermissionFromRole: async (roleId, permissionId) => {
+    const response = await apiClient.delete(`/roles/${roleId}/permissions/${permissionId}`);
+    return response.data;
+  }
 };

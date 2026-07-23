@@ -8,10 +8,10 @@ export const KnowledgeUploader = ({ onSuccess }) => {
   const [step, setStep] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const pollStatus = async (taskId) => {
+  const pollStatus = async (fileId) => {
     try {
       const check = async () => {
-        const res = await KnowledgeService.checkTaskStatus(taskId);
+        const res = await KnowledgeService.checkTaskStatus(fileId);
         if (res.status === 'completed') {
           setStep('done');
           onSuccess();
@@ -41,12 +41,13 @@ export const KnowledgeUploader = ({ onSuccess }) => {
       const fileData = await KnowledgeService.uploadFile(targetFile);
       setUploadProgress(50);
       setStep('extracting');
-      const extractData = await KnowledgeService.triggerExtraction(fileData.id);
+      // Extraction is triggered automatically by the backend's text-extraction worker.
+      // Poll the knowledge base to check if indexed items have appeared.
       setUploadProgress(80);
-      await pollStatus(extractData.taskId);
+      await pollStatus(fileData.id);
     } catch (err) {
       setStep('error');
-      setErrorMsg(err.response?.data?.message || err.message || 'Extraction failed.');
+      setErrorMsg(err.response?.data?.message || err.message || 'Upload failed.');
     }
   };
 

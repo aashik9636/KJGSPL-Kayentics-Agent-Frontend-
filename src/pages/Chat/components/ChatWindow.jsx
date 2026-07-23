@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { chatService } from '../../../services/chatService';
+import { useBrainStream } from '../../../hooks/useBrainStream';
 import MessageBubble from './MessageBubble';
 import { toast } from 'react-toastify';
 
-// ─── Suggested prompts ────────────────────────────────────────────────────────
 const SUGGESTIONS = [
   { icon: '🔍', text: 'Research top AI trends this week' },
   { icon: '📊', text: "Analyze my brand's social media performance" },
@@ -11,19 +11,16 @@ const SUGGESTIONS = [
   { icon: '🌐', text: 'Scrape and summarize competitor pricing pages' },
 ];
 
-// ─── Extract clarifying questions from any orchestrator result ────────────────
 function extractClarifyingQuestions(executionResults = {}) {
   for (const key of Object.keys(executionResults)) {
     const result = executionResults[key];
     if (result?.needs_clarification && Array.isArray(result?.clarifying_questions) && result.clarifying_questions.length > 0) {
-      return result.clarifying_questions; // [{ id, question }, ...]
+      return result.clarifying_questions;
     }
   }
   return [];
 }
 
-// ─── Format collected answers as a single query string ───────────────────────
-// Output: "campaign_name: Summer Launch 2026, objective: brand awareness, duration: 1 month"
 function formatAnswers(questions, answers) {
   return questions
     .map(q => `${q.id}: ${answers[q.id] || ''}`)
@@ -35,65 +32,152 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
   const [messages, setMessages]   = useState([]);
   const [isSending, setIsSending] = useState(false);
 
-  // ── Clarification state machine ───────────────────────────────────────────
-  // clarifyQueue: [{ id, question }, ...]  — questions still to ask
-  // clarifyIndex: which question we're on (0-based)
-  // clarifyAnswers: { id: answer, ... } — collected so far
   const [clarifyQueue,   setClarifyQueue]   = useState([]);
   const [clarifyIndex,   setClarifyIndex]   = useState(0);
   const [clarifyAnswers, setClarifyAnswers] = useState({});
-  // inClarifyMode: true as long as there are questions AND we haven't finished answering all of them.
-  // Uses <= so the LAST question (clarifyIndex === clarifyQueue.length) is still treated as clarify mode.
   const inClarifyMode = clarifyQueue.length > 0 && clarifyIndex <= clarifyQueue.length;
 
   const scrollRef = useRef(null);
   const inputRef  = useRef(null);
+  const brain     = useBrainStream();
 
-  // Clear everything when session changes
   useEffect(() => {
     setMessages([]);
     setInput('');
     setClarifyQueue([]);
     setClarifyIndex(0);
     setClarifyAnswers({});
+    brain.reset();
+
     if (!creatingSession && activeConversationId) {
+      chatService.getMessages(activeConversationId)
+        .then(msgs => {
+          const list = Array.isArray(msgs) ? msgs : msgs?.data || [];
+          setMessages(list.map(m => ({
+            role: m.role || (m.senderId ? 'USER' : 'ASSISTANT'),
+            content: m.content || m.text || '',
+          })));
+        })
+        .catch(() => {});
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [activeConversationId]);
 
-  // Smooth scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages, isSending]);
+  }, [messages, brain.streamingText, isSending]);
 
-  // ── Main Brain API call ───────────────────────────────────────────────────
-  const callBrainAgent = useCallback(async (userQuery, sessionIdOverride) => {
+  // ── Brain Agent query: try WebSocket streaming, fall back to REST ────────
+  const callBrainAgent = useCallback(async (userQuery) => {
     setIsSending(true);
+
+    // Add a placeholder assistant message that streaming will populate
+    setMessages(prev => [...prev, { role: 'ASSISTANT', content: '', isStreaming: true }]);
+
     try {
-      const targetSessionId = sessionIdOverride || activeConversationId;
-      const brainResponse = await chatService.runBrainAgent(targetSessionId, userQuery);
-      const payload = brainResponse?.data ?? brainResponse;
+      let finalAnswer = '';
+      let targetOrchestrators = [];
+      let executionResults = {};
+      let inScope = true;
 
-      const replyText =
-        payload?.finalAnswer ||
-        payload?.response    ||
-        payload?.message     ||
-        'No response received.';
+      // Attempt WebSocket streaming
+      brain.send(activeConversationId, userQuery);
 
-      const targetOrchestrators = payload?.targetOrchestrators || [];
-      const executionResults    = payload?.executionResults    || {};
-      const inScope             = payload?.inScope             ?? true;
+      // Wait up to 3s for the first token to arrive
+      const gotStream = await new Promise(resolve => {
+        let arrived = false;
+        const check = setInterval(() => {
+          if (brain.streamingText || brain.error || !brain.isStreaming) {
+            arrived = true;
+            clearInterval(check);
+            resolve(true);
+          }
+        }, 100);
+        setTimeout(() => {
+          if (!arrived) {
+            clearInterval(check);
+            brain.disconnect();
+            resolve(false);
+          }
+        }, 3000);
+      });
 
-      // Detect if we need clarification
+      if (gotStream && brain.streamingText) {
+        // ── Streaming succeeded — wait for done event ──────────────────────
+        await new Promise(resolve => {
+          const check = setInterval(() => {
+            if (!brain.isStreaming) {
+              clearInterval(check);
+              resolve();
+            }
+          }, 100);
+        });
+
+        finalAnswer = brain.streamingText;
+        targetOrchestrators = brain.metadata?.target_orchestrators || [];
+        inScope = brain.metadata?.in_scope ?? true;
+
+        // Update the placeholder with the streamed content
+        setMessages(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last?.isStreaming) {
+            updated[updated.length - 1] = {
+              ...last,
+              content: finalAnswer,
+              isStreaming: false,
+              targetOrchestrators,
+              inScope,
+            };
+          }
+          return updated;
+        });
+
+        // Stream doesn't carry execution_results — check for clarification
+        // by falling back to REST if the answer looks like it needs more info
+        const looksLikeClarification = /clarif|need more|could you|please provide|missing/i.test(finalAnswer);
+        if (looksLikeClarification) {
+          // Re-fetch via REST to get structured clarification data
+          const restResponse = await chatService.runBrainAgent(activeConversationId, userQuery);
+          const restPayload = restResponse?.data ?? restResponse;
+          executionResults = restPayload?.executionResults || {};
+          targetOrchestrators = restPayload?.targetOrchestrators || targetOrchestrators;
+          inScope = restPayload?.inScope ?? inScope;
+        }
+      } else {
+        // ── Streaming failed — fall back to REST ───────────────────────────
+        brain.reset();
+        const restResponse = await chatService.runBrainAgent(activeConversationId, userQuery);
+        const payload = restResponse?.data ?? restResponse;
+
+        finalAnswer = payload?.finalAnswer || payload?.response || payload?.message || 'No response received.';
+        targetOrchestrators = payload?.targetOrchestrators || [];
+        executionResults = payload?.executionResults || {};
+        inScope = payload?.inScope ?? true;
+
+        // Update the placeholder with the REST response
+        setMessages(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last?.isStreaming) {
+            updated[updated.length - 1] = {
+              ...last,
+              content: finalAnswer,
+              isStreaming: false,
+              targetOrchestrators,
+              executionResults,
+              inScope,
+            };
+          }
+          return updated;
+        });
+      }
+
+      // Check for clarification from execution results
       const clarifyingQuestions = extractClarifyingQuestions(executionResults);
-      const needsClarification  = clarifyingQuestions.length > 0;
-
-      if (needsClarification) {
-        // ── Enter clarification mode ──────────────────────────────────────
-        // Don't show the raw "CLARIFICATION REQUIRED" markdown.
-        // Instead, ask the FIRST question immediately as an AI message.
+      if (clarifyingQuestions.length > 0) {
         const firstQ = clarifyingQuestions[0];
         setMessages(prev => [...prev, {
           role: 'ASSISTANT',
@@ -104,35 +188,25 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
           targetOrchestrators,
           inScope,
         }]);
-
         setClarifyQueue(clarifyingQuestions);
-        setClarifyIndex(1); // next question to ask after user answers #0
+        setClarifyIndex(1);
         setClarifyAnswers({});
       } else {
-        // ── Normal response ───────────────────────────────────────────────
-        setMessages(prev => [...prev, {
-          role: 'ASSISTANT',
-          content: replyText,
-          targetOrchestrators,
-          executionResults,
-          inScope,
-          sources: [],
-        }]);
-        // Clear any stale clarification state
         setClarifyQueue([]);
         setClarifyIndex(0);
         setClarifyAnswers({});
       }
     } catch (err) {
       console.error('Brain agent request failed', err);
+      brain.reset();
       setMessages(prev => prev.slice(0, -1));
       toast.error(err.response?.data?.message || 'Failed to get a response. Please try again.');
     } finally {
       setIsSending(false);
     }
-  }, [activeConversationId]);
+  }, [activeConversationId, brain]);
 
-  // ── Handle user submit (normal OR clarification answer) ──────────────────
+  // ── Handle user submit ────────────────────────────────────────────────────
   const handleSubmit = useCallback(async (queryText) => {
     const trimmed = (queryText ?? input).trim();
     if (!trimmed || isSending) return;
@@ -148,36 +222,25 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     setInput('');
 
     if (inClarifyMode) {
-      // ── Clarification answer ─────────────────────────────────────────────
       const currentQ  = clarifyQueue[clarifyIndex - 1];
       const newAnswers = { ...clarifyAnswers, [currentQ.id]: trimmed };
       setClarifyAnswers(newAnswers);
-
-      // Show user's answer as a message
       setMessages(prev => [...prev, { role: 'USER', content: trimmed }]);
 
       const isLastQuestion = clarifyIndex >= clarifyQueue.length;
 
       if (isLastQuestion) {
-        // ── All questions answered → format & send to API ─────────────────
         const combinedQuery = formatAnswers(clarifyQueue, newAnswers);
-
-        // Show a "submitting" AI message while we wait
         setMessages(prev => [...prev, {
           role: 'ASSISTANT',
-          content: '✅ Got all the details! Processing your request…',
+          content: 'Got all the details! Processing your request...',
           isSummary: true,
         }]);
-
-        // Reset clarification state before calling API
         setClarifyQueue([]);
         setClarifyIndex(0);
         setClarifyAnswers({});
-
-        // Call the brain API with the combined formatted answer
-        await callBrainAgent(combinedQuery, currentSessionId);
+        await callBrainAgent(combinedQuery);
       } else {
-        // ── More questions remain → ask next one ──────────────────────────
         const nextQ = clarifyQueue[clarifyIndex];
         setMessages(prev => [...prev, {
           role: 'ASSISTANT',
@@ -189,9 +252,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         setClarifyIndex(prev => prev + 1);
       }
     } else {
-      // ── Normal query ──────────────────────────────────────────────────────
       setMessages(prev => [...prev, { role: 'USER', content: trimmed }]);
-      await callBrainAgent(trimmed, currentSessionId);
+      await callBrainAgent(trimmed);
     }
   }, [input, isSending, activeConversationId, inClarifyMode, clarifyQueue, clarifyIndex, clarifyAnswers, callBrainAgent, onNewChat]);
 
@@ -207,118 +269,18 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     }
   };
 
-  const isInputDisabled = isSending || creatingSession;
-  const placeholder = inClarifyMode 
-    ? `Answering question ${clarifyIndex} of ${clarifyQueue.length}...`
-    : 'Ask Brain anything...';
+  const isInputDisabled = isSending || !activeConversationId || creatingSession;
+  const isEmpty = messages.length === 0 && !isSending;
 
-  // Extract the Input Form into a reusable block so we can render it centrally or at the bottom
-  const renderInputForm = (isCentral = false) => (
-    <div className={`w-full max-w-3xl mx-auto ${isCentral ? 'mt-8 animate-fade-in-up' : ''}`}>
-      {/* Clarification progress bar */}
-      {inClarifyMode && !isCentral && (
-        <div className="mb-2.5 flex items-center gap-3">
-          <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-[#6c48ff] to-[#a78bfa] rounded-full transition-all duration-500"
-              style={{ width: `${((clarifyIndex) / clarifyQueue.length) * 100}%` }}
-            />
-          </div>
-          <span className="text-[11px] font-semibold text-[#6c48ff] whitespace-nowrap">
-            Question {clarifyIndex} of {clarifyQueue.length}
-          </span>
-        </div>
-      )}
-
-      <form
-        onSubmit={onFormSubmit}
-        className={`bg-white rounded-3xl border border-gray-100 shadow-[0_8px_32px_rgba(0,0,0,0.06)] p-3 pb-2.5 flex flex-col relative transition-all focus-within:shadow-[0_12px_48px_rgba(168,85,247,0.12)] focus-within:border-purple-200 ${isCentral ? 'shadow-[0_16px_64px_rgba(168,85,247,0.08)] scale-[1.02]' : ''}`}
-      >
-        <textarea
-          ref={isCentral ? null : inputRef}
-          rows={1}
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            e.target.style.height = 'auto';
-            e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-          }}
-          onKeyDown={onKeyDown}
-          disabled={isInputDisabled}
-          placeholder={placeholder}
-          className="w-full resize-none bg-transparent text-[16px] text-gray-900 placeholder:text-gray-400 outline-none leading-relaxed px-2 pt-2 pb-3 min-h-[48px] custom-scrollbar"
-          style={{ overflow: 'auto' }}
-        />
-
-        {/* Actions Bar */}
-        <div className="flex items-center justify-between mt-1">
-          <div className="flex items-center gap-1.5">
-            <button type="button" className="flex items-center gap-1.5 text-[12.5px] font-semibold text-purple-600 bg-purple-50/80 hover:bg-purple-100 px-3 py-1.5 rounded-[10px] transition-colors border border-purple-100">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              Deeper Research
-            </button>
-            <button type="button" className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            </button>
-            <button type="button" className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <button type="button" className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            </button>
-            <button type="button" className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-            </button>
-            
-            <div className="relative w-8 h-8 ml-1">
-              <button
-                type="submit"
-                disabled={isInputDisabled || (!input.trim() && !inClarifyMode)}
-                className="absolute inset-0 flex items-center justify-center rounded-[10px] transition-all disabled:opacity-50"
-                style={{
-                  background: input.trim() 
-                    ? '#000000' 
-                    : 'linear-gradient(135deg, #e9d5ff 0%, #c084fc 100%)',
-                  color: input.trim() ? '#ffffff' : '#7e22ce'
-                }}
-              >
-                {isSending || creatingSession ? (
-                  <svg className="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                ) : input.trim() ? (
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </form>
-
-      <div className="flex items-center justify-between mt-3 px-3">
-          <div className="flex items-center gap-1.5 text-gray-500/80 text-[12.5px] font-medium cursor-pointer hover:text-purple-600 transition-colors">
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            Saved prompts
-          </div>
-          <button className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-600 bg-white/60 backdrop-blur-sm border border-gray-200/60 px-3.5 py-1.5 rounded-full shadow-sm hover:bg-white transition-all">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-            Attach file
-          </button>
-      </div>
-    </div>
-  );
+  const placeholder = (() => {
+    if (creatingSession)       return 'Setting up session...';
+    if (!activeConversationId) return 'Click "+ New Chat" to start...';
+    if (inClarifyMode) {
+      const current = clarifyQueue[clarifyIndex - 1];
+      return `Answer: ${current?.question || 'Type your answer...'}`;
+    }
+    return 'Ask Brain anything...';
+  })();
 
   return (
     <div className="flex flex-col h-full bg-transparent relative">
@@ -363,76 +325,149 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       {/* ── Message list / Empty State ───────────────────────────────────── */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 relative flex flex-col custom-scrollbar">
 
-        {messages.length === 0 && !isSending ? (
-          <div className="flex flex-col items-center justify-center flex-1 w-full max-w-4xl mx-auto pt-10 pb-8 text-center animate-fade-in-up">
-            
-            <div className="relative w-36 h-36 mb-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-400 via-fuchsia-300 to-indigo-400 rounded-full blur-[24px] opacity-40 mix-blend-multiply animate-pulse" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-purple-100 via-white to-purple-50 rounded-full shadow-[inset_0_0_40px_rgba(168,85,247,0.4),inset_0_-10px_20px_rgba(88,28,135,0.2),0_10px_30px_rgba(168,85,247,0.2)] flex items-center justify-center overflow-hidden">
-                 <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/70 rounded-full blur-xl" />
-                 <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-purple-500/30 rounded-full blur-xl mix-blend-overlay" />
-                 <div className="absolute top-4 left-6 w-12 h-6 bg-white/80 rounded-[100%] rotate-[-35deg] blur-[2px]" />
+        {isEmpty && (
+          <div className="flex flex-col items-center justify-center h-full px-6 py-16 text-center">
+            {creatingSession ? (
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-200">
+                  <svg className="w-8 h-8 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <p className="text-[17px] font-semibold text-gray-700">Starting your session...</p>
+                <p className="text-[14px] text-gray-400">Connecting to Brain Agent</p>
               </div>
-            </div>
-
-            <h1 className="text-[28px] md:text-[34px] font-medium text-transparent bg-clip-text bg-gradient-to-r from-[#b392f0] to-[#8d6ee8] mb-1.5 tracking-tight">
-              Hello, User
-            </h1>
-            <h2 className="text-[36px] md:text-[42px] font-bold text-gray-900 tracking-tight leading-none mb-12">
-              How can I assist you today?
-            </h2>
-
-            {/* Empty state flows */}
-            {!activeConversationId ? (
-              renderInputForm(true)
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl mt-auto opacity-90">
-                {[
-                  { icon: 'pie-chart', title: 'Synthesize Data', desc: 'Turn my meeting notes into 5 key bullet points for the team.' },
-                  { icon: 'lightbulb', title: 'Creative Brainstorm', desc: 'Generate 3 taglines for a new sustainable fashion brand.' },
-                  { icon: 'hammer', title: 'Check Facts', desc: 'Compare key differences between GDPR and CCPA.' }
-                ].map((item, i) => (
-                  <button key={i} onClick={() => handleSubmit(item.title)} className="bg-white/80 backdrop-blur-md border border-gray-100 rounded-2xl p-5 text-left hover:bg-white hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] hover:border-purple-100 transition-all group">
-                     <div className="w-8 h-8 mb-3 text-gray-400 group-hover:text-purple-500 transition-colors">
-                        {item.icon === 'pie-chart' && <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>}
-                        {item.icon === 'lightbulb' && <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>}
-                        {item.icon === 'hammer' && <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 19h18M5 19V5a2 2 0 012-2h10a2 2 0 012 2v14M8 11h8M8 15h8M8 7h8"/></svg>}
-                     </div>
-                     <h3 className="text-[14px] font-bold text-gray-900 mb-1 group-hover:text-purple-700">{item.title}</h3>
-                     <p className="text-[12px] text-gray-400 leading-relaxed">{item.desc}</p>
-                  </button>
-                ))}
+            ) : activeConversationId ? (
+              <div className="flex flex-col items-center gap-6 max-w-lg w-full">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-200">
+                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-[22px] font-bold text-gray-900 mb-1 tracking-tight">How can I help you?</h2>
+                  <p className="text-[14px] text-gray-400">Powered by Brain Agent -- research, scrape, write & more.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full mt-2">
+                  {SUGGESTIONS.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSubmit(s.text)}
+                      className="flex items-center gap-3 bg-white hover:bg-violet-50 border border-gray-200 hover:border-violet-200 rounded-2xl px-4 py-3.5 text-left transition-all group shadow-sm"
+                    >
+                      <span className="text-xl flex-shrink-0">{s.icon}</span>
+                      <span className="text-[13px] font-medium text-gray-600 group-hover:text-violet-700 leading-snug">{s.text}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
+            ) : null}
           </div>
-        ) : (
-          <div className="max-w-3xl mx-auto w-full pt-8 space-y-1 pb-4">
+        )}
+
+        {messages.length > 0 && (
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 space-y-1">
             {messages.map((msg, idx) => (
-              <MessageBubble key={idx} message={msg} />
+              <MessageBubble key={idx} message={msg} isStreaming={msg.isStreaming} />
             ))}
 
-            {isSending && (
-              <div className="flex items-start gap-3 py-4 animate-fade-in">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#b392f0] to-[#8d6ee8] flex items-center justify-center flex-shrink-0 shadow-sm shadow-purple-200">
+            {/* Thinking indicator — show only when sending but no streaming text yet */}
+            {isSending && !brain.streamingText && (
+              <div className="flex items-start gap-3 py-4">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center flex-shrink-0 shadow-sm shadow-violet-200">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <div className="flex items-center gap-1.5 bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-1.5 bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-[#6c48ff] animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-[#6c48ff] animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-[#6c48ff] animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  {brain.status && (
+                    <span className="text-[11px] text-gray-400 pl-2">{brain.status}</span>
+                  )}
                 </div>
               </div>
             )}
           </div>
         )}
       </div>
-      {/* ── Floating Input Box (Bottom) ──────────────────────────────────────── */}
-      {/* Only render this if there is an active session! */}
-      {activeConversationId && (
-        <div className="flex-shrink-0 px-4 sm:px-8 pb-8 pt-2">
-          {renderInputForm(false)}
+
+      {/* ── Input bar ──────────────────────────────────────────────────────── */}
+      <div
+        className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-3"
+        style={{ background: 'linear-gradient(to top, #f6f7fb 85%, transparent)' }}
+      >
+        <div className="max-w-3xl mx-auto">
+
+          {inClarifyMode && (
+            <div className="mb-2.5 flex items-center gap-3">
+              <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#6c48ff] to-[#a78bfa] rounded-full transition-all duration-500"
+                  style={{ width: `${((clarifyIndex) / clarifyQueue.length) * 100}%` }}
+                />
+              </div>
+              <span className="text-[11px] font-semibold text-[#6c48ff] whitespace-nowrap">
+                Question {clarifyIndex} of {clarifyQueue.length}
+              </span>
+            </div>
+          )}
+
+          <form
+            onSubmit={onFormSubmit}
+            className="flex items-end gap-3 bg-white rounded-[20px] border border-gray-200 shadow-[0_4px_24px_rgba(108,72,255,0.08)] px-4 py-3 transition-all focus-within:border-violet-300 focus-within:shadow-[0_4px_32px_rgba(108,72,255,0.15)]"
+          >
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+              }}
+              onKeyDown={onKeyDown}
+              disabled={isInputDisabled}
+              placeholder={placeholder}
+              className="flex-1 resize-none bg-transparent text-[15px] text-gray-900 placeholder:text-gray-400 outline-none leading-relaxed py-1 font-medium disabled:opacity-40 min-h-[28px]"
+              style={{ overflow: 'hidden' }}
+            />
+
+            <button
+              type="submit"
+              disabled={isInputDisabled || !input.trim()}
+              className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30"
+              style={{
+                background: (isInputDisabled || !input.trim())
+                  ? '#e5e7eb'
+                  : 'linear-gradient(135deg, #6c48ff 0%, #a78bfa 100%)',
+              }}
+            >
+              {isSending ? (
+                <svg className="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                  stroke={(isInputDisabled || !input.trim()) ? '#9ca3af' : 'white'}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-[11px] text-gray-400 mt-2">
+            {inClarifyMode
+              ? 'Answer each question to continue -- answers will be sent together'
+              : brain.isStreaming
+                ? 'Streaming response in real-time...'
+                : <>Press <kbd className="bg-gray-100 border border-gray-200 rounded px-1 py-0.5 text-[10px] font-mono">Enter</kbd> to send · <kbd className="bg-gray-100 border border-gray-200 rounded px-1 py-0.5 text-[10px] font-mono">Shift + Enter</kbd> for new line</>
+            }
+          </p>
         </div>
       )}
     </div>

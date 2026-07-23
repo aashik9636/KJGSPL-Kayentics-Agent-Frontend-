@@ -2,7 +2,7 @@ import apiClient from './apiClient';
 import { useWorkspaceStore } from '../store/workspaceStore';
 
 export const KnowledgeService = {
-  // 1. Upload raw file
+  // ─── Upload raw file ──────────────────────────────────────────────────────
   uploadFile: async (file) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
     
@@ -11,7 +11,6 @@ export const KnowledgeService = {
     if (organizationId) formData.append('organizationId', organizationId);
     if (workspaceId) formData.append('workspaceId', workspaceId);
 
-    // Some backends expect this in the query parameters instead for multer compatibility
     let url = '/storage/upload';
     if (organizationId) {
       url += `?organizationId=${organizationId}`;
@@ -24,11 +23,11 @@ export const KnowledgeService = {
     return res.data;
   },
 
-  // 2. Trigger LLM classification & embedding pipeline
+  // ─── Trigger extraction ────────────────────────────────────────────────────
   triggerExtraction: async (fileId, overrideType) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const res = await apiClient.post('/extraction/extract', {
-      fileId,
+    const res = await apiClient.post('/knowledge', {
+      sourceFileId: fileId,
       documentTypeOverride: overrideType,
       organizationId,
       workspaceId
@@ -36,17 +35,21 @@ export const KnowledgeService = {
     return res.data;
   },
 
-  // 3. Track extraction task progress
-  checkTaskStatus: async (taskId) => {
+  // ─── Check extraction status ───────────────────────────────────────────────
+  checkTaskStatus: async (fileId) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const res = await apiClient.get(`/extraction/status/${taskId}`, {
-      params: { organizationId, workspaceId }
+    const res = await apiClient.get('/knowledge', {
+      params: { organizationId, workspaceId, sourceFileId: fileId, limit: 1 }
     });
-    return res.data;
+    const items = res.data || [];
+    if (items.length > 0) {
+      return { status: 'completed', items };
+    }
+    return { status: 'processing' };
   },
 
-  // 4. Retrieve semantically indexed items
-  listItems: async (params) => {
+  // ─── CRUD ─────────────────────────────────────────────────────────────────
+  listItems: async (params = {}) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
     const res = await apiClient.get('/knowledge', { 
       params: { organizationId, workspaceId, ...params } 
@@ -54,7 +57,16 @@ export const KnowledgeService = {
     return res.data;
   },
 
-  // 5. Delete specific extracted segment
+  getItem: async (id) => {
+    const res = await apiClient.get(`/knowledge/${id}`);
+    return res.data;
+  },
+
+  updateItem: async (id, data) => {
+    const res = await apiClient.put(`/knowledge/${id}`, data);
+    return res.data;
+  },
+
   deleteItem: async (id) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
     await apiClient.delete(`/knowledge/${id}`, {
@@ -62,11 +74,21 @@ export const KnowledgeService = {
     });
   },
 
-  // 6. Delete all segments extracted from a specific file
   deleteFileItems: async (sourceFileId) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
     await apiClient.delete('/knowledge', { 
       params: { sourceFileId, organizationId, workspaceId } 
     });
   },
+
+  // ─── Bulk Operations ──────────────────────────────────────────────────────
+  bulkCreate: async (data) => {
+    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const res = await apiClient.post('/knowledge/bulk', {
+      ...data,
+      organizationId,
+      workspaceId
+    });
+    return res.data;
+  }
 };

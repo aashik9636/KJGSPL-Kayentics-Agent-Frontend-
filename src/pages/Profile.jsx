@@ -240,7 +240,10 @@ export default function Profile() {
       
       setSaving(true);
       try {
-        await businessService.createOrUpdateBusinessProfile(business);
+        await (origBusiness.companyName
+          ? businessService.updateBusinessProfile(business)
+          : businessService.createBusinessProfile(business)
+        );
         setOrigBusiness(business);
         setHasChanges(false);
         toast.success('Business profile saved successfully');

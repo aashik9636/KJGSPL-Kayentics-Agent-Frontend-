@@ -6,24 +6,35 @@ import { toast } from 'react-toastify';
 
 export default function Storage() {
   const [files, setFiles] = useState([]);
+  const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [currentFolderId, setCurrentFolderId] = useState(null);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [showNewFolder, setShowNewFolder] = useState(false);
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
 
-  const fetchFiles = async () => {
+  const fetchData = async () => {
     try {
-      const data = await storageService.getFiles();
-      setFiles(Array.isArray(data) ? data : data?.data || []);
+      const [filesData, foldersData] = await Promise.all([
+        storageService.getFiles(currentFolderId ? { folderId: currentFolderId } : {}),
+        storageService.getFolders(currentFolderId ? { parentId: currentFolderId } : {})
+      ]);
+      setFiles(Array.isArray(filesData) ? filesData : filesData?.data || []);
+      setFolders(Array.isArray(foldersData) ? foldersData : foldersData?.data || []);
     } catch (err) {
-      toast.error('Failed to load storage files');
+      toast.error('Failed to load storage');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFiles();
-  }, []);
+    setLoading(true);
+    fetchData();
+  }, [currentFolderId]);
 
   const handleUpload = async (acceptedFiles) => {
     const targetFile = acceptedFiles[0];
@@ -31,10 +42,9 @@ export default function Storage() {
 
     setUploading(true);
     try {
-      // Re-using the upload function from KnowledgeService which targets /storage/upload
       await KnowledgeService.uploadFile(targetFile);
       toast.success('File uploaded successfully');
-      fetchFiles();
+      fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'File upload failed');
     } finally {
@@ -45,7 +55,7 @@ export default function Storage() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleUpload,
     multiple: false,
-    maxSize: 104857600, // 100MB
+    maxSize: 104857600,
     accept: {
       'application/pdf': ['.pdf'],
       'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
@@ -60,9 +70,56 @@ export default function Storage() {
     try {
       await storageService.deleteFile(id);
       toast.success('File deleted');
-      fetchFiles();
+      fetchData();
     } catch (err) {
       // Error handled by interceptor
+    }
+  };
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return;
+    try {
+      await storageService.createFolder({
+        name: newFolderName.trim(),
+        parentId: currentFolderId
+      });
+      toast.success('Folder created');
+      setNewFolderName('');
+      setShowNewFolder(false);
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to create folder');
+    }
+  };
+
+  const handleDeleteFolder = async (id, e) => {
+    e.stopPropagation();
+    if (!confirm('Delete this folder and its contents?')) return;
+    try {
+      await storageService.deleteFolder(id);
+      toast.success('Folder deleted');
+      fetchData();
+    } catch (err) {
+      // Error handled by interceptor
+    }
+  };
+
+  const handleRename = async (id, e) => {
+    e.stopPropagation();
+    setRenamingId(id);
+    setRenameValue('');
+    setTimeout(() => document.getElementById(`rename-${id}`)?.focus(), 100);
+  };
+
+  const handleRenameSubmit = async (id) => {
+    if (!renameValue.trim()) return;
+    try {
+      await storageService.renameFile(id, { name: renameValue.trim() });
+      toast.success('File renamed');
+      setRenamingId(null);
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to rename');
     }
   };
 
@@ -103,9 +160,54 @@ export default function Storage() {
       
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Media Storage</h1>
-        <p className="text-gray-500 text-sm mt-1">Upload and manage your brand assets, images, and documents.</p>
+        <div className="flex items-center gap-2 text-[13px] text-gray-400 mb-3">
+          <button 
+            onClick={() => setCurrentFolderId(null)} 
+            className={`hover:text-gray-900 transition-colors ${!currentFolderId ? 'font-bold text-gray-900' : ''}`}
+          >
+            Storage
+          </button>
+          {currentFolderId && (
+            <>
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              <span className="font-bold text-gray-900">Current Folder</span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Media Storage</h1>
+            <p className="text-gray-500 text-sm mt-1">Upload and manage your brand assets, images, and documents.</p>
+          </div>
+          <button 
+            onClick={() => setShowNewFolder(!showNewFolder)}
+            className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm hover:bg-gray-50 transition-all text-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+            New Folder
+          </button>
+        </div>
       </div>
+
+      {/* New Folder Input */}
+      {showNewFolder && (
+        <div className="mb-6 flex items-center gap-3">
+          <input
+            type="text"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
+            placeholder="Folder name..."
+            className="flex-1 max-w-xs px-4 py-2.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+          />
+          <button onClick={handleCreateFolder} className="px-4 py-2.5 rounded-xl bg-[#1967d2] text-white text-sm font-medium hover:bg-[#1557b0] transition-colors">
+            Create
+          </button>
+          <button onClick={() => { setShowNewFolder(false); setNewFolderName(''); }} className="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors">
+            Cancel
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-6 mb-8">
         {/* Upload Zone */}
@@ -145,32 +247,62 @@ export default function Storage() {
 
         {/* Gallery */}
         <div className="flex-1 bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] min-h-[400px]">
-          <h3 className="text-[16px] font-bold text-gray-900 mb-6">Uploaded Assets</h3>
+          <h3 className="text-[16px] font-bold text-gray-900 mb-6">{currentFolderId ? 'Folder Contents' : 'All Files'}</h3>
           
           {loading ? (
             <div className="flex justify-center items-center h-40">
               <svg className="animate-spin w-8 h-8 text-[#1967d2]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             </div>
-          ) : files.length === 0 ? (
+          ) : (files.length === 0 && folders.length === 0) ? (
             <div className="flex flex-col items-center justify-center h-40">
-              <p className="text-[13px] font-medium text-gray-500">No assets uploaded yet.</p>
+              <p className="text-[13px] font-medium text-gray-500">No files or folders yet.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+              {/* Folders */}
+              {folders.map(folder => (
+                <div 
+                  key={folder.id}
+                  onClick={() => setCurrentFolderId(folder.id)}
+                  className="group relative bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden cursor-pointer hover:shadow-md hover:border-blue-200 transition-all aspect-square flex flex-col items-center justify-center"
+                >
+                  <button 
+                    onClick={(e) => handleDeleteFolder(folder.id, e)}
+                    className="absolute top-2 right-2 p-1.5 bg-white/90 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm z-10"
+                    title="Delete Folder"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                  <svg className="w-12 h-12 text-[#1967d2] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                  </svg>
+                  <p className="text-[12px] font-bold text-[#1967d2] truncate w-full text-center px-2">{folder.name}</p>
+                </div>
+              ))}
+
+              {/* Files */}
               {files.map(file => (
                 <div 
                   key={file.id} 
                   onClick={() => handlePreview(file)}
                   className="group relative bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md hover:border-gray-200 transition-all aspect-square flex flex-col"
                 >
-                  {/* Delete Button (overlay on hover) */}
-                  <button 
-                    onClick={(e) => handleDelete(file.id, e)}
-                    className="absolute top-2 right-2 p-1.5 bg-white/90 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm z-10 backdrop-blur-sm"
-                    title="Delete File"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  </button>
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
+                    <button 
+                      onClick={(e) => handleRename(file.id, e)}
+                      className="p-1.5 bg-white/90 text-gray-400 hover:text-[#1967d2] rounded-lg shadow-sm"
+                      title="Rename"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    </button>
+                    <button 
+                      onClick={(e) => handleDelete(file.id, e)}
+                      className="p-1.5 bg-white/90 text-gray-400 hover:text-red-500 rounded-lg shadow-sm"
+                      title="Delete File"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </div>
 
                   <div className="flex-1 w-full bg-gray-100 flex items-center justify-center overflow-hidden">
                     {file.mimeType?.includes('image') ? (
@@ -183,7 +315,22 @@ export default function Storage() {
                   </div>
                   
                   <div className="p-3 bg-white border-t border-gray-100">
-                    <p className="text-[12px] font-bold text-gray-900 truncate" title={file.name}>{file.name}</p>
+                    {renamingId === file.id ? (
+                      <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                        <input
+                          id={`rename-${file.id}`}
+                          type="text"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit(file.id)}
+                          onBlur={() => handleRenameSubmit(file.id)}
+                          placeholder={file.name}
+                          className="flex-1 text-[12px] font-bold text-gray-900 px-1 py-0.5 border border-[#1967d2] rounded outline-none"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-[12px] font-bold text-gray-900 truncate" title={file.name}>{file.name}</p>
+                    )}
                     <div className="flex items-center justify-between mt-1">
                       <p className="text-[10px] text-gray-400 font-medium">
                         {(file.size / 1024 / 1024).toFixed(2)} MB

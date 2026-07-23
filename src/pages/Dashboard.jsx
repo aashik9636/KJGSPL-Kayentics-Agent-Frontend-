@@ -4,57 +4,98 @@ import {
   PieChart, Pie
 } from 'recharts';
 import gsap from 'gsap';
+import { dashboardService } from '../services/dashboardService';
 
 export default function Dashboard() {
   const dashboardRef = useRef(null);
   
-  // Simulated "Dynamic" Data State
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
   
-  // Simulate fetching data from an API
   useEffect(() => {
     const fetchData = async () => {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      setMetrics({
-        activeAgents: { value: 12, trend: '+3', isPositive: true },
-        tasksCompleted: { value: 1450, trend: '+15%', isPositive: true },
-        tokensUsed: { value: '2.4M', trend: '-5%', isPositive: false },
-        successRate: { value: '98.5%', trend: '+1.2%', isPositive: true }
-      });
+      try {
+        const [summary, costReport, usageDashboard] = await Promise.all([
+          dashboardService.getDashboardSummary(),
+          dashboardService.getCostReports().catch(() => null),
+          dashboardService.getUsageDashboard().catch(() => null),
+        ]);
 
-      setChartData({
-        agentStatus: [
-          { name: 'Active', value: 8 },
-          { name: 'Idle', value: 4 }
-        ],
-        taskExecution: [
-          { name: 'Sun', Success: 180, Failed: 10 },
-          { name: 'Mon', Success: 220, Failed: 15 },
-          { name: 'Tue', Success: 140, Failed: 5 },
-          { name: 'Wed', Success: 250, Failed: 8 },
-          { name: 'Thu', Success: 170, Failed: 20 },
-          { name: 'Fri', Success: 200, Failed: 12 },
-          { name: 'Sat', Success: 120, Failed: 4 },
-        ],
-        tokenConsumption: [
-          { name: 'Mar', value: 130 }, { name: 'Apr', value: 160 }, { name: 'May', value: 100 },
-          { name: 'Jun', value: 50 }, { name: 'Jul', value: 80 }, { name: 'Aug', value: 120 },
-          { name: 'Sep', value: 70 }, { name: 'Oct', value: 100 }, { name: 'Nov', value: 160 },
-        ]
-      });
+        const s = summary || {};
+        const counts = s.counts || {};
+        const aiUsage = s.aiUsage || {};
+        const credits = s.credits || {};
+        const topAgents = s.topAgents || [];
+        const usageGraph = s.usageGraph || [];
+        const activities = s.recentActivities || [];
+        const costData = costReport || {};
+        const usageDash = usageDashboard || {};
 
-      setRecentLogs([
-        { id: 1, agent: 'LeadGen Bot', action: 'Scraped 50 leads', status: 'Success', statusColor: 'bg-emerald-500', avatar: 'https://i.pravatar.cc/150?img=11' },
-        { id: 2, name: 'Support AI', action: 'Answered ticket #402', status: 'In Progress', statusColor: 'bg-orange-500', avatar: 'https://i.pravatar.cc/150?img=5' },
-        { id: 3, name: 'Data Sync', action: 'CRM Sync Failed', status: 'Failed', statusColor: 'bg-red-500', avatar: 'https://i.pravatar.cc/150?img=60' },
-      ]);
-      
-      setLoading(false);
+        setMetrics({
+          activeAgents: { value: topAgents.length || counts.users || 0, trend: '', isPositive: true },
+          tasksCompleted: { value: aiUsage.totalRequests || usageDash.totalRequests || 0, trend: '', isPositive: true },
+          tokensUsed: {
+            value: (aiUsage.totalTokens || usageDash.totalTokens || 0) >= 1000000
+              ? `${((aiUsage.totalTokens || usageDash.totalTokens || 0) / 1000000).toFixed(1)}M`
+              : (aiUsage.totalTokens || usageDash.totalTokens || 0) >= 1000
+                ? `${((aiUsage.totalTokens || usageDash.totalTokens || 0) / 1000).toFixed(1)}K`
+                : String(aiUsage.totalTokens || usageDash.totalTokens || 0),
+            trend: '',
+            isPositive: true,
+          },
+          successRate: {
+            value: credits.total ? `${((1 - (credits.consumed || 0) / credits.total) * 100).toFixed(1)}%` : '—',
+            trend: '',
+            isPositive: true,
+          },
+        });
+
+        setChartData({
+          agentStatus: topAgents.length
+            ? topAgents.map(a => ({ name: a.agentName || 'Agent', value: a.count }))
+            : [{ name: 'No data', value: 1 }],
+          taskExecution: usageGraph.length
+            ? usageGraph.map(d => ({
+                name: new Date(d.date).toLocaleDateString(undefined, { weekday: 'short' }),
+                Success: d.tokens || 0,
+                Failed: 0,
+              }))
+            : [],
+          tokenConsumption: usageGraph.length
+            ? usageGraph.map(d => ({
+                name: new Date(d.date).toLocaleDateString(undefined, { month: 'short' }),
+                value: d.tokens || 0,
+              }))
+            : [],
+        });
+
+        setRecentLogs(
+          activities.map((a, i) => ({
+            id: a.id || i,
+            name: a.actor?.email?.split('@')[0] || 'System',
+            action: a.summary || a.action,
+            status: 'Completed',
+            statusColor: 'bg-emerald-500',
+          }))
+        );
+      } catch {
+        setMetrics({
+          activeAgents: { value: 0, trend: '', isPositive: true },
+          tasksCompleted: { value: 0, trend: '', isPositive: true },
+          tokensUsed: { value: '0', trend: '', isPositive: true },
+          successRate: { value: '—', trend: '', isPositive: true },
+        });
+        setChartData({
+          agentStatus: [{ name: 'No data', value: 1 }],
+          taskExecution: [],
+          tokenConsumption: [],
+        });
+        setRecentLogs([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();

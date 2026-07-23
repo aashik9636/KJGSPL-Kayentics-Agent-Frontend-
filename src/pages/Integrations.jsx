@@ -55,6 +55,36 @@ export default function Integrations() {
     }
   };
 
+  const handleRefresh = async (id, platform) => {
+    setActionInProgress(`refresh-${platform}`);
+    try {
+      await integrationService.refreshIntegration(id, {});
+      toast.success(`${platform} tokens refreshed`);
+      fetchIntegrations();
+    } catch (err) {
+      toast.error('Failed to refresh tokens');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleHealthCheck = async (id, platform) => {
+    setActionInProgress(`health-${platform}`);
+    try {
+      const result = await integrationService.checkHealth(id);
+      const healthy = result?.healthy ?? result?.data?.healthy;
+      if (healthy) {
+        toast.success(`${platform} connection is healthy`);
+      } else {
+        toast.warning(`${platform} connection may need attention`);
+      }
+    } catch (err) {
+      toast.error('Health check failed');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
   const integrations = [
     { name: 'LINKEDIN', displayName: 'LinkedIn', icon: 'M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z', color: '#0077b5' },
     { name: 'TWITTER', displayName: 'Twitter / X', icon: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z', color: '#000000' },
@@ -108,13 +138,29 @@ export default function Integrations() {
               </p>
               
               {isConnected ? (
-                <button 
-                  onClick={() => handleDisconnect(connectionInfo.id, integration.name)}
-                  disabled={isProcessing}
-                  className="w-full bg-white border border-red-200 text-red-500 font-bold py-3.5 rounded-xl hover:bg-red-50 transition-colors shadow-sm text-[14px] flex items-center justify-center gap-2"
-                >
-                  {isProcessing ? 'Disconnecting...' : 'Disconnect Account'}
-                </button>
+                <div className="w-full space-y-2">
+                  <button 
+                    onClick={() => handleRefresh(connectionInfo.id, integration.name)}
+                    disabled={actionInProgress === `refresh-${integration.name}`}
+                    className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-2.5 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-[13px] flex items-center justify-center gap-2"
+                  >
+                    {actionInProgress === `refresh-${integration.name}` ? 'Refreshing...' : 'Refresh Tokens'}
+                  </button>
+                  <button 
+                    onClick={() => handleHealthCheck(connectionInfo.id, integration.name)}
+                    disabled={actionInProgress === `health-${integration.name}`}
+                    className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-2.5 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-[13px] flex items-center justify-center gap-2"
+                  >
+                    {actionInProgress === `health-${integration.name}` ? 'Checking...' : 'Health Check'}
+                  </button>
+                  <button 
+                    onClick={() => handleDisconnect(connectionInfo.id, integration.name)}
+                    disabled={actionInProgress === integration.name}
+                    className="w-full bg-white border border-red-200 text-red-500 font-bold py-2.5 rounded-xl hover:bg-red-50 transition-colors shadow-sm text-[13px] flex items-center justify-center gap-2"
+                  >
+                    {actionInProgress === integration.name ? 'Disconnecting...' : 'Disconnect Account'}
+                  </button>
+                </div>
               ) : (
                 <button 
                   onClick={() => handleConnect(integration.name)}

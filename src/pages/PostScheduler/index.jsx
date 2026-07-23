@@ -6,12 +6,18 @@ export default function PostScheduler() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Basic calendar state
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const fetchPosts = async () => {
     try {
-      const data = await schedulerService.getScheduledPosts();
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      let data;
+      try {
+        data = await schedulerService.getCalendarPosts(year, month);
+      } catch {
+        data = await schedulerService.getScheduledPosts();
+      }
       setPosts(Array.isArray(data) ? data : data?.data || []);
     } catch (err) {
       toast.error('Failed to load scheduled posts');
@@ -22,7 +28,7 @@ export default function PostScheduler() {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [currentDate]);
 
   const handleCancelPost = async (id, e) => {
     e.stopPropagation();
@@ -37,7 +43,29 @@ export default function PostScheduler() {
     }
   };
 
-  // Calendar Helpers
+  const handleApprovePost = async (id, e) => {
+    e.stopPropagation();
+    try {
+      await schedulerService.approvePost(id);
+      toast.success('Post approved');
+      fetchPosts();
+    } catch (err) {
+      // Error handled by interceptor
+    }
+  };
+
+  const handleRejectPost = async (id, e) => {
+    e.stopPropagation();
+    if (!confirm('Reject this post?')) return;
+    try {
+      await schedulerService.rejectPost(id);
+      toast.success('Post rejected');
+      fetchPosts();
+    } catch (err) {
+      // Error handled by interceptor
+    }
+  };
+
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -54,7 +82,7 @@ export default function PostScheduler() {
     if (dayNumber > 0 && dayNumber <= daysInMonth) {
       return new Date(currentDate.getFullYear(), currentDate.getMonth(), dayNumber);
     }
-    return null; // Padding days
+    return null;
   });
 
   const getPostsForDay = (dateObj) => {
@@ -82,6 +110,15 @@ export default function PostScheduler() {
       case 'TWITTER': return 'bg-black';
       case 'META': return 'bg-[#1877F2]';
       default: return 'bg-gray-800';
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch(status?.toUpperCase()) {
+      case 'APPROVED': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      case 'REJECTED': return 'bg-red-50 text-red-600 border-red-100';
+      case 'PENDING': return 'bg-amber-50 text-amber-600 border-amber-100';
+      default: return 'bg-gray-50 text-gray-500 border-gray-200';
     }
   };
 
@@ -151,17 +188,8 @@ export default function PostScheduler() {
                             key={post.id} 
                             className="bg-white border border-gray-100 rounded-lg p-2 shadow-sm relative group text-left flex flex-col"
                           >
-                            {/* Cancel Button (overlay) */}
-                            <button 
-                              onClick={(e) => handleCancelPost(post.id, e)}
-                              className="absolute top-1 right-1 p-1 bg-red-50 text-red-500 rounded text-[10px] opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                              title="Cancel Post"
-                            >
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-
                             <div className="flex gap-1 mb-1">
-                              {post.platforms.map(p => (
+                              {(post.platforms || []).map(p => (
                                 <div key={p} className={`w-4 h-4 rounded-full flex items-center justify-center ${getPlatformColor(p)}`} title={p}>
                                   {getPlatformIcon(p)}
                                 </div>
@@ -170,6 +198,38 @@ export default function PostScheduler() {
                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                               {new Date(post.scheduledAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </span>
+                            {post.status && (
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border mt-1 uppercase tracking-wider ${getStatusBadge(post.status)}`}>
+                                {post.status}
+                              </span>
+                            )}
+                            <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                              {(!post.status || post.status === 'PENDING') && (
+                                <>
+                                  <button 
+                                    onClick={(e) => handleApprovePost(post.id, e)}
+                                    className="p-1 bg-emerald-50 text-emerald-500 rounded text-[10px]"
+                                    title="Approve"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  </button>
+                                  <button 
+                                    onClick={(e) => handleRejectPost(post.id, e)}
+                                    className="p-1 bg-amber-50 text-amber-500 rounded text-[10px]"
+                                    title="Reject"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                  </button>
+                                </>
+                              )}
+                              <button 
+                                onClick={(e) => handleCancelPost(post.id, e)}
+                                className="p-1 bg-red-50 text-red-500 rounded text-[10px]"
+                                title="Delete"
+                              >
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
