@@ -469,7 +469,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             }
           </p>
         </div>
-      )}
+      </div>
     </div>
   );
 }
