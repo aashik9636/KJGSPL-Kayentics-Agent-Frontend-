@@ -9,6 +9,21 @@ export default function BrandProfile() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    async function loadBrand() {
+      try {
+        const brand = await brandService.getBrandProfile();
+        if (brand) {
+          if (brand.brandTone) setToneOfVoice(Array.isArray(brand.brandTone) ? brand.brandTone.join(', ') : brand.brandTone);
+          if (brand.prohibitedKeywords) setProhibitedKeywords(Array.isArray(brand.prohibitedKeywords) ? brand.prohibitedKeywords.join(', ') : brand.prohibitedKeywords);
+        }
+      } catch (e) {
+        // silent catch
+      }
+    }
+    loadBrand();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);

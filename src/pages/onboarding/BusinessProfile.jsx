@@ -15,15 +15,30 @@ export default function BusinessProfile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchIndustries() {
+    async function loadData() {
       try {
-        const data = await businessService.getIndustries();
-        setIndustriesList(data);
+        const [indData, profileRes] = await Promise.allSettled([
+          businessService.getIndustries(),
+          businessService.getBusinessProfile()
+        ]);
+
+        if (indData.status === 'fulfilled') {
+          setIndustriesList(indData.value || []);
+        }
+
+        if (profileRes.status === 'fulfilled' && profileRes.value) {
+          const profile = profileRes.value;
+          if (profile.companyName) setCompanyName(profile.companyName);
+          if (profile.industry) setIndustry(profile.industry);
+          if (profile.vision) setVision(profile.vision);
+          if (profile.targetAudience || profile.description) setTargetAudience(profile.targetAudience || profile.description || '');
+          if (profile.websiteUrl || profile.website) setWebsiteUrl(profile.websiteUrl || profile.website || '');
+        }
       } catch (e) {
-        console.error("Failed to load industries");
+        console.error("Failed to load business profile data", e);
       }
     }
-    fetchIndustries();
+    loadData();
   }, []);
 
   const handleSubmit = async (e) => {

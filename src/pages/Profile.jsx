@@ -375,8 +375,8 @@ export default function Profile() {
                     <Field label="Industry Master" error={errors.industry}>
                       <Select 
                         options={industries} 
-                        value={industries.find(o => o.value === business.industry) || null} 
-                        onChange={s => handleBusinessChange('industry', s.value)} 
+                        value={industries.find(o => o.value === business.industry || o.label === business.industry) || (business.industry ? { value: business.industry, label: business.industry } : null)} 
+                        onChange={s => handleBusinessChange('industry', s ? s.value : '')} 
                         styles={selectStyles} 
                         placeholder="Select Industry..."
                         isSearchable 
