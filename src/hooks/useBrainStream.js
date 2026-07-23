@@ -40,7 +40,9 @@ export const useBrainStream = () => {
     setStreamingText('');
     setMetadata(null);
 
-    const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    const defaultWsUrl = apiBaseUrl.replace(/^http/, 'ws');
+    const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || defaultWsUrl;
     const socketUrl = `${wsBaseUrl}/conversations/brain/stream?token=${accessToken}`;
     const socket = new WebSocket(socketUrl);
     wsRef.current = socket;
