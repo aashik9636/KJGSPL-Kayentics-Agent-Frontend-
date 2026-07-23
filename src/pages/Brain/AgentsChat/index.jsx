@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ChatSidebar from './components/ChatSidebar';
 import ChatWindow from './components/ChatWindow';
-import { chatService } from '../../services/chatService';
+import { chatService } from '../../../services/chatService';
 import { toast } from 'react-toastify';
 
 export default function Chat() {
@@ -51,34 +51,32 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-full w-full bg-[#fdfbfd] p-3 md:p-5 overflow-hidden relative font-sans">
+    <div className="flex h-full w-full bg-[#f8f9fa] p-3 md:p-5 overflow-hidden relative font-sans text-gray-900">
       
-      {/* Background Soft Glows */}
+      {/* Background Soft Glows (Light Mode) */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -left-40 w-[50rem] h-[50rem] bg-purple-300/20 rounded-full blur-[140px]" />
-        <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] bg-pink-300/10 rounded-full blur-[120px]" />
+        <div className="absolute -top-40 -left-40 w-[60rem] h-[60rem] bg-violet-400/10 rounded-full blur-[140px] animate-pulse-slow mix-blend-multiply" />
+        <div className="absolute bottom-[-10rem] right-[-10rem] w-[50rem] h-[50rem] bg-pink-400/10 rounded-full blur-[140px] animate-pulse-slow mix-blend-multiply" style={{ animationDelay: '2s' }} />
       </div>
 
       {/* Main Glass Window */}
-      <div className="flex flex-1 w-full h-full bg-white/80 backdrop-blur-3xl rounded-[28px] shadow-[0_8px_40px_rgba(0,0,0,0.06)] border border-white overflow-hidden relative z-10 transition-all duration-500">
+      <div className="flex flex-1 w-full h-full bg-white/70 backdrop-blur-3xl rounded-[32px] shadow-[0_8px_40px_rgba(0,0,0,0.04)] border border-white overflow-hidden relative z-10 transition-all duration-500">
         
         {/* Sidebar - History */}
-        {activeSessionId && (
-          <div className="w-[280px] flex-shrink-0 border-r border-gray-100/50 bg-[#fafbfc]/50 flex flex-col h-full animate-fade-in">
-            <ChatSidebar
-              conversations={conversations}
-              activeId={activeSessionId}
-              onSelect={handleSelectConversation}
-              onNewChat={handleNewChat}
-              loading={loading}
-              creatingSession={creatingSession}
-              refreshConversations={loadConversations}
-            />
-          </div>
-        )}
+        <div className="w-[280px] flex-shrink-0 border-r border-gray-100/60 bg-white/40 flex flex-col h-full animate-fade-in relative z-20">
+          <ChatSidebar
+            conversations={conversations}
+            activeId={activeSessionId}
+            onSelect={handleSelectConversation}
+            onNewChat={handleNewChat}
+            loading={loading}
+            creatingSession={creatingSession}
+            refreshConversations={loadConversations}
+          />
+        </div>
 
         {/* Main Chat Window */}
-        <div className="flex-1 flex flex-col h-full relative bg-transparent">
+        <div className="flex-1 flex flex-col h-full relative bg-transparent z-10">
           <ChatWindow
             activeConversationId={activeSessionId}
             creatingSession={creatingSession}

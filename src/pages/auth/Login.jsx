@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService';
-import { workspaceService } from '../services/workspaceService';
-import { rbacService } from '../services/rbacService';
-import { useAuthStore } from '../store/authStore';
-import { useWorkspaceStore } from '../store/workspaceStore';
+import { authService } from '../../services/authService';
+import { workspaceService } from '../../services/workspaceService';
+import { rbacService } from '../../services/rbacService';
+import { useAuthStore } from '../../store/authStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { toast } from 'react-toastify';
 
 export default function Login() {
@@ -33,6 +33,9 @@ export default function Login() {
 
       // Store tokens first so subsequent requests are authenticated
       setAuth(user || null, accessToken, refreshToken);
+
+      // Clear previous workspace state to prevent inheriting stale IDs
+      useWorkspaceStore.getState().clearWorkspace();
 
       // Set org/workspace IDs from login response (if provided)
       if (organizationId) useWorkspaceStore.getState().setOrganizationId(organizationId);

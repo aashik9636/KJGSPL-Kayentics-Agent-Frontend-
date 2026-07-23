@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuthStore } from '../../../store/authStore';
+import { useAuthStore } from '../../../../store/authStore';
 
 // Icons
 const SearchIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
@@ -27,14 +27,36 @@ export default function ChatSidebar({ conversations, activeId, onSelect, onNewCh
   );
 
   const HistoryItem = ({ conv }) => (
-    <button
-      onClick={() => onSelect(conv.id)}
-      className={`w-full text-left px-3 py-2 rounded-lg transition-all text-[13px] truncate ${
-        activeId === conv.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
-      }`}
-    >
-      {conv.title || 'Untitled Chat'}
-    </button>
+    <div className={`group flex items-center justify-between w-full px-3 py-2 rounded-lg transition-all text-[13px] ${activeId === conv.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
+      }`}>
+      <button
+        onClick={() => onSelect(conv.id)}
+        className="flex-1 text-left truncate pr-2"
+      >
+        {conv.title || 'Untitled Chat'}
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          if (window.confirm('Delete this conversation?')) {
+            import('../../../../services/chatService').then(({ chatService }) => {
+              chatService.deleteConversation(conv.id)
+                .then(() => {
+                  if (typeof refreshConversations === 'function') refreshConversations();
+                  if (activeId === conv.id) onNewChat();
+                })
+                .catch(err => console.error(err));
+            });
+          }
+        }}
+        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-1 rounded-md hover:bg-red-50"
+        title="Delete chat"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </button>
+    </div>
   );
 
   return (
@@ -59,7 +81,7 @@ export default function ChatSidebar({ conversations, activeId, onSelect, onNewCh
         className="w-full bg-[#111111] hover:bg-black text-white rounded-xl py-3 text-[14px] font-medium flex items-center justify-center gap-2 transition-all shadow-sm shadow-gray-900/10 mb-4"
       >
         {creatingSession ? (
-          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
         ) : (
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
         )}
@@ -97,13 +119,13 @@ export default function ChatSidebar({ conversations, activeId, onSelect, onNewCh
       <div className="flex-1 overflow-y-auto -mx-2 px-2 custom-scrollbar">
         {loading ? (
           <div className="space-y-2 pt-2 px-1">
-            {[1,2,3,4].map(i => <div key={i} className="h-8 bg-gray-100 rounded-lg animate-pulse" />)}
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-8 bg-gray-100 rounded-lg animate-pulse" />)}
           </div>
         ) : conversations.length === 0 ? (
           <p className="text-[13px] text-gray-400 px-2 mt-4 text-center">No chats yet</p>
         ) : (
           <div className="space-y-6 pb-4">
-            
+
             {today.length > 0 && (
               <div>
                 <p className="text-[11px] font-semibold text-gray-400 px-3 mb-1.5 uppercase tracking-wider">Today</p>
@@ -138,7 +160,7 @@ export default function ChatSidebar({ conversations, activeId, onSelect, onNewCh
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm overflow-hidden flex-shrink-0">
-            {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="Avatar"/> : (user?.name?.charAt(0) || 'U')}
+            {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="Avatar" /> : (user?.name?.charAt(0) || 'U')}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-gray-900 truncate leading-tight">{user?.name || 'User'}</p>

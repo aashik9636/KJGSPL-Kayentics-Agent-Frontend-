@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { brandService } from '../../services/brandService';
+import { authService } from '../../services/authService';
+import { useAuthStore } from '../../store/authStore';
 import { toast } from 'react-toastify';
 
 export default function BrandProfile() {
@@ -35,8 +37,14 @@ export default function BrandProfile() {
         brandVoice: prohibitedKeywords.split(',').map(k => k.trim()).filter(Boolean).join(', '),
       });
       toast.success("Brand profile saved successfully!");
+      
+      // Fetch updated user to get the new onboardingStep (COMPLETED)
+      const updatedUser = await authService.getCurrentUser();
+      const { accessToken, refreshToken } = useAuthStore.getState();
+      useAuthStore.getState().setAuth(updatedUser, accessToken, refreshToken);
+
       // Proceed to the dashboard!
-      window.location.href = '/'; 
+      navigate('/');
     } catch (err) {
       // apiClient handles toasts
     } finally {
@@ -44,9 +52,13 @@ export default function BrandProfile() {
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     // Brand profile is optional, proceed to dashboard
-    window.location.href = '/';
+    const updatedUser = await authService.getCurrentUser();
+    const { accessToken, refreshToken } = useAuthStore.getState();
+    useAuthStore.getState().setAuth(updatedUser, accessToken, refreshToken);
+    
+    navigate('/');
   };
 
   return (

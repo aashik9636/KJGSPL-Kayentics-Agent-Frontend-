@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { KnowledgeUploader } from '../../components/knowledge/KnowledgeUploader';
-import { KnowledgeExplorer } from '../../components/knowledge/KnowledgeExplorer';
+import { KnowledgeUploader } from './components/KnowledgeUploader';
+import { KnowledgeExplorer } from './components/KnowledgeExplorer';
 
 export default function KnowledgeBase() {
   const [explorerKey, setExplorerKey] = useState(0);

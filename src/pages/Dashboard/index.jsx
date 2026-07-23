@@ -4,7 +4,7 @@ import {
   PieChart, Pie
 } from 'recharts';
 import gsap from 'gsap';
-import { dashboardService } from '../services/dashboardService';
+import { dashboardService } from '../../services/dashboardService';
 
 export default function Dashboard() {
   const dashboardRef = useRef(null);

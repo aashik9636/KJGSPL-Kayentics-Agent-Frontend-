@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { KnowledgeService } from '../../services/knowledgeService';
+import { KnowledgeService } from '../../../../services/knowledgeService';
 
 export const KnowledgeUploader = ({ onSuccess }) => {
   const [file, setFile] = useState(null);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { KnowledgeService } from '../../services/knowledgeService';
+import { KnowledgeService } from '../../../../services/knowledgeService';
 import { CategoryBadge, MetadataRenderer } from './dynamicRenderers';
 
 export const KnowledgeExplorer = () => {

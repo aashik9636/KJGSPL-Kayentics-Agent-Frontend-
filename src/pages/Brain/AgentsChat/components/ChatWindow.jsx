@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { chatService } from '../../../services/chatService';
-import { useBrainStream } from '../../../hooks/useBrainStream';
+import { chatService } from '../../../../services/chatService';
+import { useBrainStream } from '../../../../hooks/useBrainStream';
 import MessageBubble from './MessageBubble';
 import { toast } from 'react-toastify';
 
@@ -40,6 +40,10 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
   const scrollRef = useRef(null);
   const inputRef  = useRef(null);
   const brain     = useBrainStream();
+  const brainRef  = useRef(brain);
+  useEffect(() => {
+    brainRef.current = brain;
+  }, [brain]);
 
   useEffect(() => {
     setMessages([]);
@@ -74,107 +78,55 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     const sessionId = sessionIdOverride || activeConversationId;
     setIsSending(true);
 
-    // Add a placeholder assistant message that streaming will populate
-    setMessages(prev => [...prev, { role: 'ASSISTANT', content: '', isStreaming: true }]);
-
     try {
       let finalAnswer = '';
       let targetOrchestrators = [];
       let executionResults = {};
       let inScope = true;
 
-      // Attempt WebSocket streaming
+      // Attempt WebSocket streaming (auto-falls back to polling inside useBrainStream)
       brain.send(sessionId, userQuery);
 
-      // Wait up to 3s for the first token to arrive
-      const gotStream = await new Promise(resolve => {
-        let arrived = false;
+      // Wait until both streaming AND background polling are completely finished
+      await new Promise(resolve => {
         const check = setInterval(() => {
-          if (brain.streamingText || brain.error || !brain.isStreaming) {
-            arrived = true;
-            clearInterval(check);
-            resolve(true);
-          }
-        }, 100);
-        setTimeout(() => {
-          if (!arrived) {
-            clearInterval(check);
-            brain.disconnect();
-            resolve(false);
-          }
-        }, 3000);
-      });
-
-      if (gotStream && brain.streamingText) {
-        // ── Streaming succeeded — wait for done event ──────────────────────
-        await new Promise(resolve => {
-          const check = setInterval(() => {
-            if (!brain.isStreaming) {
+          const currentBrain = brainRef.current;
+          if (!currentBrain.isStreaming && !currentBrain.isPendingBackground) {
+            // Also ensure it actually started before resolving
+            if (currentBrain.streamingText || currentBrain.error || currentBrain.metadata) {
               clearInterval(check);
               resolve();
+            } else if (currentBrain.error === null && !currentBrain.status) {
+                // If it just stopped and has no status, it's done.
+                clearInterval(check);
+                resolve();
             }
-          }, 100);
-        });
-
-        finalAnswer = brain.streamingText;
-        targetOrchestrators = brain.metadata?.target_orchestrators || [];
-        inScope = brain.metadata?.in_scope ?? true;
-
-        // Update the placeholder with the streamed content
-        setMessages(prev => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          if (last?.isStreaming) {
-            updated[updated.length - 1] = {
-              ...last,
-              content: finalAnswer,
-              isStreaming: false,
-              targetOrchestrators,
-              inScope,
-            };
           }
-          return updated;
-        });
+        }, 100);
+      });
 
-        // Stream doesn't carry execution_results — check for clarification
-        // by falling back to REST if the answer looks like it needs more info
-        const looksLikeClarification = /clarif|need more|could you|please provide|missing/i.test(finalAnswer);
-        if (looksLikeClarification) {
-          // Re-fetch via REST to get structured clarification data
-          const restResponse = await chatService.runBrainAgent(sessionId, userQuery);
-          const restPayload = restResponse?.data ?? restResponse;
-          executionResults = restPayload?.executionResults || {};
-          targetOrchestrators = restPayload?.targetOrchestrators || targetOrchestrators;
-          inScope = restPayload?.inScope ?? inScope;
-        }
-      } else {
-        // ── Streaming failed — fall back to REST ───────────────────────────
-        brain.reset();
-        const restResponse = await chatService.runBrainAgent(sessionId, userQuery);
-        const payload = restResponse?.data ?? restResponse;
+      // Retrieve final data regardless of how it was generated
+      finalAnswer = brainRef.current.streamingText;
+      targetOrchestrators = brainRef.current.metadata?.target_orchestrators || [];
+      inScope = brainRef.current.metadata?.in_scope ?? true;
+      executionResults = brainRef.current.metadata?.execution_results || {};
+      const tokensUsed = brainRef.current.metadata?.tokens_used || null;
+      const model = brainRef.current.metadata?.model || null;
 
-        finalAnswer = payload?.finalAnswer || payload?.response || payload?.message || 'No response received.';
-        targetOrchestrators = payload?.targetOrchestrators || [];
-        executionResults = payload?.executionResults || {};
-        inScope = payload?.inScope ?? true;
-
-        // Update the placeholder with the REST response
-        setMessages(prev => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          if (last?.isStreaming) {
-            updated[updated.length - 1] = {
-              ...last,
-              content: finalAnswer,
-              isStreaming: false,
-              targetOrchestrators,
-              executionResults,
-              inScope,
-            };
-          }
-          return updated;
-        });
+      if (!finalAnswer) {
+        throw new Error('No response generated.');
       }
+
+      // Append the fully resolved content to the message history
+      setMessages(prev => [...prev, {
+        role: 'ASSISTANT',
+        content: finalAnswer,
+        targetOrchestrators,
+        executionResults,
+        inScope,
+        tokensUsed,
+        model,
+      }]);
 
       // Check for clarification from execution results
       const clarifyingQuestions = extractClarifyingQuestions(executionResults);
@@ -200,7 +152,6 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     } catch (err) {
       console.error('Brain agent request failed', err);
       brain.reset();
-      setMessages(prev => prev.slice(0, -1));
       toast.error(err.response?.data?.message || 'Failed to get a response. Please try again.');
     } finally {
       setIsSending(false);
@@ -393,27 +344,50 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         )}
 
         {messages.length > 0 && (
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 space-y-1">
+          <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 pt-8 pb-40 space-y-1">
+            {/* Render all FINISHED messages */}
             {messages.map((msg, idx) => (
-              <MessageBubble key={idx} message={msg} isStreaming={msg.isStreaming} />
+              <MessageBubble 
+                key={idx} 
+                message={msg} 
+              />
             ))}
+
+            {/* Live Streaming Message Bubble */}
+            {isSending && brain.streamingText && (
+              <MessageBubble 
+                message={{
+                  role: 'ASSISTANT',
+                  content: brain.streamingText
+                }} 
+                isStreaming={true} 
+              />
+            )}
 
             {/* Thinking indicator — show only when sending but no streaming text yet */}
             {isSending && !brain.streamingText && (
-              <div className="flex items-start gap-3 py-4">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center flex-shrink-0 shadow-sm shadow-violet-200">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <div className="flex items-start gap-3.5 py-4 w-full">
+                {/* Premium AI Avatar (matching MessageBubble) */}
+                <div className="flex-shrink-0 w-9 h-9 rounded-[14px] bg-gradient-to-br from-[#6c48ff] to-[#9d83ff] flex items-center justify-center shadow-md shadow-violet-500/20 mt-1">
+                  <svg className="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5 bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm mt-0.5">
-                    <span className="w-2 h-2 rounded-full bg-[#6c48ff] animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 rounded-full bg-[#6c48ff] animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 rounded-full bg-[#6c48ff] animate-bounce" style={{ animationDelay: '300ms' }} />
+                
+                {/* Premium Chat Bubble Shape */}
+                <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-[22px] rounded-tl-[6px] px-5 py-3.5 shadow-sm shadow-gray-200/40">
+                  {/* Bouncing dots */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
+                  
+                  {/* Dynamic Status Text inside the bubble */}
                   {brain.status && (
-                    <span className="text-[11px] text-gray-400 pl-2">{brain.status}</span>
+                    <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
+                      {brain.status}
+                    </span>
                   )}
                 </div>
               </div>

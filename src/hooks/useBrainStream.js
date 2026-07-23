@@ -20,10 +20,57 @@ export const useBrainStream = () => {
   const [streamingText, setStreamingText] = useState('');
   const [status, setStatus] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isPendingBackground, setIsPendingBackground] = useState(false);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
 
   const wsRef = useRef(null);
+  const pollIntervalRef = useRef(null);
+
+  const startBackgroundExecution = useCallback(async (sessionId, userQuery) => {
+    setIsStreaming(false);
+    setIsPendingBackground(true);
+    setStatus('Processing in background...');
+
+    try {
+      const { organizationId, workspaceId } = useWorkspaceStore.getState();
+      
+      // Dispatch REST background run
+      const apiClient = (await import('../services/apiClient')).default;
+      await apiClient.post('/api/brain/run', {
+        sessionId,
+        userQuery,
+        companyId: workspaceId || undefined,
+        organizationId: organizationId || undefined,
+      });
+
+      // Poll for completion every 3 seconds
+      pollIntervalRef.current = setInterval(async () => {
+        try {
+          const historyRes = await apiClient.get(`/conversations/${sessionId}/messages`);
+          const messages = historyRes.data || [];
+          const lastMsg = messages[messages.length - 1];
+
+          // When ASSISTANT reply appears in DB, background task is finished!
+          if (lastMsg && (lastMsg.role === 'ASSISTANT' || lastMsg.role === 'assistant')) {
+            clearInterval(pollIntervalRef.current);
+            setIsPendingBackground(false);
+            setStatus('');
+            setStreamingText(lastMsg.content || lastMsg.text || '');
+            setMetadata(lastMsg.metadata || null);
+          }
+        } catch (pollErr) {
+          console.error('Polling error:', pollErr);
+        }
+      }, 3000);
+
+    } catch (err) {
+      console.error('Failed to start background execution:', err);
+      setIsPendingBackground(false);
+      setStatus('');
+      setError('Failed to start background task.');
+    }
+  }, []);
 
   const send = useCallback((sessionId, userQuery) => {
     const accessToken = useAuthStore.getState().accessToken;
@@ -35,6 +82,7 @@ export const useBrainStream = () => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
 
     setIsStreaming(true);
+    setIsPendingBackground(false);
     setStatus('Connecting to Brain Agent...');
     setError(null);
     setStreamingText('');
@@ -43,7 +91,7 @@ export const useBrainStream = () => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     const defaultWsUrl = apiBaseUrl.replace(/^http/, 'ws');
     const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || defaultWsUrl;
-    const socketUrl = `${wsBaseUrl}/conversations/brain/stream?token=${accessToken}`;
+    const socketUrl = `${wsBaseUrl}/conversations/brain/stream?token=${accessToken}&bypass-tunnel-reminder=true&ngrok-skip-browser-warning=true`;
     const socket = new WebSocket(socketUrl);
     wsRef.current = socket;
 
@@ -94,22 +142,29 @@ export const useBrainStream = () => {
     };
 
     socket.onerror = () => {
-      setError('Connection error — falling back to REST.');
+      // Fallback to Background Async Mode if socket fails
+      setError('Connection error — falling back to background processing.');
       setIsStreaming(false);
       setStatus('');
+      startBackgroundExecution(sessionId, userQuery);
     };
 
     socket.onclose = () => {
       setIsStreaming(false);
     };
-  }, []);
+  }, [startBackgroundExecution]);
 
   const disconnect = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
     }
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
     setIsStreaming(false);
+    setIsPendingBackground(false);
   }, []);
 
   const reset = useCallback(() => {
@@ -124,10 +179,12 @@ export const useBrainStream = () => {
     streamingText,
     status,
     isStreaming,
+    isPendingBackground,
     error,
     metadata,
     send,
     disconnect,
     reset,
+    startBackgroundExecution
   };
 };

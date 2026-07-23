@@ -102,8 +102,15 @@ export default function CreateOrganization() {
         const newAccessToken = refreshResponse.accessToken;
         const newRefreshToken = refreshResponse.refreshToken || refreshToken;
 
+        // Fetch the updated user profile from backend to get the new onboardingStep
+        const updatedUser = await authService.getCurrentUser();
+        
+        // Update auth store with new tokens and updated user object
         setTokens(newAccessToken, newRefreshToken);
-        window.location.href = '/';
+        useAuthStore.getState().setAuth(updatedUser, newAccessToken, newRefreshToken);
+        
+        // Smoothly navigate (ProtectedRoute will now catch the new onboardingStep and route them)
+        navigate('/');
       } else {
         toast.error("Session missing. Please log in again.");
         navigate('/login');

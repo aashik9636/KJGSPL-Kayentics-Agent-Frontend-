@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { businessService } from '../../services/businessService';
+import { authService } from '../../services/authService';
+import { useAuthStore } from '../../store/authStore';
 import Select from 'react-select';
 import { toast } from 'react-toastify';
 
@@ -59,8 +61,14 @@ export default function BusinessProfile() {
         website: formattedWebsite,      // backend field: website
       });
       toast.success("Business profile saved successfully!");
-      // Proceed to the next onboarding step (Brand Profile)
-      navigate('/onboarding/brand-profile');
+      
+      // Fetch updated user to get the new onboardingStep (PENDING_BRAND_PROFILE)
+      const updatedUser = await authService.getCurrentUser();
+      const { accessToken, refreshToken } = useAuthStore.getState();
+      useAuthStore.getState().setAuth(updatedUser, accessToken, refreshToken);
+
+      // Navigate to root, allowing ProtectedRoute to dynamically route based on onboardingStep
+      navigate('/');
     } catch (err) {
       // apiClient handles toasts
     } finally {

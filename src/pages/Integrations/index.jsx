@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { integrationService } from '../services/integrationService';
+import { integrationService } from '../../services/integrationService';
 import { toast } from 'react-toastify';
 
 export default function Integrations() {

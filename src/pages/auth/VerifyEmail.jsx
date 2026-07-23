@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { authService } from '../../services/authService';
 import { toast } from 'react-toastify';
 
 export default function VerifyEmail() {

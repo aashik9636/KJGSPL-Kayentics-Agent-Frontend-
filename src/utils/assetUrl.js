@@ -4,8 +4,10 @@ export const getAssetUrl = (relativePath) => {
     return relativePath;
   }
   
-  // Clean up paths by ensuring a single leading slash
+  // Clean up leading slash & append to storage base URL
   const cleanPath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const rawBase = import.meta.env.VITE_STORAGE_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://minio-server-xmry.onrender.com';
+  const baseUrl = rawBase.replace(/\/+$/, '');
+  
   return `${baseUrl}${cleanPath}`;
 };
