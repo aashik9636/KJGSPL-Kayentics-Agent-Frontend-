@@ -70,7 +70,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
   }, [messages, brain.streamingText, isSending]);
 
   // ── Brain Agent query: try WebSocket streaming, fall back to REST ────────
-  const callBrainAgent = useCallback(async (userQuery) => {
+  const callBrainAgent = useCallback(async (userQuery, sessionIdOverride) => {
+    const sessionId = sessionIdOverride || activeConversationId;
     setIsSending(true);
 
     // Add a placeholder assistant message that streaming will populate
@@ -83,7 +84,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       let inScope = true;
 
       // Attempt WebSocket streaming
-      brain.send(activeConversationId, userQuery);
+      brain.send(sessionId, userQuery);
 
       // Wait up to 3s for the first token to arrive
       const gotStream = await new Promise(resolve => {
@@ -140,7 +141,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         const looksLikeClarification = /clarif|need more|could you|please provide|missing/i.test(finalAnswer);
         if (looksLikeClarification) {
           // Re-fetch via REST to get structured clarification data
-          const restResponse = await chatService.runBrainAgent(activeConversationId, userQuery);
+          const restResponse = await chatService.runBrainAgent(sessionId, userQuery);
           const restPayload = restResponse?.data ?? restResponse;
           executionResults = restPayload?.executionResults || {};
           targetOrchestrators = restPayload?.targetOrchestrators || targetOrchestrators;
@@ -149,7 +150,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       } else {
         // ── Streaming failed — fall back to REST ───────────────────────────
         brain.reset();
-        const restResponse = await chatService.runBrainAgent(activeConversationId, userQuery);
+        const restResponse = await chatService.runBrainAgent(sessionId, userQuery);
         const payload = restResponse?.data ?? restResponse;
 
         finalAnswer = payload?.finalAnswer || payload?.response || payload?.message || 'No response received.';
@@ -239,7 +240,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         setClarifyQueue([]);
         setClarifyIndex(0);
         setClarifyAnswers({});
-        await callBrainAgent(combinedQuery);
+        await callBrainAgent(combinedQuery, currentSessionId);
       } else {
         const nextQ = clarifyQueue[clarifyIndex];
         setMessages(prev => [...prev, {
@@ -253,7 +254,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       }
     } else {
       setMessages(prev => [...prev, { role: 'USER', content: trimmed }]);
-      await callBrainAgent(trimmed);
+      await callBrainAgent(trimmed, currentSessionId);
     }
   }, [input, isSending, activeConversationId, inClarifyMode, clarifyQueue, clarifyIndex, clarifyAnswers, callBrainAgent, onNewChat]);
 
