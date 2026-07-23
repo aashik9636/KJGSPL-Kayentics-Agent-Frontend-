@@ -250,22 +250,44 @@ export default function MessageBubble({ message, isStreaming }) {
                   text = text.replace(/([^\n])\n(#+ )/g, '$1\n\n$2');
                   // Enforce blank lines before lists
                   text = text.replace(/([^\n])\n(-|\*|\d+\.) /g, '$1\n\n$2 ');
-                  return text;
+                  // Hide ugly raw image URLs from the text (they are rendered as cards below anyway)
+                  text = text.replace(/`?(?:\/kayneticsagents\/|https?:\/\/[^\s"'`<>]+)[^\s"'`<>]+\.(?:png|jpg|jpeg|gif|webp)`?/ig, '');
+                  
+                  // Clean up left-behind labels and AI-generated image details
+                  text = text.replace(/(\*\*?)?Image URL:(\*\*?)?\s*\n*/ig, '');
+                  text = text.replace(/[-*]\s*\*\*?(Provider|Dimensions|Status|Platform|Size):\*\*?.*\n?/ig, '');
+                  text = text.replace(/(\*\*?)?Details:\s*(\*\*?)?\n*/ig, '');
+                  
+                  // Remove excess blank lines created by stripping
+                  text = text.replace(/\n{3,}/g, '\n\n');
+                  
+                  return text.trim();
                 })()}
               </ReactMarkdown>
               
               {/* Method B: Direct Structured Metadata Image Card */}
               {(() => {
-                const rawImageUrl = 
+                let rawImageUrl = 
                   message.executionResults?.image_generation?.image_url ||
                   message.executionResults?.social_media_orchestrator?.execution_results?.image_generation?.image_url ||
                   message.executionResults?.social_media_orchestrator?.image_generation?.image_url;
                   
+                // Smart Fallback: If metadata is missing or changed, extract from text!
+                if (!rawImageUrl && message.content) {
+                  const match = message.content.match(/(?:\/kayneticsagents\/|https?:\/\/[^\s"'`<>]+)[^\s"'`<>]+\.(?:png|jpg|jpeg|gif|webp)/i);
+                  if (match) {
+                    rawImageUrl = match[0];
+                  }
+                }
+                  
                 if (!rawImageUrl) return null;
                 const imageUrl = getAssetUrl(rawImageUrl);
                   
-                // Only render if it exists AND wasn't already rendered by Markdown (Method A)
-                if (imageUrl && !message.content?.includes(rawImageUrl) && !message.content?.includes(imageUrl)) {
+                // Check if the URL was rendered specifically as a Markdown image tag (![])
+                const isRenderedAsImage = message.content && new RegExp(`!\\[.*?\\]\\(.*?${rawImageUrl.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}.*?\\)`).test(message.content);
+                  
+                // Only render if it exists AND wasn't already rendered as an image by Markdown (Method A)
+                if (imageUrl && !isRenderedAsImage) {
                   return (
                     <div className="my-3 overflow-hidden rounded-[18px] border border-gray-200/80 bg-gray-50 shadow-sm max-w-[400px]">
                       <img
@@ -293,6 +315,26 @@ export default function MessageBubble({ message, isStreaming }) {
                 }
                 return null;
               })()}
+              
+              {/* Live Streaming Skeleton Loader for Images */}
+              {isStreaming && message.status && /image|visual|drawing|generating/i.test(message.status) && (
+                <div className="my-3 overflow-hidden rounded-[18px] border border-gray-200/80 bg-gray-50 shadow-sm max-w-[400px]">
+                  {/* Skeleton Image Area */}
+                  <div className="w-full aspect-square bg-gray-200/50 animate-pulse flex flex-col items-center justify-center gap-3">
+                    <svg className="w-8 h-8 text-gray-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ animationDuration: '2s' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-widest animate-pulse">
+                      Creating Visual...
+                    </span>
+                  </div>
+                  {/* Skeleton Footer Area */}
+                  <div className="px-3 py-3.5 bg-white border-t border-gray-100 flex items-center justify-between">
+                    <div className="w-32 h-2.5 bg-gray-200/80 rounded-full animate-pulse" />
+                    <div className="w-16 h-2.5 bg-gray-200/80 rounded-full animate-pulse" />
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

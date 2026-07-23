@@ -109,7 +109,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       finalAnswer = brainRef.current.streamingText;
       targetOrchestrators = brainRef.current.metadata?.target_orchestrators || [];
       inScope = brainRef.current.metadata?.in_scope ?? true;
-      executionResults = brainRef.current.metadata?.execution_results || {};
+      executionResults = brainRef.current.metadata?.executionResults || brainRef.current.metadata?.execution_results || {};
       const tokensUsed = brainRef.current.metadata?.tokens_used || null;
       const model = brainRef.current.metadata?.model || null;
 
@@ -358,7 +358,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               <MessageBubble 
                 message={{
                   role: 'ASSISTANT',
-                  content: brain.streamingText
+                  content: brain.streamingText,
+                  status: brain.status
                 }} 
                 isStreaming={true} 
               />
