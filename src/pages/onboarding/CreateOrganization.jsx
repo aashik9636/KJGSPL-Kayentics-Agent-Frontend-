@@ -86,13 +86,13 @@ export default function CreateOrganization() {
 
     try {
       // 1. Create the organization with all required fields
-      await workspaceService.createOrganization({ 
-        name, 
-        slug, 
-        email, 
-        industry, 
-        timezone, 
-        currency 
+      await workspaceService.createOrganization({
+        name,
+        slug,
+        email,
+        industry,
+        timezone,
+        currency
       });
       toast.success("Organization created successfully!");
 
@@ -101,9 +101,9 @@ export default function CreateOrganization() {
         const refreshResponse = await authService.refresh(refreshToken);
         const newAccessToken = refreshResponse.accessToken;
         const newRefreshToken = refreshResponse.refreshToken || refreshToken;
-        
+
         setTokens(newAccessToken, newRefreshToken);
-        window.location.href = '/'; 
+        window.location.href = '/';
       } else {
         toast.error("Session missing. Please log in again.");
         navigate('/login');
@@ -129,7 +129,7 @@ export default function CreateOrganization() {
       </div>
 
       <form className="w-full space-y-6" onSubmit={handleSubmit}>
-        
+
         {/* Row 1: Name and Slug */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -232,9 +232,9 @@ export default function CreateOrganization() {
         </div>
 
         <div className="pt-4">
-          <button 
-            type="submit" 
-            disabled={loading || !name || !slug || !email || !industry || !timezone || !currency} 
+          <button
+            type="submit"
+            disabled={loading || !name || !slug || !email || !industry || !timezone || !currency}
             className="w-full bg-[#1967d2] hover:bg-[#1557b0] disabled:bg-blue-300 text-white font-medium py-4 px-6 rounded-xl shadow-md hover:shadow-lg transition-all focus:outline-none text-[16px] flex justify-center items-center gap-2"
           >
             {loading ? (

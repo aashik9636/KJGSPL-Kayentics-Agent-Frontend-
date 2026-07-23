@@ -20,16 +20,20 @@ export default function CreateWorkspace() {
       const newWorkspace = await workspaceService.createWorkspace({ name, description });
       toast.success("Workspace created successfully!");
 
-      // 2. Switch to this new workspace to get a fresh token with the workspace context
+      // 2. Set active workspace in store
+      if (newWorkspace) {
+        useWorkspaceStore.getState().setActiveWorkspace(newWorkspace);
+      }
+
+      // 3. Switch to this new workspace to get a fresh token with the workspace context
       const result = await workspaceService.switchWorkspace(newWorkspace.id);
       
-      if (result.accessToken) {
+      if (result?.accessToken) {
         setTokens(result.accessToken, result.refreshToken);
-        // Hard reload or redirect to OnboardingWrapper to continue the flow
-        window.location.href = '/';
-      } else {
-        toast.error("Failed to retrieve new workspace context.");
       }
+
+      // 4. Navigate directly to Business Profile
+      navigate('/onboarding/business-profile');
     } catch (err) {
       // apiClient handles toasts
     } finally {

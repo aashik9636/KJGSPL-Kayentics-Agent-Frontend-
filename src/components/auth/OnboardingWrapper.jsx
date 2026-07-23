@@ -1,41 +1,74 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useWorkspaceStore } from '../../store/workspaceStore';
+import { workspaceService } from '../../services/workspaceService';
 import { businessService } from '../../services/businessService';
 
 export default function OnboardingWrapper() {
-  const { organizationId, workspaceId } = useWorkspaceStore();
+  const { organizationId, workspaceId, setActiveOrganization, setActiveWorkspace, setOrganizations, setWorkspaces } = useWorkspaceStore();
   const location = useLocation();
-  const navigate = useNavigate();
-  const [checkingBusinessProfile, setCheckingBusinessProfile] = useState(true);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const [hasBusinessProfile, setHasBusinessProfile] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
     
-    const checkBusinessProfile = async () => {
-      // Only check if we already have an org and workspace
-      if (organizationId && workspaceId) {
-        try {
-          await businessService.getBusinessProfile();
-          if (isMounted) setHasBusinessProfile(true);
-        } catch (error) {
-          // If 404, they haven't completed this step
-          if (error.response?.status === 404) {
+    const resolveContextAndProfile = async () => {
+      let currentOrgId = organizationId;
+      let currentWsId = workspaceId;
+
+      try {
+        // 1. If organizationId is missing in store, try listing user's organizations
+        if (!currentOrgId) {
+          const orgs = await workspaceService.listOrganizations().catch(() => []);
+          const orgList = Array.isArray(orgs) ? orgs : [];
+          if (orgList.length > 0) {
+            if (isMounted) {
+              setOrganizations(orgList);
+              setActiveOrganization(orgList[0]);
+            }
+            currentOrgId = orgList[0].id;
+          }
+        }
+
+        // 2. If workspaceId is missing in store but org exists, try listing workspaces
+        if (currentOrgId && !currentWsId) {
+          const workspaces = await workspaceService.getWorkspacesByOrg(currentOrgId).catch(() => []);
+          const wsList = Array.isArray(workspaces) ? workspaces : [];
+          if (wsList.length > 0) {
+            if (isMounted) {
+              setWorkspaces(wsList);
+              setActiveWorkspace(wsList[0]);
+            }
+            currentWsId = wsList[0].id;
+          }
+        }
+
+        // 3. Check business profile if we have org and workspace context
+        if (currentOrgId && currentWsId) {
+          try {
+            const profile = await businessService.getBusinessProfile();
+            if (isMounted && profile) {
+              setHasBusinessProfile(true);
+            }
+          } catch (error) {
             if (isMounted) setHasBusinessProfile(false);
           }
         }
+      } catch (e) {
+        console.error("Error resolving onboarding context", e);
+      } finally {
+        if (isMounted) setCheckingOnboarding(false);
       }
-      if (isMounted) setCheckingBusinessProfile(false);
     };
 
-    checkBusinessProfile();
+    resolveContextAndProfile();
 
     return () => { isMounted = false; };
-  }, [organizationId, workspaceId]);
+  }, [organizationId, workspaceId, setActiveOrganization, setActiveWorkspace, setOrganizations, setWorkspaces]);
 
-  // Wait for the business profile check to complete before routing
-  if (checkingBusinessProfile) {
+  // Wait for context & business profile checks before routing
+  if (checkingOnboarding) {
     return (
       <div className="min-h-screen bg-[#f4f7fe] flex justify-center items-center">
         <div className="flex flex-col items-center gap-4">
@@ -54,7 +87,7 @@ export default function OnboardingWrapper() {
     return <Navigate to="/onboarding/organization" state={{ from: location }} replace />;
   }
 
-  // 2. Workspace Check (usually bypassed as backend creates a default one)
+  // 2. Workspace Check
   if (!workspaceId) {
     return <Navigate to="/onboarding/workspace" state={{ from: location }} replace />;
   }
@@ -64,6 +97,6 @@ export default function OnboardingWrapper() {
     return <Navigate to="/onboarding/business-profile" state={{ from: location }} replace />;
   }
 
-  // Fully onboarded! Render the dashboard layout
+  // Fully onboarded! Render the main application
   return <Outlet />;
 }

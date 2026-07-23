@@ -46,15 +46,20 @@ export default function BusinessProfile() {
     setLoading(true);
 
     try {
+      let formattedWebsite = websiteUrl.trim();
+      if (formattedWebsite && !/^https?:\/\//i.test(formattedWebsite)) {
+        formattedWebsite = `https://${formattedWebsite}`;
+      }
+
       await businessService.createOrUpdateBusinessProfile({
         companyName,
         industry,
         vision,
         description: targetAudience,   // backend field: description
-        website: websiteUrl,            // backend field: website
+        website: formattedWebsite,      // backend field: website
       });
       toast.success("Business profile saved successfully!");
-      // Proceed to the next onboarding step (Brand Profile) or dashboard
+      // Proceed to the next onboarding step (Brand Profile)
       navigate('/onboarding/brand-profile');
     } catch (err) {
       // apiClient handles toasts
@@ -73,7 +78,7 @@ export default function BusinessProfile() {
       <form className="w-full space-y-5" onSubmit={handleSubmit}>
         <div>
           <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">
-            Company Name
+            Company Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -107,7 +112,6 @@ export default function BusinessProfile() {
               onChange={(selected) => setIndustry(selected?.value || '')}
               placeholder="Select or type an industry..."
               isSearchable
-              required
               styles={{
                 control: (base, state) => ({
                   ...base,
@@ -145,11 +149,10 @@ export default function BusinessProfile() {
               Website URL
             </label>
             <input
-              type="url"
-              placeholder="https://acme-ai.com"
+              type="text"
+              placeholder="acme-ai.com"
               value={websiteUrl}
               onChange={(e) => setWebsiteUrl(e.target.value)}
-              required
               className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
             />
           </div>
@@ -164,7 +167,6 @@ export default function BusinessProfile() {
             placeholder="B2B SaaS Founders"
             value={targetAudience}
             onChange={(e) => setTargetAudience(e.target.value)}
-            required
             className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
           />
         </div>
@@ -178,7 +180,6 @@ export default function BusinessProfile() {
             value={vision}
             onChange={(e) => setVision(e.target.value)}
             rows="3"
-            required
             className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] resize-none"
           />
         </div>
