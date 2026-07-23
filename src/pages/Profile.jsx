@@ -160,7 +160,13 @@ export default function Profile() {
 
         if (indData.status === 'fulfilled') {
           const arr = Array.isArray(indData.value) ? indData.value : indData.value?.data || [];
-          setIndustries(arr.map(i => ({ value: i, label: i.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) })));
+          setIndustries(arr.map(i => {
+            if (typeof i === 'object' && i !== null) {
+              return { value: i.id || i.name, label: i.name || i.id };
+            }
+            const strVal = String(i);
+            return { value: strVal, label: strVal.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) };
+          }));
         }
 
         if (userData.status === 'fulfilled') {

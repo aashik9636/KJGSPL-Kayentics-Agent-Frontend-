@@ -38,7 +38,13 @@ export default function CreateOrganization() {
   }, []);
 
   // Formatted Options for React-Select
-  const industryOptions = industriesList.map(ind => ({ value: ind.id, label: ind.name }));
+  const industryOptions = industriesList.map(ind => {
+    if (typeof ind === 'object' && ind !== null) {
+      return { value: ind.id || ind.name, label: ind.name || ind.id };
+    }
+    const strVal = String(ind);
+    return { value: strVal, label: strVal.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) };
+  });
   const timezoneOptions = timezonesList.map(tz => ({ value: tz, label: tz }));
   const currencyOptions = currenciesList.map(c => ({ value: c.code, label: `${c.code} - ${c.currency}` }));
 

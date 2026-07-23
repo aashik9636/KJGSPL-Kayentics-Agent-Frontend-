@@ -76,9 +76,20 @@ export default function BusinessProfile() {
               Industry <span className="text-red-500">*</span>
             </label>
             <Select
-              options={industriesList.map(ind => ({ value: ind.id, label: ind.name }))}
-              value={industriesList.length ? { value: industry, label: industriesList.find(i => i.id === industry)?.name || 'Select an industry...' } : null}
-              onChange={(selected) => setIndustry(selected.value)}
+              options={industriesList.map(ind => {
+                if (typeof ind === 'object' && ind !== null) {
+                  return { value: ind.id || ind.name, label: ind.name || ind.id };
+                }
+                const strVal = String(ind);
+                return { value: strVal, label: strVal.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) };
+              })}
+              value={industriesList.length ? {
+                value: industry,
+                label: (typeof industriesList[0] === 'object'
+                  ? industriesList.find(i => i.id === industry || i.name === industry)?.name
+                  : industry) || industry || 'Select an industry...'
+              } : null}
+              onChange={(selected) => setIndustry(selected?.value || '')}
               placeholder="Select or type an industry..."
               isSearchable
               required
