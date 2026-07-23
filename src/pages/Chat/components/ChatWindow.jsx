@@ -362,7 +362,33 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                   ))}
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full px-6 py-16 text-center">
+                <div className="flex flex-col items-center gap-6 max-w-lg w-full">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-200">
+                    <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-[22px] font-bold text-gray-900 mb-1 tracking-tight">Welcome to Brain Agent</h2>
+                    <p className="text-[14px] text-gray-400">Click below to start a new conversation.</p>
+                  </div>
+                  <button
+                    onClick={onNewChat}
+                    disabled={creatingSession}
+                    className="flex items-center gap-2 bg-[#111111] hover:bg-black text-white rounded-xl px-6 py-3 text-[14px] font-medium transition-all shadow-sm shadow-gray-900/10"
+                  >
+                    {creatingSession ? (
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    )}
+                    Start New Chat
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
