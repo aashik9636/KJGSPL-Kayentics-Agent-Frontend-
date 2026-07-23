@@ -4,7 +4,7 @@ import { useWorkspaceStore } from '../store/workspaceStore';
 export const chatService = {
   // ─── AI Agent Endpoints ────────────────────────────────────────────────────
   createChatSession: async () => {
-    const response = await apiClient.post('/api/chat/new');
+    const response = await apiClient.post('/api/chat/new', {});
     return response.data;
   },
 
