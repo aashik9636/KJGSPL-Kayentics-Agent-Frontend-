@@ -15,7 +15,7 @@ export default function BrandProfile() {
         const brand = await brandService.getBrandProfile();
         if (brand) {
           if (brand.brandTone) setToneOfVoice(Array.isArray(brand.brandTone) ? brand.brandTone.join(', ') : brand.brandTone);
-          if (brand.prohibitedKeywords) setProhibitedKeywords(Array.isArray(brand.prohibitedKeywords) ? brand.prohibitedKeywords.join(', ') : brand.prohibitedKeywords);
+          if (brand.brandVoice) setProhibitedKeywords(Array.isArray(brand.brandVoice) ? brand.brandVoice.join(', ') : brand.brandVoice);
         }
       } catch (e) {
         // silent catch
@@ -30,8 +30,9 @@ export default function BrandProfile() {
 
     try {
       await brandService.upsertBrandGuidelines({
-        toneOfVoice: toneOfVoice.split(',').map(t => t.trim()).filter(Boolean),
-        prohibitedKeywords: prohibitedKeywords.split(',').map(k => k.trim()).filter(Boolean)
+        brandName: 'My Brand',                                                        // required by backend DTO
+        brandTone: toneOfVoice.split(',').map(t => t.trim()).filter(Boolean).join(', '),
+        brandVoice: prohibitedKeywords.split(',').map(k => k.trim()).filter(Boolean).join(', '),
       });
       toast.success("Brand profile saved successfully!");
       // Proceed to the dashboard!

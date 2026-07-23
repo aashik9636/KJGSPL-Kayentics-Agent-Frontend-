@@ -22,6 +22,21 @@ export const businessService = {
     return response.data;
   },
 
+  // Smart upsert: creates if not exists, updates if exists
+  createOrUpdateBusinessProfile: async (data) => {
+    try {
+      const existing = await apiClient.get('/business-profile').catch(() => null);
+      if (existing?.data) {
+        const response = await apiClient.put('/business-profile', data);
+        return response.data;
+      }
+    } catch (_) {
+      // fall through to create
+    }
+    const response = await apiClient.post('/business-profile', data);
+    return response.data;
+  },
+
   deleteBusinessProfile: async () => {
     const response = await apiClient.delete('/business-profile');
     return response.data;

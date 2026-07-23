@@ -17,7 +17,8 @@ export default function Chat() {
       const data = await chatService.getConversations();
       setConversations(data?.data || data || []);
     } catch (err) {
-      console.error('Failed to load conversations', err);
+      // Non-critical — chat works without history sidebar
+      setConversations([]);
     } finally {
       setLoading(false);
     }

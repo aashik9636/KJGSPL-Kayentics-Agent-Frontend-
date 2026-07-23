@@ -122,10 +122,17 @@ export const chatService = {
 
   getConversations: async (params = {}) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.get('/conversations', {
-      params: { organizationId, workspaceId, ...params }
-    });
-    return response.data;
+    // Both IDs are required by the backend schema — skip call if either is missing
+    if (!organizationId || !workspaceId) return [];
+    try {
+      const response = await apiClient.get('/conversations', {
+        params: { organizationId, workspaceId, ...params }
+      });
+      return response.data;
+    } catch (err) {
+      // Silently return empty list — conversation history is non-critical
+      return [];
+    }
   },
 
   getConversationDetails: async (id) => {
@@ -179,14 +186,4 @@ export const chatService = {
     return response.data;
   },
 
-  // ─── Orchestrator Status ──────────────────────────────────────────────────
-  getOrchestratorAnswer: async (data) => {
-    const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.post('/api/orchestrator/answer', {
-      ...data,
-      organizationId,
-      workspaceId
-    });
-    return response.data;
-  }
 };

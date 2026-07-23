@@ -50,8 +50,8 @@ export default function BusinessProfile() {
         companyName,
         industry,
         vision,
-        targetAudience,
-        websiteUrl
+        description: targetAudience,   // backend field: description
+        website: websiteUrl,            // backend field: website
       });
       toast.success("Business profile saved successfully!");
       // Proceed to the next onboarding step (Brand Profile) or dashboard

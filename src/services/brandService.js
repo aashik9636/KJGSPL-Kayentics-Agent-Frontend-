@@ -1,28 +1,33 @@
 import apiClient from './apiClient';
 
 export const brandService = {
-  getBrandGuidelines: async () => {
-    const response = await apiClient.get('/brand-guidelines');
+  getBrandProfile: async () => {
+    const response = await apiClient.get('/brand-profile').catch(() => null);
+    return response?.data || null;
+  },
+
+  createBrandProfile: async (data) => {
+    const response = await apiClient.post('/brand-profile', data);
     return response.data;
   },
 
+  updateBrandProfile: async (data) => {
+    const response = await apiClient.put('/brand-profile', data);
+    return response.data;
+  },
+
+  // Smart upsert: creates if not exists, updates if exists
   upsertBrandGuidelines: async (data) => {
-    const response = await apiClient.post('/brand-guidelines', data);
+    try {
+      const existing = await apiClient.get('/brand-profile').catch(() => null);
+      if (existing?.data) {
+        const response = await apiClient.put('/brand-profile', data);
+        return response.data;
+      }
+    } catch (_) {
+      // fall through to create
+    }
+    const response = await apiClient.post('/brand-profile', data);
     return response.data;
   },
-
-  updateBrandGuidelines: async (data) => {
-    const response = await apiClient.put('/brand-guidelines', data);
-    return response.data;
-  },
-
-  deleteBrandGuidelines: async () => {
-    const response = await apiClient.delete('/brand-guidelines');
-    return response.data;
-  },
-
-  createBuyerPersona: async (data) => {
-    const response = await apiClient.post('/buyer-personas', data);
-    return response.data;
-  }
 };
