@@ -9,11 +9,13 @@ import Products from '../pages/Products';
 import Storage from '../pages/Storage';
 import ContentHub from '../pages/ContentHub';
 import PostScheduler from '../pages/PostScheduler';
+import Agents from '../pages/Agents';
 
 export const AppRoutes = (
   <Route element={<AppLayout />}>
     <Route path="/" element={<Dashboard />} />
     <Route path="/chat" element={<Chat />} />
+    <Route path="/agents" element={<Agents />} />
     <Route path="/knowledge-base" element={<KnowledgeBase />} />
     <Route path="/integrations" element={<Integrations />} />
     <Route path="/profile" element={<Profile />} />

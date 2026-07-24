@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import { chatService } from '../../../../services/chatService';
 import { useBrainStream } from '../../../../hooks/useBrainStream';
 import MessageBubble from './MessageBubble';
 import { toast } from 'react-toastify';
+import { useAuthStore } from '../../../../store/authStore';
+import gsap from 'gsap';
+// Avatars are loaded directly from public folder
 
 const SUGGESTIONS = [
   { icon: '🔍', text: 'Research top AI trends this week' },
@@ -27,10 +30,27 @@ function formatAnswers(questions, answers) {
     .join(', ');
 }
 
-export default function ChatWindow({ activeConversationId, creatingSession, onNewChat }) {
+export default function ChatWindow({ activeConversationId, creatingSession, onNewChat, onMessageSent, onMessagesLoaded, selectedAgent }) {
   const [input, setInput]         = useState('');
   const [messages, setMessages]   = useState([]);
   const [isSending, setIsSending] = useState(false);
+
+  const user = useAuthStore(state => state.user);
+  const firstName = user?.firstName || 'there';
+  const taglines = [
+    `Ready when you are, ${firstName}.`,
+    `Let's build something, ${firstName}.`,
+    `How can I help today, ${firstName}?`,
+    `What are we working on, ${firstName}?`
+  ];
+  const [taglineIndex, setTaglineIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTaglineIndex(prev => (prev + 1) % taglines.length);
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [taglines.length]);
 
   const [clarifyQueue,   setClarifyQueue]   = useState([]);
   const [clarifyIndex,   setClarifyIndex]   = useState(0);
@@ -39,6 +59,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
 
   const scrollRef = useRef(null);
   const inputRef  = useRef(null);
+  const emptyStateRef = useRef(null);
+  const inputFormRef = useRef(null);
   const brain     = useBrainStream();
   const brainRef  = useRef(brain);
   useEffect(() => {
@@ -61,6 +83,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             role: m.role || (m.senderId ? 'USER' : 'ASSISTANT'),
             content: m.content || m.text || '',
           })));
+          if (onMessagesLoaded) onMessagesLoaded(list.length);
         })
         .catch(() => {});
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -72,6 +95,36 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages, brain.streamingText, isSending]);
+
+  // --- GSAP Animations for Empty State ---
+  useLayoutEffect(() => {
+    const isCentered = messages.length === 0 && !isSending;
+    if (isCentered && emptyStateRef.current && inputFormRef.current) {
+      const q = gsap.utils.selector(emptyStateRef.current);
+      
+      const tl = gsap.timeline();
+      
+      tl.fromTo(q('.gsap-hero-title'), 
+        { y: 20, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }
+      )
+      .fromTo(q('.gsap-hero-dock'),
+        { y: 20, opacity: 0, scale: 0.95 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out' },
+        "-=0.6"
+      )
+      .fromTo(inputFormRef.current,
+        { y: 20, opacity: 0, scale: 0.98 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out' },
+        "-=0.5"
+      )
+      .fromTo(q('.gsap-hero-sugg'),
+        { y: 15, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power2.out' },
+        "-=0.4"
+      );
+    }
+  }, [messages.length, isSending]);
 
   // ── Brain Agent query: try WebSocket streaming, fall back to REST ────────
   const callBrainAgent = useCallback(async (userQuery, sessionIdOverride) => {
@@ -178,6 +231,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       const newAnswers = { ...clarifyAnswers, [currentQ.id]: trimmed };
       setClarifyAnswers(newAnswers);
       setMessages(prev => [...prev, { role: 'USER', content: trimmed }]);
+      if (onMessageSent) onMessageSent();
 
       const isLastQuestion = clarifyIndex >= clarifyQueue.length;
 
@@ -205,6 +259,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       }
     } else {
       setMessages(prev => [...prev, { role: 'USER', content: trimmed }]);
+      if (onMessageSent) onMessageSent();
       await callBrainAgent(trimmed, currentSessionId);
     }
   }, [input, isSending, activeConversationId, inClarifyMode, clarifyQueue, clarifyIndex, clarifyAnswers, callBrainAgent, onNewChat]);
@@ -223,6 +278,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
 
   const isInputDisabled = isSending || !activeConversationId || creatingSession;
   const isEmpty = messages.length === 0 && !isSending;
+  const isCentered = isEmpty && !isSending;
 
   const placeholder = (() => {
     if (creatingSession)       return 'Setting up session...';
@@ -238,10 +294,10 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     <div className="flex flex-col h-full bg-transparent relative">
       
       {/* ── Top Header ── */}
-      <div className="flex items-center justify-between px-6 py-4 flex-shrink-0 z-10 bg-white/50 backdrop-blur-sm border-b border-gray-100/30">
-        <div className="flex items-center gap-2 text-[15px] font-semibold text-gray-800 bg-gray-50/80 hover:bg-gray-100 px-3 py-1.5 rounded-xl cursor-pointer transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-indigo-300 to-purple-400 flex items-center justify-center shadow-inner">
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="flex items-center justify-between px-6 py-4 flex-shrink-0 z-10 bg-white/60 backdrop-blur-xl border-b border-white shadow-[0_2px_20px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center gap-2.5 text-[15px] font-semibold text-gray-800 bg-white/80 hover:bg-white px-3 py-1.5 rounded-[14px] cursor-pointer transition-all shadow-sm border border-gray-100">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-inner">
+            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v1m6 11h2m-6 0h-8m0 0H4m4 0h4m-4-8h8m-4 0v8" />
             </svg>
           </div>
@@ -252,96 +308,14 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         </div>
         
         <div className="flex items-center gap-3.5">
-          <button className="text-gray-400 hover:text-gray-700 transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-            </svg>
-          </button>
-          <button className="text-gray-400 hover:text-gray-700 transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </button>
-          <button className="flex items-center gap-1.5 text-[13px] font-semibold text-gray-700 border border-gray-200/80 px-3.5 py-1.5 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Export chat
-          </button>
-          <button className="text-[13px] font-semibold text-white bg-[#0f0f0f] px-4 py-1.5 rounded-lg hover:bg-black transition-colors shadow-sm">
-            Upgrade
-          </button>
+          {/* Right side empty to maintain flex-between layout */}
         </div>
       </div>
 
       {/* ── Message list / Empty State ───────────────────────────────────── */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 relative flex flex-col custom-scrollbar">
 
-        {isEmpty && (
-          <div className="flex flex-col items-center justify-center h-full px-6 py-16 text-center">
-            {creatingSession ? (
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-200">
-                  <svg className="w-8 h-8 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <p className="text-[17px] font-semibold text-gray-700">Starting your session...</p>
-                <p className="text-[14px] text-gray-400">Connecting to Brain Agent</p>
-              </div>
-            ) : activeConversationId ? (
-              <div className="flex flex-col items-center gap-6 max-w-lg w-full">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-200">
-                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-[22px] font-bold text-gray-900 mb-1 tracking-tight">How can I help you?</h2>
-                  <p className="text-[14px] text-gray-400">Powered by Brain Agent -- research, scrape, write & more.</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full mt-2">
-                  {SUGGESTIONS.map((s, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSubmit(s.text)}
-                      className="flex items-center gap-3 bg-white hover:bg-violet-50 border border-gray-200 hover:border-violet-200 rounded-2xl px-4 py-3.5 text-left transition-all group shadow-sm"
-                    >
-                      <span className="text-xl flex-shrink-0">{s.icon}</span>
-                      <span className="text-[13px] font-medium text-gray-600 group-hover:text-violet-700 leading-snug">{s.text}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full px-6 py-16 text-center">
-                <div className="flex flex-col items-center gap-6 max-w-lg w-full">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-200">
-                    <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-[22px] font-bold text-gray-900 mb-1 tracking-tight">Welcome to Brain Agent</h2>
-                    <p className="text-[14px] text-gray-400">Click below to start a new conversation.</p>
-                  </div>
-                  <button
-                    onClick={onNewChat}
-                    disabled={creatingSession}
-                    className="flex items-center gap-2 bg-[#111111] hover:bg-black text-white rounded-xl px-6 py-3 text-[14px] font-medium transition-all shadow-sm shadow-gray-900/10"
-                  >
-                    {creatingSession ? (
-                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                    )}
-                    Start New Chat
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Empty state is handled by the centered absolute input bar now. No overlapping loading block needed here. */}
 
         {messages.length > 0 && (
           <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 pt-8 pb-40 space-y-1">
@@ -369,14 +343,15 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             {isSending && !brain.streamingText && (
               <div className="flex items-start gap-3.5 py-4 w-full">
                 {/* Premium AI Avatar (matching MessageBubble) */}
-                <div className="flex-shrink-0 w-9 h-9 rounded-[14px] bg-gradient-to-br from-[#6c48ff] to-[#9d83ff] flex items-center justify-center shadow-md shadow-violet-500/20 mt-1">
-                  <svg className="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <div className="flex-shrink-0 w-10 h-10 rounded-[16px] bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1">
+                  <div className="absolute inset-0 rounded-[14px] ring-1 ring-white/40 inset-ring"></div>
+                  <svg className="w-5 h-5 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
                 
                 {/* Premium Chat Bubble Shape */}
-                <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-[22px] rounded-tl-[6px] px-5 py-3.5 shadow-sm shadow-gray-200/40">
+                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white rounded-[28px] rounded-tl-[8px] px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)]">
                   {/* Bouncing dots */}
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -399,10 +374,74 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
 
       {/* ── Input bar ──────────────────────────────────────────────────────── */}
       <div
-        className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-3"
-        style={{ background: 'linear-gradient(to top, #f6f7fb 85%, transparent)' }}
+        ref={emptyStateRef}
+        className={`absolute left-0 right-0 px-4 flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          isCentered 
+            ? 'top-1/2 -translate-y-1/2' 
+            : 'bottom-0 pb-5 pt-3'
+        }`}
+        style={!isCentered ? { background: 'linear-gradient(to top, #f6f7fb 85%, transparent)' } : {}}
       >
-        <div className="max-w-3xl mx-auto">
+        {/* Title for Centered State */}
+        <div className={`transition-all duration-500 w-full max-w-3xl text-center flex flex-col items-center ${isCentered ? 'opacity-100 mb-8' : 'opacity-0 h-0 overflow-hidden mb-0'}`}>
+          <div className="h-[48px] md:h-[60px] overflow-hidden mb-8 relative w-full flex justify-center gsap-hero-title">
+            {taglines.map((tagline, idx) => (
+              <h1 
+                key={idx}
+                className={`text-[32px] md:text-[40px] font-medium text-gray-900 tracking-tight absolute transition-all duration-500 ease-in-out ${
+                  idx === taglineIndex 
+                    ? 'opacity-100 translate-y-0' 
+                    : 'opacity-0 translate-y-4'
+                }`} 
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {tagline}
+              </h1>
+            ))}
+          </div>
+
+          {/* Dynamic Selected Agent Avatar (Floating 3D) */}
+          <div className="flex items-center justify-center gsap-hero-dock relative group mb-4">
+            <div className="relative w-32 h-32 md:w-40 md:h-40 flex items-center justify-center transition-all duration-300 ease-out hover:-translate-y-2">
+              <div className="absolute -bottom-1 w-[70%] h-3 bg-black/20 blur-[8px] rounded-[100%] scale-x-125 transition-transform duration-500 group-hover:scale-x-90 group-hover:opacity-60" />
+              {(!selectedAgent || selectedAgent === 'brain') ? (
+                <img 
+                  src="/premium_3d_brain.png" 
+                  className="w-full h-full max-w-none object-contain object-bottom transition-transform duration-500 group-hover:scale-110 drop-shadow-[0_15px_15px_rgba(0,0,0,0.15)] mix-blend-multiply z-10" 
+                  alt="Brain Agent" 
+                />
+              ) : (
+                <video 
+                  src={
+                    selectedAgent === 'content' ? '/agent 1.mp4' :
+                    selectedAgent === 'social' ? '/agent2.mp4' :
+                    '/agent3.mp4'
+                  }
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  style={{ maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)' }}
+                  className="w-[120%] h-[120%] max-w-none object-cover object-center scale-[1.1] transition-transform duration-500 group-hover:scale-[1.15] drop-shadow-[0_15px_15px_rgba(0,0,0,0.15)] mix-blend-multiply z-10" 
+                />
+              )}
+            </div>
+            {/* Tooltip */}
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-20 translate-y-2 group-hover:translate-y-0">
+              <div className="bg-gray-900 text-white text-[12px] font-medium px-4 py-1.5 rounded-lg whitespace-nowrap shadow-xl flex flex-col items-center">
+                <span>{
+                  selectedAgent === 'content' ? 'Content Creator' :
+                  selectedAgent === 'social' ? 'Social Media Agent' :
+                  selectedAgent === 'recruiter' ? 'Recruiter Agent' :
+                  'Brain Agent'
+                }</span>
+              </div>
+              <div className="w-2.5 h-2.5 bg-gray-900 rotate-45 mx-auto -mt-1.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full max-w-3xl mx-auto flex flex-col items-center">
 
           {inClarifyMode && (
             <div className="mb-2.5 flex items-center gap-3">
@@ -419,9 +458,11 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
           )}
 
           <form
+            ref={inputFormRef}
             onSubmit={onFormSubmit}
-            className="flex items-end gap-3 bg-white rounded-[20px] border border-gray-200 shadow-[0_4px_24px_rgba(108,72,255,0.08)] px-4 py-3 transition-all focus-within:border-violet-300 focus-within:shadow-[0_4px_32px_rgba(108,72,255,0.15)]"
+            className="w-full flex items-end gap-3 bg-white/80 backdrop-blur-2xl rounded-[24px] border border-white shadow-[0_8px_32px_rgba(108,72,255,0.08)] px-5 py-4 transition-all focus-within:bg-white focus-within:border-indigo-50 focus-within:shadow-[0_12px_48px_rgba(108,72,255,0.15)] relative overflow-hidden"
           >
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/30 to-purple-50/30 pointer-events-none opacity-0 focus-within:opacity-100 transition-opacity duration-500"></div>
             <textarea
               ref={inputRef}
               rows={1}
@@ -434,27 +475,28 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               onKeyDown={onKeyDown}
               disabled={isInputDisabled}
               placeholder={placeholder}
-              className="flex-1 resize-none bg-transparent text-[15px] text-gray-900 placeholder:text-gray-400 outline-none leading-relaxed py-1 font-medium disabled:opacity-40 min-h-[28px]"
+              className="flex-1 resize-none bg-transparent text-[15px] text-gray-900 placeholder:text-gray-400 outline-none leading-relaxed py-1.5 font-medium disabled:opacity-40 min-h-[32px] z-10"
               style={{ overflow: 'hidden' }}
             />
 
             <button
               type="submit"
               disabled={isInputDisabled || !input.trim()}
-              className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30"
+              className="flex-shrink-0 w-11 h-11 rounded-[16px] flex items-center justify-center transition-all duration-300 disabled:opacity-50 z-10 hover:shadow-lg hover:-translate-y-0.5"
               style={{
                 background: (isInputDisabled || !input.trim())
-                  ? '#e5e7eb'
-                  : 'linear-gradient(135deg, #6c48ff 0%, #a78bfa 100%)',
+                  ? '#f3f4f6'
+                  : 'linear-gradient(135deg, #5030e5 0%, #7b61ff 100%)',
+                boxShadow: (isInputDisabled || !input.trim()) ? 'none' : '0 6px 16px rgba(108,72,255,0.3)',
               }}
             >
               {isSending ? (
-                <svg className="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin w-4.5 h-4.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
               ) : (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24"
                   stroke={(isInputDisabled || !input.trim()) ? '#9ca3af' : 'white'}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                 </svg>
@@ -470,6 +512,22 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                 : <>Press <kbd className="bg-gray-100 border border-gray-200 rounded px-1 py-0.5 text-[10px] font-mono">Enter</kbd> to send · <kbd className="bg-gray-100 border border-gray-200 rounded px-1 py-0.5 text-[10px] font-mono">Shift + Enter</kbd> for new line</>
             }
           </p>
+
+          {/* Suggestions for Centered State */}
+          <div className={`transition-all duration-500 w-full max-w-[800px] mt-8 ${isCentered ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden mt-0'}`}>
+            <div className="flex flex-wrap justify-center gap-3">
+              {SUGGESTIONS.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSubmit(s.text)}
+                  className="flex items-center gap-2.5 bg-white/60 hover:bg-white border border-gray-200/60 hover:border-gray-300 rounded-full px-5 py-2.5 text-left transition-all shadow-[0_2px_10px_rgba(0,0,0,0.02)] gsap-hero-sugg"
+                >
+                  <span className="text-[15px]">{s.icon}</span>
+                  <span className="text-[13px] font-medium text-gray-700">{s.text}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

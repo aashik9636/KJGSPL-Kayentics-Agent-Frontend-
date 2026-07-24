@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Profile Settings — Brain Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  :root{
+    --bg:#F5F5FA; --surface:#FFFFFF; --border:#E8E7F1; --border-2:#F0F0F6;
+    --ink:#14141D; --muted:#6D6D7C; --muted-2:#9C9CA9;
+    --primary:#4F46E5; --primary-dark:#3730B8; --primary-soft:#EEEDFE;
+    --accent:#FF7A33; --accent-soft:#FFF0E4;
+    --success:#149452; --success-soft:#E6F7ED;
+    --shadow-sm: 0 1px 2px rgba(20,20,45,.05);
+    --shadow-md: 0 10px 28px rgba(30,25,90,.09);
+    --shadow-lg: 0 24px 56px rgba(30,25,90,.16);
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; height:100vh; overflow:hidden;}
+  .app{ display:flex; height:100vh;}
+
+  /* settings mini-nav (module-local, text labels) */
+  .set-nav{ width:222px; background:var(--surface); border-right:1px solid var(--border); padding:32px 14px; flex-shrink:0;}
+  .set-nav h2{ font-family:'Space Grotesk'; font-size:16px; margin:0 0 20px; padding:0 8px;}
+  .set-nav .item{ display:flex; align-items:center; gap:10px; font-size:13px; font-weight:600; color:var(--muted); padding:10px 12px; border-radius:10px; cursor:pointer; margin-bottom:2px;}
+  .set-nav .item .ic{ width:26px;height:26px;border-radius:7px; display:flex;align-items:center;justify-content:center; font-size:13px; background:var(--border-2); color:var(--muted);}
+  .set-nav .item.active{ background:var(--primary-soft); color:var(--primary-dark);}
+  .set-nav .item.active .ic{ background:var(--primary); color:#fff;}
+
+  .set-body{ flex:1; overflow-y:auto; position:relative;}
+  .set-scroll{ max-width:820px; margin:0 auto; padding:40px 48px 120px;}
+
+  .page-head{ margin-bottom:6px;}
+  .page-head .eyebrow{ font-size:11px; font-weight:700; color:var(--primary); letter-spacing:.12em; text-transform:uppercase; display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .page-head .eyebrow .ln{width:20px;height:1px;background:var(--primary);}
+  .page-head h1{ font-family:'Space Grotesk'; font-size:26px; margin:0 0 6px;}
+  .page-head p{ margin:0 0 8px; color:var(--muted); font-size:13.5px;}
+
+  .completeness{ display:flex; align-items:center; gap:10px; margin:18px 0 30px;}
+  .cbar{ flex:1; height:6px; background:var(--border-2); border-radius:999px; overflow:hidden;}
+  .cbar-fill{ height:100%; background:linear-gradient(90deg,var(--primary),#7C6BFF); border-radius:999px; width:0%;}
+  .completeness span{ font-size:11.5px; font-weight:700; color:var(--muted); white-space:nowrap;}
+
+  /* avatar / logo card */
+  .id-card{ display:flex; align-items:center; gap:18px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px 20px; margin-bottom:22px; box-shadow:var(--shadow-sm); opacity:0;}
+  .id-avatar{ width:64px;height:64px;border-radius:16px; background:linear-gradient(135deg,var(--primary),#7C6BFF); color:#fff; display:flex;align-items:center;justify-content:center; font-family:'Space Grotesk'; font-size:22px; font-weight:600; flex-shrink:0; box-shadow:0 8px 20px rgba(79,70,229,.3);}
+  .id-logo{ width:64px;height:64px;border-radius:16px; background:var(--accent-soft); color:var(--accent); display:flex;align-items:center;justify-content:center; font-size:26px; flex-shrink:0;}
+  .id-info b{ display:block; font-size:15px; font-family:'Space Grotesk';}
+  .id-info span{ font-size:12.5px; color:var(--muted);}
+  .id-actions{ margin-left:auto; display:flex; gap:8px;}
+  .id-btn{ font-size:11.5px; font-weight:700; padding:8px 13px; border-radius:9px; cursor:pointer; border:1px solid var(--border); background:var(--bg); color:var(--muted);}
+  .id-btn.primary{ background:var(--primary); color:#fff; border:none;}
+
+  /* section card */
+  .section{ display:flex; gap:36px; padding:26px 0; border-bottom:1px solid var(--border); opacity:0;}
+  .section:last-child{ border-bottom:none;}
+  .sec-label{ width:200px; flex-shrink:0;}
+  .sec-label h3{ font-size:14px; margin:0 0 6px; font-family:'Space Grotesk';}
+  .sec-label p{ font-size:12px; color:var(--muted); margin:0; line-height:1.55;}
+  .sec-fields{ flex:1; display:grid; grid-template-columns:1fr 1fr; gap:16px 16px;}
+  .field{ display:flex; flex-direction:column; gap:6px;}
+  .field.full{ grid-column:1 / -1;}
+  .field label{ font-size:12.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:4px;}
+  .field label .req{ color:var(--accent); }
+  .field input, .field select, .field textarea{
+    border:1px solid var(--border); border-radius:10px; padding:11px 13px; font-size:13.5px; font-family:'Inter';
+    color:var(--ink); background:var(--surface); outline:none; transition:.15s; resize:vertical;
+  }
+  .field textarea{ min-height:64px; line-height:1.55;}
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft);}
+  .field input::placeholder, .field textarea::placeholder{ color:var(--muted-2);}
+  .field.readonly input{ background:var(--border-2); color:var(--muted);}
+  .field .hint{ font-size:11px; color:var(--muted-2);}
+
+  .savebar{
+    position:absolute; left:50%; bottom:24px; transform:translateX(-50%) translateY(120%);
+    background:var(--ink); color:#fff; border-radius:14px; padding:12px 14px 12px 20px;
+    display:flex; align-items:center; gap:16px; box-shadow:var(--shadow-lg); font-size:13px;
+  }
+  .savebar b{ font-weight:600;}
+  .savebar .btns{ display:flex; gap:8px;}
+  .savebar button{ border:none; border-radius:9px; padding:9px 15px; font-size:12.5px; font-weight:700; cursor:pointer;}
+  .savebar .discard{ background:transparent; color:#B9B9C7;}
+  .savebar .save{ background:var(--primary); color:#fff;}
+
+  /* top tab switcher for this demo only */
+  .concept-nav{ position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:100; display:flex; gap:2px; padding:4px; background:var(--surface); border:1px solid var(--border); border-radius:999px; box-shadow:var(--shadow-md);}
+  .concept-nav button{ border:none; background:transparent; padding:9px 16px; border-radius:999px; font-size:12.5px; font-weight:600; color:var(--muted); cursor:pointer; position:relative;}
+  .concept-nav button.active{ color:#fff;}
+  .nav-pill{ position:absolute; top:4px; bottom:4px; border-radius:999px; background:var(--primary); z-index:-1;}
+</style>
+</head>
+<body>
+
+<div class="concept-nav" id="conceptNav">
+  <div class="nav-pill" id="navPill"></div>
+  <button class="active" data-tab="personal">Personal Profile</button>
+  <button data-tab="business">Business Profile</button>
+</div>
+
+<div class="app">
+  <div class="set-nav">
+    <h2>Settings</h2>
+    <div class="item active" data-tab="personal"><span class="ic">👤</span>Personal Profile</div>
+    <div class="item" data-tab="business"><span class="ic">🏢</span>Business Profile</div>
+  </div>
+
+  <div class="set-body">
+    <!-- PERSONAL -->
+    <div class="set-scroll" id="personal">
+      <div class="page-head">
+        <div class="eyebrow"><span class="ln"></span>Account</div>
+        <h1>Personal profile</h1>
+        <p>Update your personal information and contact details.</p>
+      </div>
+      <div class="completeness"><div class="cbar"><div class="cbar-fill" id="fillP" style="width:0%"></div></div><span>75% complete</span></div>
+
+      <div class="id-card ic1">
+        <div class="id-avatar">AM</div>
+        <div class="id-info"><b>Aashik Mansuri</b><span>xojova3642@luckfeed.com</span></div>
+        <div class="id-actions"><button class="id-btn">Remove</button><button class="id-btn primary">Upload photo</button></div>
+      </div>
+
+      <div class="section sec">
+        <div class="sec-label"><h3>General</h3><p>Update your personal information and contact details.</p></div>
+        <div class="sec-fields">
+          <div class="field"><label>First Name <span class="req">*</span></label><input value="Aashik"></div>
+          <div class="field"><label>Last Name <span class="req">*</span></label><input value="Mansuri"></div>
+          <div class="field full readonly"><label>Email Address</label><input value="xojova3642@luckfeed.com" disabled><span class="hint">Contact support to change your login email.</span></div>
+          <div class="field full"><label>Phone Number</label><input placeholder="+1 (555) 000-0000"></div>
+        </div>
+      </div>
+
+      <div class="section sec">
+        <div class="sec-label"><h3>Professional role</h3><p>Your designation within the organization.</p></div>
+        <div class="sec-fields">
+          <div class="field"><label>Job Title</label><input placeholder="e.g. Marketing Director"></div>
+          <div class="field"><label>Department</label><input placeholder="e.g. Demand Generation"></div>
+        </div>
+      </div>
+
+      <div class="section sec">
+        <div class="sec-label"><h3>Preferences</h3><p>Manage your region and language settings.</p></div>
+        <div class="sec-fields">
+          <div class="field"><label>Timezone</label><select><option>Asia/Calcutta</option><option>America/New_York</option><option>Europe/London</option></select></div>
+          <div class="field"><label>Language</label><select><option>English</option><option>Hindi</option><option>Spanish</option></select></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUSINESS -->
+    <div class="set-scroll" id="business" style="display:none;">
+      <div class="page-head">
+        <div class="eyebrow"><span class="ln"></span>Workspace</div>
+        <h1>Business profile</h1>
+        <p>Basic details about your organization to inform AI contexts.</p>
+      </div>
+      <div class="completeness"><div class="cbar"><div class="cbar-fill" id="fillB" style="width:0%"></div></div><span>90% complete</span></div>
+
+      <div class="id-card ic2">
+        <div class="id-logo">🏢</div>
+        <div class="id-info"><b>Kaynetics Company</b><span>Technology &amp; Software · B2B</span></div>
+        <div class="id-actions"><button class="id-btn">Remove</button><button class="id-btn primary">Upload logo</button></div>
+      </div>
+
+      <div class="section sec">
+        <div class="sec-label"><h3>Company info</h3><p>Basic details about your organization to inform AI contexts.</p></div>
+        <div class="sec-fields">
+          <div class="field"><label>Company Name <span class="req">*</span></label><input value="Kaynetics company"></div>
+          <div class="field"><label>Business Type</label><input value="b2b"></div>
+          <div class="field full"><label>Description</label><textarea>B2B</textarea></div>
+          <div class="field"><label>Industry Master</label><select><option>Technology &amp; Software (SaaS)</option><option>Healthcare</option><option>Finance</option></select></div>
+          <div class="field"><label>Currency Master</label><select><option>USD ($)</option><option>INR (₹)</option><option>EUR (€)</option></select></div>
+          <div class="field full"><label>Business Model</label><input placeholder="e.g. Subscription"></div>
+        </div>
+      </div>
+
+      <div class="section sec">
+        <div class="sec-label"><h3>Contact &amp; operations</h3><p>Where and how your business operates.</p></div>
+        <div class="sec-fields">
+          <div class="field"><label>Website</label><input value="http://localhost:5173/onboarding"></div>
+          <div class="field"><label>Public Email</label><input placeholder="hello@company.com"></div>
+          <div class="field"><label>Phone</label><input value="9636852922"></div>
+          <div class="field"><label>Founded Year</label><input value="2020"></div>
+          <div class="field"><label>Company Size</label><input value="11"></div>
+          <div class="field"><label>Headquarters</label><input value="Udaipur, India"></div>
+          <div class="field full"><label>Countries Served</label><input value="India"></div>
+        </div>
+      </div>
+
+      <div class="section sec">
+        <div class="sec-label"><h3>Brand identity</h3><p>Guides the AI in generating content aligned with your goals.</p></div>
+        <div class="sec-fields">
+          <div class="field full"><label>Mission</label><textarea>KayJay Global Solutions designs and develops custom software, SaaS platforms, AI-powered products, recruitment management solutions, HR management solutions, queue management solutions, monitoring platforms, and enterprise automation systems that help businesses.</textarea></div>
+          <div class="field full"><label>Vision</label><textarea>KayJay Global Solutions designs and develops custom software, SaaS platforms, AI-powered products, recruitment management solutions, HR management solutions, queue management solutions, monitoring platforms, and enterprise automation systems that help businesses.</textarea></div>
+          <div class="field full"><label>Unique Selling Proposition (USP)</label><textarea>End-to-end AI and software solutions that combine intelligent automation, custom SaaS development, and enterprise-grade engineering to solve complex business challenges and deliver measurable results.</textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="savebar" id="savebar"><b>You have unsaved changes</b><div class="btns"><button class="discard">Discard</button><button class="save">Save changes</button></div></div>
+  </div>
+</div>
+
+<script>
+const navBtns = document.querySelectorAll('.concept-nav button');
+const pill = document.getElementById('navPill');
+function movePill(btn, animate=true){
+  const r = btn.getBoundingClientRect(), navR = btn.parentElement.getBoundingClientRect();
+  const x = r.left - navR.left, w = r.width;
+  if(animate) gsap.to(pill,{x, width:w, duration:.4, ease:'power3.out'});
+  else gsap.set(pill,{x, width:w});
+}
+window.addEventListener('load', ()=>{
+  movePill(document.querySelector('.concept-nav button.active'), false);
+  playIn('personal');
+});
+
+function playIn(tab){
+  const root = document.getElementById(tab);
+  gsap.fromTo(root.querySelectorAll('.id-card'),{y:14,opacity:0},{y:0,opacity:1,duration:.45,ease:'power2.out'});
+  gsap.fromTo(root.querySelectorAll('.sec'),{y:16,opacity:0},{y:0,opacity:1,duration:.45,stagger:.1,delay:.1,ease:'power2.out'});
+  const fillId = tab==='personal' ? 'fillP' : 'fillB';
+  const pct = tab==='personal' ? 75 : 90;
+  gsap.fromTo('#'+fillId,{width:'0%'},{width:pct+'%',duration:1,delay:.3,ease:'power2.out'});
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.set-nav .item').forEach(i=> i.classList.toggle('active', i.dataset.tab===tab));
+  navBtns.forEach(b=>{ b.classList.toggle('active', b.dataset.tab===tab); if(b.dataset.tab===tab) movePill(b); });
+  document.getElementById('personal').style.display = tab==='personal' ? 'block' : 'none';
+  document.getElementById('business').style.display = tab==='business' ? 'block' : 'none';
+  playIn(tab);
+}
+document.querySelectorAll('[data-tab]').forEach(el=> el.addEventListener('click', ()=> switchTab(el.dataset.tab)));
+
+// show save bar on any input change
+let shown = false;
+document.querySelectorAll('input, textarea, select').forEach(el=>{
+  el.addEventListener('input', ()=>{
+    if(!shown){ shown=true; gsap.to('#savebar',{y:0,duration:.4,ease:'power3.out'}); document.getElementById('savebar').style.transform='translateX(-50%) translateY(0)'; }
+  });
+});
+document.querySelector('.savebar .discard').addEventListener('click', ()=>{
+  shown=false;
+  document.getElementById('savebar').style.transform='translateX(-50%) translateY(120%)';
+});
+document.querySelector('.savebar .save').addEventListener('click', ()=>{
+  shown=false;
+  document.getElementById('savebar').style.transform='translateX(-50%) translateY(120%)';
+});
+</script>
+</body>
+</html>

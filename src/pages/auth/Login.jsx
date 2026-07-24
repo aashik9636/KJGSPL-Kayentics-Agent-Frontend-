@@ -98,7 +98,10 @@ export default function Login() {
 
   return (
     <div className="w-full">
-      <div className="mb-8 text-center">
+      <div className="mb-8 text-center flex flex-col items-center">
+        <div className="flex justify-center mb-8">
+           <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-14 w-auto object-contain" />
+        </div>
         <h2 className="text-[32px] font-medium text-[#111827] tracking-tight mb-2">Sign in</h2>
         <p className="text-[#6b7280] text-[15px]">Enter your details to access your Kaynetics account</p>
       </div>

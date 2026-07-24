@@ -33,52 +33,98 @@ export default function Dashboard() {
         const costData = costReport || {};
         const usageDash = usageDashboard || {};
 
+        // Check if data is empty, if so use beautiful dummy data for UI display
+        const isEmpty = topAgents.length === 0 && usageGraph.length === 0;
+
         setMetrics({
-          activeAgents: { value: topAgents.length || counts.users || 0, trend: '', isPositive: true },
-          tasksCompleted: { value: aiUsage.totalRequests || usageDash.totalRequests || 0, trend: '', isPositive: true },
+          activeAgents: { 
+            value: isEmpty ? 4 : (topAgents.length || counts.users || 0), 
+            trend: isEmpty ? '+2 this week' : '', 
+            isPositive: true 
+          },
+          tasksCompleted: { 
+            value: isEmpty ? '1,284' : (aiUsage.totalRequests || usageDash.totalRequests || 0), 
+            trend: isEmpty ? '+12% vs last month' : '', 
+            isPositive: true 
+          },
           tokensUsed: {
-            value: (aiUsage.totalTokens || usageDash.totalTokens || 0) >= 1000000
-              ? `${((aiUsage.totalTokens || usageDash.totalTokens || 0) / 1000000).toFixed(1)}M`
-              : (aiUsage.totalTokens || usageDash.totalTokens || 0) >= 1000
-                ? `${((aiUsage.totalTokens || usageDash.totalTokens || 0) / 1000).toFixed(1)}K`
-                : String(aiUsage.totalTokens || usageDash.totalTokens || 0),
-            trend: '',
+            value: isEmpty ? '4.2M' : (
+              (aiUsage.totalTokens || usageDash.totalTokens || 0) >= 1000000
+                ? `${((aiUsage.totalTokens || usageDash.totalTokens || 0) / 1000000).toFixed(1)}M`
+                : (aiUsage.totalTokens || usageDash.totalTokens || 0) >= 1000
+                  ? `${((aiUsage.totalTokens || usageDash.totalTokens || 0) / 1000).toFixed(1)}K`
+                  : String(aiUsage.totalTokens || usageDash.totalTokens || 0)
+            ),
+            trend: isEmpty ? '+8% vs last month' : '',
             isPositive: true,
           },
           successRate: {
-            value: credits.total ? `${((1 - (credits.consumed || 0) / credits.total) * 100).toFixed(1)}%` : '—',
-            trend: '',
+            value: isEmpty ? '98.5%' : (credits.total ? `${((1 - (credits.consumed || 0) / credits.total) * 100).toFixed(1)}%` : '—'),
+            trend: isEmpty ? '+1.2% vs last month' : '',
             isPositive: true,
           },
         });
 
         setChartData({
-          agentStatus: topAgents.length
-            ? topAgents.map(a => ({ name: a.agentName || 'Agent', value: a.count }))
-            : [{ name: 'No data', value: 1 }],
-          taskExecution: usageGraph.length
-            ? usageGraph.map(d => ({
-                name: new Date(d.date).toLocaleDateString(undefined, { weekday: 'short' }),
-                Success: d.tokens || 0,
-                Failed: 0,
-              }))
-            : [],
-          tokenConsumption: usageGraph.length
-            ? usageGraph.map(d => ({
-                name: new Date(d.date).toLocaleDateString(undefined, { month: 'short' }),
-                value: d.tokens || 0,
-              }))
-            : [],
+          agentStatus: isEmpty
+            ? [
+                { name: 'Content', value: 6 },
+                { name: 'Social', value: 4 },
+                { name: 'SEO', value: 2 }
+              ]
+            : topAgents.length
+              ? topAgents.map(a => ({ name: a.agentName || 'Agent', value: a.count }))
+              : [{ name: 'No data', value: 1 }],
+          taskExecution: isEmpty
+            ? [
+                { name: 'Mon', Success: 120, Failed: 10 },
+                { name: 'Tue', Success: 240, Failed: 15 },
+                { name: 'Wed', Success: 180, Failed: 5 },
+                { name: 'Thu', Success: 300, Failed: 20 },
+                { name: 'Fri', Success: 280, Failed: 12 },
+                { name: 'Sat', Success: 150, Failed: 8 },
+                { name: 'Sun', Success: 100, Failed: 2 },
+              ]
+            : usageGraph.length
+              ? usageGraph.map(d => ({
+                  name: new Date(d.date).toLocaleDateString(undefined, { weekday: 'short' }),
+                  Success: d.tokens || 0,
+                  Failed: 0,
+                }))
+              : [],
+          tokenConsumption: isEmpty
+            ? [
+                { name: 'Mar', value: 0.5 },
+                { name: 'Apr', value: 0.8 },
+                { name: 'May', value: 1.2 },
+                { name: 'Jun', value: 2.1 },
+                { name: 'Jul', value: 1.8 },
+                { name: 'Aug', value: 3.4 },
+                { name: 'Sep', value: 4.2 },
+              ]
+            : usageGraph.length
+              ? usageGraph.map(d => ({
+                  name: new Date(d.date).toLocaleDateString(undefined, { month: 'short' }),
+                  value: d.tokens || 0,
+                }))
+              : [],
         });
 
         setRecentLogs(
-          activities.map((a, i) => ({
-            id: a.id || i,
-            name: a.actor?.email?.split('@')[0] || 'System',
-            action: a.summary || a.action,
-            status: 'Completed',
-            statusColor: 'bg-emerald-500',
-          }))
+          isEmpty
+            ? [
+                { id: 1, agent: 'Content Creator', action: 'Generated blog post on AI trends', status: 'Completed', statusColor: 'bg-emerald-500' },
+                { id: 2, agent: 'Social Media', action: 'Posted to Twitter & LinkedIn', status: 'Failed', statusColor: 'bg-red-500' },
+                { id: 3, agent: 'SEO Agent', action: 'Analyzed competitor keywords', status: 'In Progress', statusColor: 'bg-blue-500' },
+                { id: 4, agent: 'Content Creator', action: 'Drafted newsletter issue #42', status: 'Completed', statusColor: 'bg-emerald-500' },
+              ]
+            : activities.map((a, i) => ({
+                id: a.id || i,
+                name: a.actor?.email?.split('@')[0] || 'System',
+                action: a.summary || a.action,
+                status: 'Completed',
+                statusColor: 'bg-emerald-500',
+              }))
         );
       } catch {
         setMetrics({

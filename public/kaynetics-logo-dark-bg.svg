@@ -1,0 +1,39 @@
+<svg viewBox="0 0 640 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="kGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="55%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#67E8F9"/>
+    </linearGradient>
+    <linearGradient id="nodeGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#67E8F9"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="640" height="180" fill="#0B1020"/>
+
+  <g transform="translate(10,10)">
+    <rect x="20" y="12" width="16" height="136" rx="8" fill="url(#kGrad2)"/>
+
+    <path d="M36 80 L88 24" stroke="url(#kGrad2)" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <path d="M88 24 L124 8"  stroke="url(#kGrad2)" stroke-width="7"  stroke-linecap="round" fill="none" opacity="0.85"/>
+    <path d="M124 8 L150 2" stroke="url(#kGrad2)" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+    <path d="M36 88 L90 148" stroke="url(#kGrad2)" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <path d="M90 148 L126 168" stroke="url(#kGrad2)" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.85"/>
+    <path d="M126 168 L152 176" stroke="url(#kGrad2)" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+    <circle cx="28" cy="84" r="13" fill="url(#nodeGrad2)"/>
+    <circle cx="88" cy="24" r="9" fill="#0B1020" stroke="url(#nodeGrad2)" stroke-width="3"/>
+    <circle cx="124" cy="8" r="6" fill="url(#nodeGrad2)"/>
+    <circle cx="150" cy="2" r="4" fill="#67E8F9"/>
+
+    <circle cx="90" cy="148" r="9" fill="#0B1020" stroke="url(#nodeGrad2)" stroke-width="3"/>
+    <circle cx="126" cy="168" r="6" fill="url(#nodeGrad2)"/>
+    <circle cx="152" cy="176" r="4" fill="#A78BFA"/>
+  </g>
+
+  <text x="215" y="112" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="58" letter-spacing="0.5" fill="#F8FAFC">kay<tspan fill="url(#kGrad2)">netics</tspan></text>
+  <text x="217" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="500" font-size="17" letter-spacing="3.5" fill="#94A3B8">MULTI-AGENT AI PLATFORM</text>
+</svg>

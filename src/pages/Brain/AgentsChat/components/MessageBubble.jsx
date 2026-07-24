@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
+import gsap from 'gsap';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -144,6 +145,16 @@ function resolveAgent(raw) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function MessageBubble({ message, isStreaming }) {
+  const bubbleRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (bubbleRef.current) {
+      gsap.fromTo(bubbleRef.current,
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+      );
+    }
+  }, []);
   const isUser          = message.role === 'user' || message.role === 'USER';
   const isClarification = !isUser && message.isClarification;
   const isSummary       = !isUser && message.isSummary;
@@ -156,7 +167,7 @@ export default function MessageBubble({ message, isStreaming }) {
   // ── Special: Clarification question bubble ─────────────────────────────────
   if (isClarification) {
     return (
-      <div className="flex gap-4 py-4 justify-start group">
+      <div ref={bubbleRef} className="flex gap-4 py-4 justify-start group">
         <div className="flex-shrink-0 w-9 h-9 rounded-[14px] bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center mt-1 shadow-md shadow-teal-500/20">
           <svg className="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -179,7 +190,7 @@ export default function MessageBubble({ message, isStreaming }) {
   // ── Special: Summary / submitting bubble ───────────────────────────────────
   if (isSummary) {
     return (
-      <div className="flex gap-4 py-4 justify-start">
+      <div ref={bubbleRef} className="flex gap-4 py-4 justify-start">
         <div className="flex-shrink-0 w-9 h-9 rounded-[14px] bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center mt-1 shadow-md shadow-green-500/20">
           <svg className="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -193,13 +204,14 @@ export default function MessageBubble({ message, isStreaming }) {
   }
 
   return (
-    <div className={`flex gap-3.5 py-4 ${isUser ? 'justify-end' : 'justify-start'} group w-full`}>
+    <div ref={bubbleRef} className={`flex gap-3.5 py-4 ${isUser ? 'justify-end' : 'justify-start'} group w-full`}>
 
       {/* AI avatar */}
       {!isUser && (
-        <div className="flex-shrink-0 w-9 h-9 rounded-[14px] bg-gradient-to-br from-[#6c48ff] to-[#9d83ff] flex items-center justify-center shadow-md shadow-violet-500/20 mt-1">
-          <svg className="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-[16px] bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1">
+          <div className="absolute inset-0 rounded-[14px] ring-1 ring-white/40 inset-ring"></div>
+          <svg className="w-5 h-5 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
       )}
@@ -229,10 +241,10 @@ export default function MessageBubble({ message, isStreaming }) {
         )}
 
         {/* ── Message bubble ── */}
-        <div className={`relative px-5 py-3.5 shadow-sm transition-all ${
+        <div className={`relative px-6 py-4 transition-all ${
           isUser
-            ? 'bg-gradient-to-br from-[#6c48ff] to-[#7f5eff] text-white rounded-[22px] rounded-br-[6px] shadow-violet-500/20'
-            : 'bg-white text-gray-800 rounded-[22px] rounded-tl-[6px] border border-gray-100 shadow-gray-200/40'
+            ? 'bg-gradient-to-br from-[#5030e5] to-[#7b61ff] text-white rounded-[28px] rounded-br-[8px] shadow-[0_8px_24px_rgba(108,72,255,0.25)] border border-white/10'
+            : 'bg-white/80 backdrop-blur-xl text-gray-800 rounded-[28px] rounded-tl-[8px] border border-white shadow-[0_4px_32px_rgba(0,0,0,0.03)]'
         }`}>
           {isUser ? (
             <p className="text-[15px] leading-[1.6] font-medium whitespace-pre-wrap">{message.content}</p>
@@ -396,9 +408,9 @@ export default function MessageBubble({ message, isStreaming }) {
 
       {/* User avatar */}
       {isUser && (
-        <div className="flex-shrink-0 w-9 h-9 rounded-[14px] bg-[#1e293b] flex items-center justify-center shadow-md shadow-slate-500/20 mt-1">
-          <svg className="w-[18px] h-[18px] text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center shadow-lg shadow-black/10 border-2 border-white relative mt-1">
+          <svg className="w-5 h-5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
           </svg>
         </div>
       )}
