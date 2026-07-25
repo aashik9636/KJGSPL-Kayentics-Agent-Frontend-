@@ -71,15 +71,68 @@ export default function SubscriptionUsageDashboard() {
     }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleTopUp = async () => {
-    if (!organizationId) return;
+    if (!organizationId) {
+      toast.error('Please select an active organization.');
+      return;
+    }
     setTopUpLoading(true);
     try {
-      await subscriptionService.purchaseAddOn(organizationId, 'ADDITIONAL_1000_TASKS', 1);
-      toast.success('Added 1,000 Tasks Top-Up!');
-      fetchSubscription();
+      const region = subscription?.region || 'INDIA_INR';
+      const addOnCode = 'ADDITIONAL_1000_TASKS';
+      const order = await subscriptionService.createAddOnRazorpayOrder(organizationId, addOnCode, 1, region);
+
+      const scriptLoaded = await loadRazorpayScript();
+      if (scriptLoaded && window.Razorpay && order?.keyId) {
+        const options = {
+          key: order.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          name: 'Kaynetics AI',
+          description: `Top-Up 1,000 AI Task Credits`,
+          order_id: order.razorpayOrderId,
+          handler: async (response) => {
+            try {
+              await subscriptionService.verifyAddOnRazorpayPayment(
+                organizationId,
+                response.razorpay_order_id,
+                response.razorpay_payment_id,
+                response.razorpay_signature,
+                addOnCode,
+                1
+              );
+              toast.success('Payment verified! Added 1,000 Task Credits.');
+              fetchSubscription();
+            } catch (e) {
+              toast.error('Payment verification failed.');
+            }
+          },
+          theme: {
+            color: '#6c48ff',
+          },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else {
+        toast.error('Payment gateway key is not configured properly.');
+      }
     } catch (err) {
-      toast.error('Top-Up failed.');
+      console.error('Top-up error:', err);
+      toast.error(err.response?.data?.message || 'Failed to create top-up payment order.');
     } finally {
       setTopUpLoading(false);
     }

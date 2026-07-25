@@ -62,6 +62,34 @@ export const subscriptionService = {
   },
 
   /**
+   * Create Razorpay payment order for Add-on top-up
+   */
+  async createAddOnRazorpayOrder(organizationId, addOnCode, quantity = 1, region = 'INDIA_INR') {
+    const response = await apiClient.post('/subscriptions/addons/razorpay/create-order', {
+      organizationId,
+      addOnCode,
+      quantity,
+      region
+    });
+    return response.data;
+  },
+
+  /**
+   * Verify Razorpay payment signature and grant Add-on top-up
+   */
+  async verifyAddOnRazorpayPayment(organizationId, razorpayOrderId, razorpayPaymentId, razorpaySignature, addOnCode, quantity = 1) {
+    const response = await apiClient.post('/subscriptions/addons/razorpay/verify', {
+      organizationId,
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+      addOnCode,
+      quantity
+    });
+    return response.data;
+  },
+
+  /**
    * Purchase Add-on top-up
    */
   async purchaseAddOn(organizationId, addOnCode, quantity = 1) {
