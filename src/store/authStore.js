@@ -12,7 +12,12 @@ export const useAuthStore = create(
       
       logout: () => set({ user: null, accessToken: null, refreshToken: null }),
       
-      setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken })
+      setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
+
+      isSuperAdmin: () => {
+        const user = useAuthStore.getState().user;
+        return user?.role === 'SUPER_ADMIN';
+      }
     }),
     {
       name: 'auth-storage',

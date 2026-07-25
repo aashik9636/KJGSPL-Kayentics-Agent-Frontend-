@@ -147,6 +147,17 @@ export default function Sidebar() {
 
       {/* Logout / User Profile Card */}
       <div className={`mt-4 ${collapsed ? 'px-4' : 'px-6'}`}>
+        {user?.role === 'SUPER_ADMIN' && (
+          <Link
+            to="/superadmin"
+            className={`mb-3 flex items-center ${collapsed ? 'justify-center p-2.5' : 'px-4 py-2.5'} rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 font-bold text-xs border border-amber-500/30 transition-all`}
+            title="Superadmin Control Center"
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            {!collapsed && <span className="ml-2 truncate">Superadmin Portal</span>}
+          </Link>
+        )}
+
         <div className={`${collapsed ? 'bg-transparent' : 'bg-[#f4f7fe]'} rounded-2xl ${collapsed ? 'p-0' : 'p-4'} flex flex-col gap-3 transition-colors`}>
           
           <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>

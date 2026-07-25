@@ -3,6 +3,7 @@ import ProtectedRoute from './guards/ProtectedRoute';
 import { AuthRoutes } from './AuthRoutes';
 import { OnboardingRoutes } from './OnboardingRoutes';
 import { AppRoutes } from './AppRoutes';
+import { SuperAdminRoutes } from './SuperAdminRoutes';
 
 export default function AppRouter() {
   return (
@@ -14,6 +15,7 @@ export default function AppRouter() {
       <Route element={<ProtectedRoute />}>
         {OnboardingRoutes}
         {AppRoutes}
+        {SuperAdminRoutes}
       </Route>
 
       {/* Fallback route */}
