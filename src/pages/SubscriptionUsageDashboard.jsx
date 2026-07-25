@@ -104,7 +104,7 @@ export default function SubscriptionUsageDashboard() {
           currency: order.currency,
           name: 'Kaynetics AI',
           description: `Top-Up 1,000 AI Task Credits`,
-          order_id: order.razorpayOrderId,
+          ...(order?.razorpayOrderId ? { order_id: order.razorpayOrderId } : {}),
           handler: async (response) => {
             try {
               await subscriptionService.verifyAddOnRazorpayPayment(

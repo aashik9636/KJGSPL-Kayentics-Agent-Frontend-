@@ -83,7 +83,7 @@ export default function PricingPlans() {
           currency: order.currency,
           name: 'Kaynetics AI',
           description: `${order.planName} Plan (${billingCycle})`,
-          order_id: order.razorpayOrderId,
+          ...(order?.razorpayOrderId ? { order_id: order.razorpayOrderId } : {}),
           handler: async (response) => {
             try {
               await subscriptionService.verifyRazorpayPayment(
