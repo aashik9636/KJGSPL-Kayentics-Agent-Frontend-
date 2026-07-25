@@ -10,6 +10,8 @@ import Storage from '../pages/Storage';
 import ContentHub from '../pages/ContentHub';
 import PostScheduler from '../pages/PostScheduler';
 import Agents from '../pages/Agents';
+import PricingPlans from '../pages/PricingPlans';
+import SubscriptionUsageDashboard from '../pages/SubscriptionUsageDashboard';
 
 export const AppRoutes = (
   <Route element={<AppLayout />}>
@@ -23,5 +25,8 @@ export const AppRoutes = (
     <Route path="/storage" element={<Storage />} />
     <Route path="/content-hub" element={<ContentHub />} />
     <Route path="/post-scheduler" element={<PostScheduler />} />
+    <Route path="/pricing" element={<PricingPlans />} />
+    <Route path="/subscription" element={<SubscriptionUsageDashboard />} />
   </Route>
 );
+
