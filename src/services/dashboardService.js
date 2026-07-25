@@ -1,44 +1,57 @@
 import apiClient from './apiClient';
 import { useWorkspaceStore } from '../store/workspaceStore';
 
+const getStoreParams = () => {
+  const { organizationId, workspaceId } = useWorkspaceStore.getState();
+  const params = {};
+  if (organizationId) params.organizationId = organizationId;
+  if (workspaceId) params.workspaceId = workspaceId;
+  return params;
+};
+
 export const dashboardService = {
-  getDashboardSummary: async () => {
-    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+  // Main Consolidated Dashboard (GET /dashboard)
+  getDashboardSummary: async (params = {}) => {
+    const storeParams = getStoreParams();
     const response = await apiClient.get('/dashboard', {
-      params: { organizationId, workspaceId }
+      params: { ...storeParams, ...params }
     });
     return response.data;
   },
 
   // ─── AI Usage Reports ─────────────────────────────────────────────────────
+  // Cost Reports (GET /ai-usage/reports/cost)
   getCostReports: async (params = {}) => {
-    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const storeParams = getStoreParams();
     const response = await apiClient.get('/ai-usage/reports/cost', {
-      params: { organizationId, workspaceId, ...params }
+      params: { ...storeParams, ...params }
     });
     return response.data;
   },
 
+  // AI Usage Overview (GET /ai-usage/dashboard)
   getUsageDashboard: async (params = {}) => {
-    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const storeParams = getStoreParams();
     const response = await apiClient.get('/ai-usage/dashboard', {
-      params: { organizationId, workspaceId, ...params }
+      params: { ...storeParams, ...params }
     });
     return response.data;
   },
 
+  // Daily Usage Aggregation (GET /ai-usage/daily)
   getDailyUsage: async (params = {}) => {
-    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const storeParams = getStoreParams();
     const response = await apiClient.get('/ai-usage/daily', {
-      params: { organizationId, workspaceId, ...params }
+      params: { ...storeParams, ...params }
     });
     return response.data;
   },
 
+  // Monthly Usage Aggregation (GET /ai-usage/monthly)
   getMonthlyUsage: async (params = {}) => {
-    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const storeParams = getStoreParams();
     const response = await apiClient.get('/ai-usage/monthly', {
-      params: { organizationId, workspaceId, ...params }
+      params: { ...storeParams, ...params }
     });
     return response.data;
   }

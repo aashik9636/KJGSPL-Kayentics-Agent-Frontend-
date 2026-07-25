@@ -15,5 +15,6 @@ export const AuthRoutes = (
     <Route path="/reset-password" element={<NewPassword />} />
     <Route path="/verify-email" element={<VerifyEmail />} />
     <Route path="/accept-invitation" element={<AcceptInvitation />} />
+    <Route path="/invite/accept" element={<AcceptInvitation />} />
   </Route>
 );

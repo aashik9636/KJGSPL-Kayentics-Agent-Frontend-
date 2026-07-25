@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { useAuthStore } from '../../store/authStore';
@@ -250,9 +250,13 @@ export default function Navbar() {
                 <p className="text-sm font-semibold text-gray-900 truncate">{useAuthStore.getState().user?.name || 'User'}</p>
                 <p className="text-xs text-gray-500 truncate">{useAuthStore.getState().user?.email}</p>
               </div>
-              <a href="/profile" className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+              <Link 
+                to="/profile" 
+                onClick={() => setProfileOpen(false)} 
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
                 My Profile
-              </a>
+              </Link>
               <button 
                 onClick={() => {
                   useAuthStore.getState().logout();
