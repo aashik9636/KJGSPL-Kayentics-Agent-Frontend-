@@ -16,13 +16,35 @@ export default function PostScheduler() {
       setLoading(true);
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
-      let data;
+      let res;
       try {
-        data = await schedulerService.getCalendarPosts(year, month);
+        res = await schedulerService.getCalendarPosts(year, month);
       } catch {
-        data = await schedulerService.getScheduledPosts();
+        res = await schedulerService.getScheduledPosts();
       }
-      setPosts(Array.isArray(data) ? data : data?.data || []);
+      
+      let rawPosts = [];
+      if (Array.isArray(res)) {
+        rawPosts = res;
+      } else if (res?.days) {
+        rawPosts = res.days.flatMap(d => d.posts || []);
+      } else if (res?.data?.days) {
+        rawPosts = res.data.days.flatMap(d => d.posts || []);
+      } else if (Array.isArray(res?.data)) {
+        rawPosts = res.data;
+      } else if (Array.isArray(res?.posts)) {
+        rawPosts = res.posts;
+      }
+
+      const normalized = rawPosts.map(p => ({
+        ...p,
+        scheduledAt: p.publish_at || p.publishAt || p.event_date || p.eventDate || p.created_at || p.createdAt,
+        platform: p.platform || p.platforms?.[0] || 'LinkedIn',
+        platforms: p.platforms || [p.platform || 'LinkedIn'],
+        content: p.caption || p.content || p.topic || p.event_name || 'Media Post',
+      }));
+
+      setPosts(normalized);
     } catch (err) {
       toast.error('Failed to load scheduled posts');
     } finally {
@@ -272,7 +294,7 @@ export default function PostScheduler() {
                              return (
                                <div key={p.id} className="post-chip" style={{ background: `${pf.c}22`, color: pf.c }}>
                                  <span className="d" style={{ background: pf.c }}></span>
-                                 Post
+                                 {p.content ? (p.content.length > 16 ? p.content.slice(0, 16) + '...' : p.content) : 'Post'}
                                </div>
                              );
                            })}

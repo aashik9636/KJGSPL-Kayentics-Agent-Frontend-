@@ -9,9 +9,12 @@ export default function Products() {
   
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    pricing: '',
-    usps: ['']
+    sku: '',
+    category: '',
+    shortDescription: '',
+    usp: '',
+    targetAudience: '',
+    features: ''
   });
 
   const fetchProducts = async () => {
@@ -29,36 +32,37 @@ export default function Products() {
     fetchProducts();
   }, []);
 
-  const handleUspChange = (index, value) => {
-    const newUsps = [...formData.usps];
-    newUsps[index] = value;
-    setFormData({ ...formData, usps: newUsps });
-  };
-
-  const addUspField = () => {
-    setFormData({ ...formData, usps: [...formData.usps, ''] });
-  };
-
-  const removeUspField = (index) => {
-    const newUsps = formData.usps.filter((_, i) => i !== index);
-    setFormData({ ...formData, usps: newUsps });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.name.trim() || !formData.sku.trim()) {
+      toast.error('Product Name and SKU are required');
+      return;
+    }
     try {
-      // Filter out empty USPs
       const payload = {
-        ...formData,
-        usps: formData.usps.filter(usp => usp.trim() !== '')
+        name: formData.name.trim(),
+        sku: formData.sku.trim(),
+        category: formData.category.trim() || undefined,
+        shortDescription: formData.shortDescription.trim() || undefined,
+        usp: formData.usp.trim() || undefined,
+        targetAudience: formData.targetAudience.trim() || undefined,
+        features: formData.features.trim() || undefined,
       };
       await productService.createProduct(payload);
       toast.success('Product created successfully');
       setIsModalOpen(false);
-      setFormData({ name: '', description: '', pricing: '', usps: [''] });
+      setFormData({
+        name: '',
+        sku: '',
+        category: '',
+        shortDescription: '',
+        usp: '',
+        targetAudience: '',
+        features: ''
+      });
       fetchProducts();
     } catch (err) {
-      // Error handled by interceptor
+      // Error toast handled by axios response interceptor
     }
   };
 
@@ -80,7 +84,7 @@ export default function Products() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Products Catalog</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage your offerings, pricing, and unique selling propositions.</p>
+          <p className="text-gray-500 text-sm mt-1">Manage your offerings, features, and unique selling propositions.</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
@@ -138,26 +142,34 @@ export default function Products() {
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 text-[16px] leading-tight">{product.name}</h3>
-                  <p className="text-[#1967d2] font-bold text-[14px] mt-0.5">{product.pricing}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="inline-block px-2 py-0.5 bg-blue-50 text-[#1967d2] text-[11px] font-bold rounded-md uppercase tracking-wider">
+                      SKU: {product.sku}
+                    </span>
+                    {product.category && (
+                      <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-[11px] font-medium rounded-md">
+                        {product.category}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               
-              <p className="text-gray-500 text-[13px] mb-5 flex-1">{product.description}</p>
+              <p className="text-gray-500 text-[13px] mb-5 flex-1">{product.shortDescription || product.description || 'No description provided.'}</p>
               
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Key Features (USPs)</p>
-                <ul className="space-y-1.5">
-                  {product.usps?.map((usp, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-[13px] text-gray-700 font-medium">
-                      <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                      {usp}
-                    </li>
-                  ))}
-                  {(!product.usps || product.usps.length === 0) && (
-                     <li className="text-[13px] text-gray-400 italic">No features listed</li>
-                  )}
-                </ul>
-              </div>
+              {product.usp && (
+                <div className="pt-3 border-t border-gray-100 mb-2">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">USP</p>
+                  <p className="text-[13px] text-gray-700 font-medium">{product.usp}</p>
+                </div>
+              )}
+
+              {product.features && (
+                <div className="pt-3 border-t border-gray-100">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Key Features</p>
+                  <p className="text-[13px] text-gray-600 whitespace-pre-line">{product.features}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -176,38 +188,40 @@ export default function Products() {
             
             <div className="p-6 overflow-y-auto flex-1">
               <form id="productForm" onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Product Name</label>
-                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required placeholder="e.g. Kaynetics AI Pro" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Description</label>
-                  <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required placeholder="Short summary of the product..." rows="3" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Pricing</label>
-                  <input type="text" value={formData.pricing} onChange={(e) => setFormData({...formData, pricing: e.target.value})} required placeholder="e.g. $99/mo or $1500 one-time" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
-                </div>
-                
-                <div>
-                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide flex justify-between items-center">
-                    Unique Selling Propositions (USPs)
-                    <button type="button" onClick={addUspField} className="text-[#1967d2] hover:underline capitalize text-xs">
-                      + Add USP
-                    </button>
-                  </label>
-                  <div className="space-y-2">
-                    {formData.usps.map((usp, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <input type="text" value={usp} onChange={(e) => handleUspChange(index, e.target.value)} placeholder="e.g. 24/7 Automated Support" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
-                        {formData.usps.length > 1 && (
-                          <button type="button" onClick={() => removeUspField(index)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Product Name *</label>
+                    <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required placeholder="e.g. Kaynetics AI Pro" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
                   </div>
+                  <div>
+                    <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">SKU *</label>
+                    <input type="text" value={formData.sku} onChange={(e) => setFormData({...formData, sku: e.target.value})} required placeholder="e.g. KAY-AI-001" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Category</label>
+                  <input type="text" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} placeholder="e.g. SaaS, Consulting, AI Tool" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Short Description</label>
+                  <textarea value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} placeholder="Short summary of the product..." rows="2" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Unique Selling Proposition (USP)</label>
+                  <input type="text" value={formData.usp} onChange={(e) => setFormData({...formData, usp: e.target.value})} placeholder="e.g. 24/7 autonomous social media management" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Target Audience</label>
+                  <input type="text" value={formData.targetAudience} onChange={(e) => setFormData({...formData, targetAudience: e.target.value})} placeholder="e.g. Enterprise marketing teams, SaaS founders" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Features</label>
+                  <textarea value={formData.features} onChange={(e) => setFormData({...formData, features: e.target.value})} placeholder="Key features list..." rows="3" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
                 </div>
               </form>
             </div>
