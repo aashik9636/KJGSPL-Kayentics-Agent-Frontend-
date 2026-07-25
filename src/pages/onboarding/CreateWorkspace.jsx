@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { workspaceService } from '../../services/workspaceService';
+import { authService } from '../../services/authService';
 import { useAuthStore } from '../../store/authStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { toast } from 'react-toastify';
 
 export default function CreateWorkspace() {
@@ -30,10 +32,14 @@ export default function CreateWorkspace() {
       
       if (result?.accessToken) {
         setTokens(result.accessToken, result.refreshToken);
+        
+        // Fetch updated user to get the new onboardingStep (PENDING_BUSINESS_PROFILE)
+        const updatedUser = await authService.getCurrentUser();
+        useAuthStore.getState().setAuth(updatedUser, result.accessToken, result.refreshToken);
       }
 
-      // 4. Navigate directly to Business Profile
-      navigate('/onboarding/business-profile');
+      // 4. Navigate to root, allowing ProtectedRoute to dynamically route based on onboardingStep
+      navigate('/');
     } catch (err) {
       // apiClient handles toasts
     } finally {

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Post Calendar — Brain Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  :root{
+    --bg:#F5F5FA; --surface:#FFFFFF; --border:#E8E7F1; --border-2:#F0F0F6;
+    --ink:#14141D; --muted:#6D6D7C; --muted-2:#9C9CA9;
+    --primary:#4F46E5; --primary-dark:#3730B8; --primary-soft:#EEEDFE;
+    --accent:#FF7A33; --accent-soft:#FFF0E4;
+    --success:#149452; --success-soft:#E6F7ED;
+    --pink:#C22B90; --pink-soft:#FDECF6;
+    --blue:#0E7ADB; --blue-soft:#E7F3FF;
+    --shadow-sm: 0 1px 2px rgba(20,20,45,.05);
+    --shadow-md: 0 10px 28px rgba(30,25,90,.09);
+    --shadow-lg: 0 24px 56px rgba(30,25,90,.16);
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; }
+  .page{ display:flex; height:100vh; }
+  .cal-main{ flex:1; padding:40px 48px; overflow-y:auto; min-width:0;}
+
+  .head-row{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:26px;}
+  .eyebrow{ font-size:11px; font-weight:700; color:var(--primary); letter-spacing:.12em; text-transform:uppercase; display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .eyebrow .ln{width:20px;height:1px;background:var(--primary);}
+  h1{ font-family:'Space Grotesk'; font-size:30px; margin:0 0 6px; letter-spacing:-.01em;}
+  .head-row > div:first-child p{ margin:0; color:var(--muted); font-size:13.5px;}
+
+  .head-actions{ display:flex; align-items:center; gap:10px;}
+  .view-toggle{ display:flex; background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:3px; box-shadow:var(--shadow-sm);}
+  .view-toggle button{ border:none; background:transparent; font-size:12px; font-weight:600; color:var(--muted); padding:7px 13px; border-radius:8px; cursor:pointer;}
+  .view-toggle button.active{ background:var(--primary); color:#fff;}
+  .month-nav{ display:flex; align-items:center; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:5px; box-shadow:var(--shadow-sm);}
+  .month-nav .arrow{ width:32px;height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); font-size:15px;}
+  .month-nav .arrow:hover{ background:var(--border-2); color:var(--ink);}
+  .month-nav .label{ font-family:'Space Grotesk'; font-weight:600; font-size:13.5px; padding:0 10px; min-width:104px; text-align:center;}
+  .new-post-btn{ display:flex; align-items:center; gap:7px; background:var(--ink); color:#fff; border:none; padding:10px 16px; border-radius:11px; font-weight:600; font-size:12.5px; cursor:pointer; box-shadow:var(--shadow-sm);}
+
+  .legend{ display:flex; gap:16px; margin-bottom:16px;}
+  .legend .li{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted); font-weight:600;}
+  .legend .sw{ width:8px;height:8px;border-radius:50%;}
+
+  .cal-card{ background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow-md); overflow:hidden; opacity:0;}
+  .cal-headrow{ display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--border);}
+  .cal-headrow div{ padding:14px 0; text-align:center; font-size:11px; font-weight:700; color:var(--muted-2); letter-spacing:.08em;}
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:112px;}
+  .cell{ border-right:1px solid var(--border-2); border-bottom:1px solid var(--border-2); padding:9px; position:relative; cursor:pointer; transition:background .15s;}
+  .cell:nth-child(7n){ border-right:none;}
+  .cell:hover{ background:#FBFBFE;}
+  .cell.empty{ cursor:default;}
+  .cell.empty:hover{ background:transparent;}
+  .daynum{ font-size:12.5px; font-weight:600; color:var(--ink); display:inline-flex; align-items:center; justify-content:center; width:24px;height:24px; border-radius:8px;}
+  .cell.today .daynum{ background:var(--primary); color:#fff; }
+  .cell.selected{ background:var(--primary-soft); box-shadow:inset 0 0 0 1.5px var(--primary);}
+  .posts-wrap{ margin-top:6px; display:flex; flex-direction:column; gap:3px;}
+  .post-chip{ font-size:10px; font-weight:600; padding:3px 6px; border-radius:6px; display:flex; align-items:center; gap:4px; overflow:hidden; white-space:nowrap;}
+  .post-chip .d{ width:5px;height:5px;border-radius:50%; flex-shrink:0;}
+  .more-chip{ font-size:9.5px; font-weight:700; color:var(--muted-2); padding:2px 6px;}
+
+  /* side detail panel */
+  .side-panel{ width:308px; background:var(--surface); border-left:1px solid var(--border); padding:32px 24px; display:flex; flex-direction:column; flex-shrink:0;}
+  .side-panel .sp-date{ font-family:'Space Grotesk'; font-size:19px; font-weight:600; margin-bottom:2px;}
+  .side-panel .sp-sub{ font-size:12.5px; color:var(--muted); margin-bottom:22px;}
+  .sp-post{ background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px; opacity:0;}
+  .sp-post .plat{ display:flex; align-items:center; gap:8px; margin-bottom:9px;}
+  .sp-post .plat .ic{ width:22px;height:22px;border-radius:6px; display:flex;align-items:center;justify-content:center; font-size:11px; color:#fff;}
+  .sp-post .plat b{ font-size:12px;}
+  .sp-post .time{ margin-left:auto; font-size:10.5px; color:var(--muted-2); font-weight:600;}
+  .sp-post p{ margin:0; font-size:12.5px; color:var(--muted); line-height:1.55;}
+  .sp-status{ display:inline-block; margin-top:9px; font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px;}
+  .st-scheduled{ background:var(--success-soft); color:var(--success);}
+  .st-draft{ background:var(--accent-soft); color:var(--accent);}
+  .sp-add{ margin-top:auto; display:flex; align-items:center; justify-content:center; gap:8px; border:1.5px dashed var(--border); border-radius:12px; padding:13px; color:var(--muted); font-size:12.5px; font-weight:600; cursor:pointer;}
+  .sp-add:hover{ border-color:var(--primary); color:var(--primary); background:var(--primary-soft);}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="cal-main">
+    <div class="head-row">
+      <div>
+        <div class="eyebrow"><span class="ln"></span>Content ops</div>
+        <h1>Post Calendar</h1>
+        <p>Visually manage every scheduled post across your channels.</p>
+      </div>
+      <div class="head-actions">
+        <div class="view-toggle">
+          <button class="active">Month</button>
+          <button>Week</button>
+          <button>List</button>
+        </div>
+        <div class="month-nav">
+          <div class="arrow">‹</div>
+          <div class="label">July 2026</div>
+          <div class="arrow">›</div>
+        </div>
+        <button class="new-post-btn">＋ New post</button>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="li"><span class="sw" style="background:var(--blue)"></span>LinkedIn</div>
+      <div class="li"><span class="sw" style="background:var(--pink)"></span>Instagram</div>
+      <div class="li"><span class="sw" style="background:var(--ink)"></span>X</div>
+      <div class="li"><span class="sw" style="background:var(--accent)"></span>Draft</div>
+    </div>
+
+    <div class="cal-card" id="calCard">
+      <div class="cal-headrow"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="sp-date">Fri, Jul 24</div>
+    <div class="sp-sub">2 posts scheduled</div>
+
+    <div class="sp-post" id="p1">
+      <div class="plat"><div class="ic" style="background:var(--blue)">in</div><b>LinkedIn</b><span class="time">9:00 AM</span></div>
+      <p>"5 lessons from scaling a Series A go-to-market team" — thought leadership post with founder byline.</p>
+      <span class="sp-status st-scheduled">● Scheduled</span>
+    </div>
+    <div class="sp-post" id="p2">
+      <div class="plat"><div class="ic" style="background:var(--pink)">ig</div><b>Instagram</b><span class="time">2:30 PM</span></div>
+      <p>Carousel: behind-the-scenes of the product launch shoot, 6 slides.</p>
+      <span class="sp-status st-draft">● Draft</span>
+    </div>
+
+    <div class="sp-add">＋ Add post to Jul 24</div>
+  </div>
+</div>
+
+<script>
+const days = [
+  {n:1,day:3},{n:2,day:4},{n:3,day:5,posts:[{c:'blue'}]},{n:4,day:6},
+  {n:5,day:0},{n:6,day:1},{n:7,day:2},{n:8,day:3,posts:[{c:'blue'},{c:'ink'}]},{n:9,day:4},{n:10,day:5},{n:11,day:6},
+  {n:12,day:0},{n:13,day:1,posts:[{c:'pink'}]},{n:14,day:2},{n:15,day:3},{n:16,day:4,posts:[{c:'blue'}]},{n:17,day:5,posts:[{c:'accent'},{c:'pink'},{c:'ink'}]},{n:18,day:6},
+  {n:19,day:0},{n:20,day:1},{n:21,day:2,posts:[{c:'blue'}]},{n:22,day:3},{n:23,day:4},{n:24,day:5,posts:[{c:'blue'},{c:'pink'}],today:true,selected:true},{n:25,day:6},
+  {n:26,day:0},{n:27,day:1},{n:28,day:2},{n:29,day:3},{n:30,day:4},{n:31,day:5}
+];
+const colorVar = c => ({blue:'var(--blue)',pink:'var(--pink)',ink:'var(--ink)',accent:'var(--accent)'}[c]);
+const grid = document.getElementById('calGrid');
+let html = '';
+for(let i=0;i<days[0].day;i++) html += `<div class="cell empty"></div>`;
+days.forEach(d=>{
+  let chips = '';
+  if(d.posts){
+    d.posts.slice(0,2).forEach(p=> chips += `<div class="post-chip" style="background:${colorVar(p.c)}22;color:${colorVar(p.c)}"><span class="d" style="background:${colorVar(p.c)}"></span>Post</div>`);
+    if(d.posts.length>2) chips += `<div class="more-chip">+${d.posts.length-2} more</div>`;
+  }
+  html += `<div class="cell ${d.today?'today':''} ${d.selected?'selected':''}"><span class="daynum">${d.n}</span><div class="posts-wrap">${chips}</div></div>`;
+});
+grid.innerHTML = html;
+
+gsap.fromTo('#calCard',{y:16,opacity:0},{y:0,opacity:1,duration:.5,ease:'power2.out'});
+gsap.fromTo('.cell:not(.empty)',{opacity:0,scale:.96},{opacity:1,scale:1,duration:.35,stagger:{each:.008,from:'start'},delay:.15,ease:'power1.out'});
+gsap.fromTo(['#p1','#p2'],{y:14,opacity:0},{y:0,opacity:1,duration:.4,stagger:.1,delay:.3});
+
+document.querySelectorAll('.cell:not(.empty)').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.cell').forEach(x=>x.classList.remove('selected'));
+    c.classList.add('selected');
+    gsap.fromTo(c,{scale:.97},{scale:1,duration:.25,ease:'back.out(2)'});
+  });
+});
+</script>
+</body>
+</html>

@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { subscriptionService } from '../services/subscriptionService';
 import { useWorkspaceStore } from '../store/workspaceStore';
-import { 
-  Zap, Check, Shield, Globe, Award, Sparkles, HelpCircle, 
-  ArrowRight, CreditCard, Layers, Cpu, Database, Users, CheckCircle2 
-} from 'lucide-react';
+import { Sparkles, Layers, Cpu, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function PricingPlans() {
@@ -13,8 +10,8 @@ export default function PricingPlans() {
   const [addOns, setAddOns] = useState([]);
   const [taskRules, setTaskRules] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [region, setRegion] = useState('INDIA_INR'); // 'INDIA_INR' or 'GLOBAL_USD'
-  const [billingCycle, setBillingCycle] = useState('MONTHLY'); // 'MONTHLY' or 'ANNUAL'
+  const [region, setRegion] = useState('INDIA_INR');
+  const [billingCycle, setBillingCycle] = useState('MONTHLY');
   const [checkoutLoading, setCheckoutLoading] = useState(null);
 
   useEffect(() => {
@@ -30,7 +27,7 @@ export default function PricingPlans() {
       setTaskRules(data.taskRules || []);
     } catch (err) {
       console.error('Failed to load plans:', err);
-      toast.error('Failed to load dynamic subscription plans.');
+      toast.error('Failed to load subscription plans.');
     } finally {
       setLoading(false);
     }
@@ -58,7 +55,6 @@ export default function PricingPlans() {
 
     setCheckoutLoading(planCode);
     try {
-      // 1. Create Razorpay order via backend
       const order = await subscriptionService.createRazorpayOrder(
         organizationId,
         planCode,
@@ -66,15 +62,14 @@ export default function PricingPlans() {
         billingCycle
       );
 
-      // 2. Load script if needed & open Razorpay modal
       const scriptLoaded = await loadRazorpayScript();
       if (scriptLoaded && window.Razorpay && order?.keyId) {
         const options = {
           key: order.keyId,
           amount: order.amount,
           currency: order.currency,
-          name: 'Kaynetics AI Platform',
-          description: `Subscription to ${order.planName} (${billingCycle})`,
+          name: 'Kaynetics AI',
+          description: `${order.planName} Plan (${billingCycle})`,
           order_id: order.razorpayOrderId,
           handler: async (response) => {
             try {
@@ -87,14 +82,14 @@ export default function PricingPlans() {
                 region,
                 billingCycle
               );
-              toast.success(`Successfully subscribed to ${order.planName}!`);
+              toast.success(`Subscribed to ${order.planName}!`);
               fetchPlans();
             } catch (e) {
               toast.error('Payment verification failed.');
             }
           },
           theme: {
-            color: '#6366f1',
+            color: '#6c48ff',
           },
         };
         const rzp = new window.Razorpay(options);
@@ -110,72 +105,61 @@ export default function PricingPlans() {
     }
   };
 
-
   const currencySymbol = region === 'INDIA_INR' ? '₹' : '$';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto text-center mb-12">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-4">
-          <Sparkles className="w-4 h-4 text-indigo-400" />
-          <span>Kaynetics SaaS Pricing Strategy</span>
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 animate-fade-in space-y-10">
+      {/* Simple Header */}
+      <div className="text-center max-w-2xl mx-auto">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-100 text-[#6c48ff] text-xs font-semibold mb-3">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Plans & Pricing</span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 mb-4">
-          Outcome-Based AI Workforce Subscriptions
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">
+          Choose the Right Plan for Your Team
         </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-          Scale your enterprise with autonomous multi-agent teams. Dynamic task metering, regional pricing books, and transparent credit allowances.
+        <p className="text-gray-500 text-sm">
+          Simple, transparent pricing to power your AI agent workflows.
         </p>
 
-        {/* Toggles */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-8">
-          {/* Region Toggle */}
-          <div className="bg-slate-900/80 p-1 rounded-xl border border-slate-800 flex items-center">
+        {/* Region & Billing Toggles */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+          <div className="bg-gray-100 p-1 rounded-xl flex items-center border border-gray-200/60">
             <button
               onClick={() => setRegion('INDIA_INR')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                region === 'INDIA_INR'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                  : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                region === 'INDIA_INR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
               }`}
             >
               🇮🇳 India (INR ₹)
             </button>
             <button
               onClick={() => setRegion('GLOBAL_USD')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                region === 'GLOBAL_USD'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                  : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                region === 'GLOBAL_USD' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
               }`}
             >
               🌐 Global (USD $)
             </button>
           </div>
 
-          {/* Billing Cycle Toggle */}
-          <div className="bg-slate-900/80 p-1 rounded-xl border border-slate-800 flex items-center">
+          <div className="bg-gray-100 p-1 rounded-xl flex items-center border border-gray-200/60">
             <button
               onClick={() => setBillingCycle('MONTHLY')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                billingCycle === 'MONTHLY'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                  : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                billingCycle === 'MONTHLY' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
               }`}
             >
-              Monthly Billing
+              Monthly
             </button>
             <button
               onClick={() => setBillingCycle('ANNUAL')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                billingCycle === 'ANNUAL'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                  : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                billingCycle === 'ANNUAL' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
               }`}
             >
-              <span>Annual Contract</span>
-              <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded-full font-bold">
+              <span>Annual</span>
+              <span className="bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded-md font-bold">
                 Save ~20%
               </span>
             </button>
@@ -183,161 +167,163 @@ export default function PricingPlans() {
         </div>
       </div>
 
-      {/* Plan Cards Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-        {plans.map((plan) => {
-          const priceRecord = plan.prices.find((p) => p.billingCycle === billingCycle) || plan.prices[0];
-          const displayPrice = priceRecord ? priceRecord.price : 0;
-          const isPopular = plan.code === 'TEAM';
-          const isBusiness = plan.code === 'BUSINESS';
+      {/* Dynamic Plan Cards Grid */}
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#6c48ff]"></div>
+        </div>
+      ) : plans.length === 0 ? (
+        <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
+          <p className="text-gray-500 text-sm">No subscription plans available at the moment.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {plans.map((plan) => {
+            const priceRecord = plan.prices?.find((p) => p.billingCycle === billingCycle) || plan.prices?.[0];
+            const displayPrice = priceRecord ? priceRecord.price : 0;
+            const isPopular = plan.code === 'TEAM';
 
-          return (
-            <div
-              key={plan.id}
-              className={`relative rounded-2xl p-8 flex flex-col justify-between transition-all duration-300 ${
-                isPopular
-                  ? 'bg-slate-900/90 border-2 border-indigo-500 shadow-2xl shadow-indigo-500/10 scale-105'
-                  : isBusiness
-                  ? 'bg-slate-900/90 border border-purple-500/50 shadow-xl'
-                  : 'bg-slate-900/50 border border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              {isPopular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-lg">
-                  Most Popular Team Choice
-                </div>
-              )}
+            return (
+              <div
+                key={plan.id}
+                className={`relative rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 ${
+                  isPopular
+                    ? 'bg-white border-2 border-[#6c48ff] shadow-md'
+                    : 'bg-white border border-gray-100 shadow-sm hover:shadow-md'
+                }`}
+              >
+                {isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#6c48ff] text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    Most Popular
+                  </div>
+                )}
 
-              <div>
-                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                <p className="text-sm text-slate-400 mb-6 min-h-[40px]">{plan.description}</p>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.name}</h3>
+                  <p className="text-xs text-gray-500 mb-4 min-h-[32px]">{plan.description}</p>
 
-                {/* Price Display */}
-                <div className="mb-6 pb-6 border-b border-slate-800">
-                  {plan.code === 'ENTERPRISE' ? (
-                    <div className="text-3xl font-extrabold text-white">Custom Pricing</div>
-                  ) : (
-                    <div>
-                      <span className="text-4xl font-extrabold text-white">
-                        {currencySymbol}{displayPrice.toLocaleString()}
-                      </span>
-                      <span className="text-slate-400 text-sm font-medium">
-                        {billingCycle === 'ANNUAL' ? ' /year' : ' /month'}
-                      </span>
-                      {billingCycle === 'ANNUAL' && priceRecord?.annualEquivalentMonthly && (
-                        <div className="text-xs text-emerald-400 mt-1">
-                          Equivalent to {currencySymbol}{priceRecord.annualEquivalentMonthly.toLocaleString()}/mo billed upfront
+                  <div className="mb-5 pb-4 border-b border-gray-100">
+                    {plan.code === 'ENTERPRISE' ? (
+                      <div className="text-xl font-bold text-gray-900">Custom Pricing</div>
+                    ) : (
+                      <div>
+                        <span className="text-3xl font-extrabold text-gray-900">
+                          {currencySymbol}{displayPrice.toLocaleString()}
+                        </span>
+                        <span className="text-gray-400 text-xs font-medium">
+                          {billingCycle === 'ANNUAL' ? ' /yr' : ' /mo'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {plan.entitlements && plan.entitlements.length > 0 && (
+                    <div className="space-y-2.5 mb-6">
+                      <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Features
+                      </div>
+                      {plan.entitlements.map((ent) => (
+                        <div key={ent.key} className="flex items-start gap-2 text-xs">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                          <span className="text-gray-600">
+                            <strong className="font-bold text-gray-900">{ent.value}</strong>{' '}
+                            {ent.description || ent.key.replace(/_/g, ' ')}
+                          </span>
                         </div>
-                      )}
+                      ))}
                     </div>
                   )}
                 </div>
 
-                {/* Core Entitlements Checklist */}
-                <div className="space-y-3 mb-8">
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                    Core Entitlements
-                  </div>
-
-                  {plan.entitlements.map((ent) => (
-                    <div key={ent.key} className="flex items-start gap-2.5 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span className="text-slate-200">
-                        <strong className="font-semibold text-white">{ent.value}</strong>{' '}
-                        {ent.description || ent.key.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <button
-                onClick={() => handleSubscribe(plan.code)}
-                disabled={checkoutLoading === plan.code}
-                className={`w-full py-3.5 px-6 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg ${
-                  isPopular
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-500/25'
-                    : isBusiness
-                    ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-500/25'
-                    : 'bg-slate-800 hover:bg-slate-700 text-white'
-                }`}
-              >
-                {checkoutLoading === plan.code ? (
-                  <span>Processing...</span>
-                ) : (
-                  <>
-                    <span>{plan.code === 'ENTERPRISE' ? 'Contact Sales' : 'Subscribe via Razorpay'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Add-ons Price Book Section */}
-      <div className="max-w-7xl mx-auto bg-slate-900/60 border border-slate-800 rounded-2xl p-8 mb-16">
-        <div className="flex items-center gap-3 mb-6">
-          <Layers className="w-6 h-6 text-indigo-400" />
-          <h2 className="text-2xl font-bold text-white">Add-On Price Book & Top-Up Packs</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {addOns.map((addon) => {
-            const price = region === 'INDIA_INR' ? `₹${addon.priceInr?.toLocaleString()}` : `$${addon.priceUsd}`;
-            return (
-              <div key={addon.id} className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-5 hover:border-slate-700 transition-all">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-bold text-white">{addon.name}</h4>
-                  <span className="text-indigo-400 font-extrabold text-sm">{price}</span>
-                </div>
-                <p className="text-xs text-slate-400 mb-3">{addon.notes || addon.deliveryCondition || 'Prepaid top-up pack'}</p>
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-900">
-                  <span>Basis: {addon.billingBasis}</span>
-                  <span className="text-emerald-400">Available</span>
-                </div>
+                <button
+                  onClick={() => handleSubscribe(plan.code)}
+                  disabled={checkoutLoading === plan.code}
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm ${
+                    isPopular
+                      ? 'bg-[#6c48ff] hover:bg-[#5b3adb] text-white'
+                      : 'bg-gray-900 hover:bg-gray-800 text-white'
+                  }`}
+                >
+                  {checkoutLoading === plan.code ? (
+                    <span>Processing...</span>
+                  ) : (
+                    <>
+                      <span>{plan.code === 'ENTERPRISE' ? 'Contact Sales' : 'Select Plan'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
               </div>
             );
           })}
         </div>
-      </div>
+      )}
 
-      {/* Task Consumption Rules Section */}
-      <div className="max-w-7xl mx-auto bg-slate-900/60 border border-slate-800 rounded-2xl p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Cpu className="w-6 h-6 text-purple-400" />
-          <h2 className="text-2xl font-bold text-white">Dynamic Task Metering Rules</h2>
+      {/* Add-ons Section (Rendered ONLY if addOns exist dynamically) */}
+      {addOns && addOns.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-7 shadow-sm">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="p-2 rounded-xl bg-purple-50 text-[#6c48ff]">
+              <Layers className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Available Add-Ons</h2>
+              <p className="text-xs text-gray-500">Expand capacity with additional credits & seats</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {addOns.map((addon) => {
+              const price = region === 'INDIA_INR' ? `₹${addon.priceInr?.toLocaleString()}` : `$${addon.priceUsd}`;
+              return (
+                <div key={addon.id} className="bg-gray-50/70 border border-gray-100 rounded-xl p-4 transition-all">
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-bold text-gray-900 text-xs">{addon.name}</h4>
+                    <span className="text-[#6c48ff] font-bold text-xs">{price}</span>
+                  </div>
+                  <p className="text-[11px] text-gray-500">{addon.notes || addon.deliveryCondition || 'Prepaid top-up'}</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-xs">
-              <tr>
-                <th className="p-4 rounded-l-lg">AI Activity</th>
-                <th className="p-4">Task Units Metered</th>
-                <th className="p-4">Premium Depth?</th>
-                <th className="p-4 rounded-r-lg">Customer Explanation</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {taskRules.map((rule) => (
-                <tr key={rule.id} className="hover:bg-slate-850/50">
-                  <td className="p-4 font-semibold text-white">{rule.activityType}</td>
-                  <td className="p-4 font-extrabold text-indigo-400">{rule.taskUnits} Tasks</td>
-                  <td className="p-4">
-                    {rule.isPremium ? (
-                      <span className="bg-purple-500/20 text-purple-300 text-xs px-2.5 py-1 rounded-full font-bold">Premium</span>
-                    ) : (
-                      <span className="text-slate-500">Standard</span>
-                    )}
-                  </td>
-                  <td className="p-4 text-slate-400">{rule.customerExplanation}</td>
+      )}
+
+      {/* Task Rules Table (Rendered ONLY if taskRules exist dynamically) */}
+      {taskRules && taskRules.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-7 shadow-sm">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+              <Cpu className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Task Usage Rates</h2>
+              <p className="text-xs text-gray-500">Task consumption details by AI activity</p>
+            </div>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <table className="w-full text-left text-xs text-gray-700">
+              <thead className="bg-gray-50 text-gray-400 uppercase font-bold text-[10px] tracking-wider border-b border-gray-100">
+                <tr>
+                  <th className="p-3">Activity</th>
+                  <th className="p-3">Cost (Tasks)</th>
+                  <th className="p-3">Description</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {taskRules.map((rule) => (
+                  <tr key={rule.id} className="hover:bg-gray-50/60 transition-colors">
+                    <td className="p-3 font-bold text-gray-900">{rule.activityType}</td>
+                    <td className="p-3 font-extrabold text-[#6c48ff]">{rule.taskUnits} Tasks</td>
+                    <td className="p-3 text-gray-500">{rule.customerExplanation}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
+
+

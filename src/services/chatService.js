@@ -122,11 +122,13 @@ export const chatService = {
 
   getConversations: async (params = {}) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    // Both IDs are required by the backend schema — skip call if either is missing
-    if (!organizationId || !workspaceId) return [];
     try {
       const response = await apiClient.get('/conversations', {
-        params: { organizationId, workspaceId, ...params }
+        params: { 
+          ...(organizationId ? { organizationId } : {}),
+          ...(workspaceId ? { workspaceId } : {}),
+          ...params 
+        }
       });
       return response.data;
     } catch (err) {
