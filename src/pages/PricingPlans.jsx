@@ -63,7 +63,7 @@ export default function PricingPlans() {
       );
 
       const scriptLoaded = await loadRazorpayScript();
-      if (scriptLoaded && window.Razorpay && order.keyId && order.keyId !== 'rzp_test_REPLACE_WITH_YOUR_KEY') {
+      if (scriptLoaded && window.Razorpay && order?.keyId) {
         const options = {
           key: order.keyId,
           amount: order.amount,
@@ -95,6 +95,7 @@ export default function PricingPlans() {
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
+        // Fallback for dev mode / direct plan update when test keys are set
         await subscriptionService.subscribe(organizationId, planCode, region, billingCycle);
         toast.success(`Subscribed to ${planCode} plan successfully!`);
         fetchPlans();
