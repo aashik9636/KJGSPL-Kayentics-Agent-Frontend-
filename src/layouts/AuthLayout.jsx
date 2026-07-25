@@ -41,8 +41,10 @@ export default function AuthLayout() {
         <div className="relative z-10 max-w-lg mx-auto w-full">
           
           {/* Logo block */}
-          <div className="stagger-left-item bg-white w-24 h-24 rounded-2xl flex flex-col items-center justify-center p-3 mb-10 shadow-lg mx-auto lg:mx-0">
-             <img src="/kaynetics_logo_new.png" alt="Kaynetics" className="w-full h-full object-contain" />
+          <div className="stagger-left-item mb-10 flex justify-center lg:justify-start">
+             <div className="bg-white px-6 py-3.5 rounded-2xl shadow-xl shadow-black/10 flex items-center justify-center">
+                <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-10 sm:h-12 w-auto object-contain" />
+             </div>
           </div>
 
           <h1 className="stagger-left-item text-4xl lg:text-[42px] font-bold text-white leading-tight mb-8 text-center lg:text-left">
@@ -114,9 +116,7 @@ export default function AuthLayout() {
         <div ref={rightPanelRef} className="w-full max-w-md mx-auto relative z-10">
           {/* Logo for mobile only */}
           <div className="lg:hidden flex justify-center mb-8">
-            <div className="w-16 h-16 rounded-xl border border-gray-200 shadow-sm p-2 flex items-center justify-center">
-              <img src="/kaynetics_logo_new.png" alt="Kaynetics" className="w-full h-full object-contain" />
-            </div>
+            <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-12 w-auto object-contain" />
           </div>
           
           <Outlet />

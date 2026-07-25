@@ -383,61 +383,62 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         style={!isCentered ? { background: 'linear-gradient(to top, #f6f7fb 85%, transparent)' } : {}}
       >
         {/* Title for Centered State */}
-        <div className={`transition-all duration-500 w-full max-w-3xl text-center flex flex-col items-center ${isCentered ? 'opacity-100 mb-8' : 'opacity-0 h-0 overflow-hidden mb-0'}`}>
-          <div className="h-[48px] md:h-[60px] overflow-hidden mb-8 relative w-full flex justify-center gsap-hero-title">
+        <div className={`transition-all duration-500 w-full max-w-3xl text-center flex flex-col items-center justify-center ${isCentered ? 'opacity-100 mb-6 mt-4 md:mt-8' : 'opacity-0 h-0 overflow-hidden mb-0'}`}>
+          
+          {/* Dynamic Selected Agent Avatar (Glowing Circular Container matching reference) */}
+          <div className="flex items-center justify-center gsap-hero-dock relative group mb-7 mt-2">
+            <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full p-2 bg-white ring-[10px] ring-purple-100/80 shadow-[0_0_50px_12px_rgba(167,139,250,0.25)] flex items-center justify-center transition-all duration-300 ease-out hover:scale-105">
+              <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-b from-purple-50/70 via-indigo-50/20 to-white flex items-center justify-center relative">
+                {(!selectedAgent || selectedAgent === 'brain') ? (
+                  <img 
+                    src="/premium_3d_brain.png" 
+                    className="w-full h-full object-cover p-3 transition-transform duration-500 group-hover:scale-105" 
+                    alt="Brain Agent" 
+                  />
+                ) : (
+                  <video 
+                    src={
+                      selectedAgent === 'content' ? '/agent 1.mp4' :
+                      selectedAgent === 'social' ? '/agent2.mp4' :
+                      '/agent3.mp4'
+                    }
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" 
+                  />
+                )}
+              </div>
+            </div>
+            {/* Tooltip */}
+            <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-20 translate-y-1 group-hover:translate-y-0">
+              <div className="bg-gray-900 text-white text-[11px] font-semibold px-3 py-1 rounded-full whitespace-nowrap shadow-lg">
+                {
+                  selectedAgent === 'content' ? 'Content Creator' :
+                  selectedAgent === 'social' ? 'Social Media Agent' :
+                  selectedAgent === 'recruiter' ? 'Recruiter Agent' :
+                  'Brain Agent'
+                }
+              </div>
+            </div>
+          </div>
+
+          {/* Hero Tagline Title */}
+          <div className="min-h-[48px] md:min-h-[56px] relative w-full flex items-center justify-center gsap-hero-title">
             {taglines.map((tagline, idx) => (
               <h1 
                 key={idx}
-                className={`text-[32px] md:text-[40px] font-medium text-gray-900 tracking-tight absolute transition-all duration-500 ease-in-out ${
+                className={`text-2xl sm:text-3xl md:text-[36px] font-semibold text-gray-900 tracking-tight transition-all duration-500 ease-in-out ${
                   idx === taglineIndex 
-                    ? 'opacity-100 translate-y-0' 
-                    : 'opacity-0 translate-y-4'
+                    ? 'opacity-100 translate-y-0 relative' 
+                    : 'opacity-0 translate-y-4 absolute inset-0 pointer-events-none'
                 }`} 
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {tagline}
               </h1>
             ))}
-          </div>
-
-          {/* Dynamic Selected Agent Avatar (Floating 3D) */}
-          <div className="flex items-center justify-center gsap-hero-dock relative group mb-4">
-            <div className="relative w-32 h-32 md:w-40 md:h-40 flex items-center justify-center transition-all duration-300 ease-out hover:-translate-y-2">
-              <div className="absolute -bottom-1 w-[70%] h-3 bg-black/20 blur-[8px] rounded-[100%] scale-x-125 transition-transform duration-500 group-hover:scale-x-90 group-hover:opacity-60" />
-              {(!selectedAgent || selectedAgent === 'brain') ? (
-                <img 
-                  src="/premium_3d_brain.png" 
-                  className="w-full h-full max-w-none object-contain object-bottom transition-transform duration-500 group-hover:scale-110 drop-shadow-[0_15px_15px_rgba(0,0,0,0.15)] mix-blend-multiply z-10" 
-                  alt="Brain Agent" 
-                />
-              ) : (
-                <video 
-                  src={
-                    selectedAgent === 'content' ? '/agent 1.mp4' :
-                    selectedAgent === 'social' ? '/agent2.mp4' :
-                    '/agent3.mp4'
-                  }
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  style={{ maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)' }}
-                  className="w-[120%] h-[120%] max-w-none object-cover object-center scale-[1.1] transition-transform duration-500 group-hover:scale-[1.15] drop-shadow-[0_15px_15px_rgba(0,0,0,0.15)] mix-blend-multiply z-10" 
-                />
-              )}
-            </div>
-            {/* Tooltip */}
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-20 translate-y-2 group-hover:translate-y-0">
-              <div className="bg-gray-900 text-white text-[12px] font-medium px-4 py-1.5 rounded-lg whitespace-nowrap shadow-xl flex flex-col items-center">
-                <span>{
-                  selectedAgent === 'content' ? 'Content Creator' :
-                  selectedAgent === 'social' ? 'Social Media Agent' :
-                  selectedAgent === 'recruiter' ? 'Recruiter Agent' :
-                  'Brain Agent'
-                }</span>
-              </div>
-              <div className="w-2.5 h-2.5 bg-gray-900 rotate-45 mx-auto -mt-1.5"></div>
-            </div>
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import Signup from '../pages/auth/Signup';
 import ResetPassword from '../pages/auth/ResetPassword';
 import NewPassword from '../pages/auth/NewPassword';
 import VerifyEmail from '../pages/auth/VerifyEmail';
+import AcceptInvitation from '../pages/auth/AcceptInvitation';
 
 export const AuthRoutes = (
   <Route element={<AuthLayout />}>
@@ -13,5 +14,6 @@ export const AuthRoutes = (
     <Route path="/forgot-password" element={<ResetPassword />} />
     <Route path="/reset-password" element={<NewPassword />} />
     <Route path="/verify-email" element={<VerifyEmail />} />
+    <Route path="/accept-invitation" element={<AcceptInvitation />} />
   </Route>
 );

@@ -5,6 +5,7 @@ import { businessService } from '../../services/businessService';
 import { useAuthStore } from '../../store/authStore';
 import PersonalProfileTab from './components/PersonalProfileTab';
 import BusinessProfileTab from './components/BusinessProfileTab';
+import TeamManagementTab from './components/TeamManagementTab';
 import { validateProfile, validateBusiness } from './utils';
 import gsap from 'gsap';
 import './profile-settings.css';
@@ -12,6 +13,7 @@ import './profile-settings.css';
 const TABS = [
   { id: 'profile',  label: 'Personal Profile' },
   { id: 'business', label: 'Business Profile' },
+  { id: 'team',     label: 'Team Members' },
 ];
 
 export default function Profile() {
@@ -214,10 +216,10 @@ export default function Profile() {
             <div className="page-head" style={{ marginBottom: 0 }}>
               <div className="eyebrow">
                 <span className="ln"></span>
-                {activeTab === 'profile' ? 'Account' : 'Workspace'}
+                {activeTab === 'profile' ? 'Account' : activeTab === 'business' ? 'Workspace' : 'Organization'}
               </div>
-              <h1>{activeTab === 'profile' ? 'Personal profile' : 'Business profile'}</h1>
-              <p>{activeTab === 'profile' ? 'Update your personal information and contact details.' : 'Basic details about your organization to inform AI contexts.'}</p>
+              <h1>{activeTab === 'profile' ? 'Personal profile' : activeTab === 'business' ? 'Business profile' : 'Team Members'}</h1>
+              <p>{activeTab === 'profile' ? 'Update your personal information and contact details.' : activeTab === 'business' ? 'Basic details about your organization to inform AI contexts.' : 'Manage organization seats, user roles, and team invitations.'}</p>
             </div>
             
             <div className="concept-nav" ref={navRef} style={{ margin: 0 }}>
@@ -280,6 +282,12 @@ export default function Profile() {
                 onChange={handleBusinessChange} 
                 industries={industries} 
               />
+            </div>
+          )}
+
+          {activeTab === 'team' && (
+            <div className="tab-content pt-4" id="team">
+              <TeamManagementTab />
             </div>
           )}
         </div>
