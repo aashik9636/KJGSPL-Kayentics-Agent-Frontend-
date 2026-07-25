@@ -9,6 +9,7 @@ export default function PricingPlans() {
   const [plans, setPlans] = useState([]);
   const [addOns, setAddOns] = useState([]);
   const [taskRules, setTaskRules] = useState([]);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [region, setRegion] = useState('INDIA_INR');
   const [billingCycle, setBillingCycle] = useState('MONTHLY');
@@ -16,7 +17,19 @@ export default function PricingPlans() {
 
   useEffect(() => {
     fetchPlans();
-  }, [region]);
+    if (organizationId) {
+      fetchCurrentSubscription();
+    }
+  }, [region, organizationId]);
+
+  const fetchCurrentSubscription = async () => {
+    try {
+      const data = await subscriptionService.getOrganizationSubscription(organizationId);
+      setCurrentSubscription(data?.subscription || null);
+    } catch (err) {
+      console.log('No active subscription found');
+    }
+  };
 
   const fetchPlans = async () => {
     setLoading(true);
@@ -84,6 +97,7 @@ export default function PricingPlans() {
               );
               toast.success(`Subscribed to ${order.planName}!`);
               fetchPlans();
+              fetchCurrentSubscription();
             } catch (e) {
               toast.error('Payment verification failed.');
             }
@@ -182,21 +196,28 @@ export default function PricingPlans() {
             const priceRecord = plan.prices?.find((p) => p.billingCycle === billingCycle) || plan.prices?.[0];
             const displayPrice = priceRecord ? priceRecord.price : 0;
             const isPopular = plan.code === 'TEAM';
+            const isCurrentPlan = currentSubscription?.planCode === plan.code;
 
             return (
               <div
                 key={plan.id}
                 className={`relative rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 ${
-                  isPopular
+                  isCurrentPlan
+                    ? 'bg-white border-2 border-emerald-500 shadow-md ring-2 ring-emerald-500/10'
+                    : isPopular
                     ? 'bg-white border-2 border-[#6c48ff] shadow-md'
                     : 'bg-white border border-gray-100 shadow-sm hover:shadow-md'
                 }`}
               >
-                {isPopular && (
+                {isCurrentPlan ? (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm whitespace-nowrap">
+                    Active Plan
+                  </div>
+                ) : isPopular ? (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#6c48ff] text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                     Most Popular
                   </div>
-                )}
+                ) : null}
 
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.name}</h3>
@@ -235,24 +256,34 @@ export default function PricingPlans() {
                   )}
                 </div>
 
-                <button
-                  onClick={() => handleSubscribe(plan.code)}
-                  disabled={checkoutLoading === plan.code}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm ${
-                    isPopular
-                      ? 'bg-[#6c48ff] hover:bg-[#5b3adb] text-white'
-                      : 'bg-gray-900 hover:bg-gray-800 text-white'
-                  }`}
-                >
-                  {checkoutLoading === plan.code ? (
-                    <span>Processing...</span>
-                  ) : (
-                    <>
-                      <span>{plan.code === 'ENTERPRISE' ? 'Contact Sales' : 'Select Plan'}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </button>
+                {isCurrentPlan ? (
+                  <button
+                    disabled
+                    className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default flex items-center justify-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Current Plan</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleSubscribe(plan.code)}
+                    disabled={checkoutLoading === plan.code}
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm ${
+                      isPopular
+                        ? 'bg-[#6c48ff] hover:bg-[#5b3adb] text-white'
+                        : 'bg-gray-900 hover:bg-gray-800 text-white'
+                    }`}
+                  >
+                    {checkoutLoading === plan.code ? (
+                      <span>Processing...</span>
+                    ) : (
+                      <>
+                        <span>{plan.code === 'ENTERPRISE' ? 'Contact Sales' : 'Upgrade Plan'}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             );
           })}
