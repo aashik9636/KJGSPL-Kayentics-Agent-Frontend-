@@ -25,12 +25,49 @@ export default function Sidebar() {
     }
   };
 
+  // Name Formatter: Capitalizes first letter of each word (e.g., "nakul kabra" -> "Nakul Kabra")
+  const formatName = (str) => {
+    if (!str) return '';
+    return str
+      .trim()
+      .split(/\s+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const getDisplayName = (userObj) => {
+    if (!userObj) return 'User Account';
+    if (userObj.firstName || userObj.lastName) {
+      const full = `${userObj.firstName || ''} ${userObj.lastName || ''}`.trim();
+      if (full) return formatName(full);
+    }
+    if (userObj.name) {
+      return formatName(userObj.name);
+    }
+    if (userObj.email) {
+      const nameFromEmail = userObj.email.split('@')[0].replace(/[._-]/g, ' ');
+      return formatName(nameFromEmail);
+    }
+    return 'User Account';
+  };
+
+  const getInitial = (userObj) => {
+    const name = getDisplayName(userObj);
+    return name ? name.charAt(0).toUpperCase() : 'U';
+  };
+
+  const getRoleDisplay = (userObj) => {
+    if (!userObj?.role) return 'Admin';
+    const roleStr = userObj.role.replace(/_/g, ' ');
+    return formatName(roleStr);
+  };
+
   const mainRoutes = [
     { name: 'Dashboard', path: '/', icon: <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> },
     { name: 'AI Chat', path: '/chat', icon: <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg> },
     { name: 'All Agents', path: '/agents', icon: <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg> },
     { name: 'Products', path: '/products', icon: <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg> },
-    { name: 'Post Calendar', path: '/post-scheduler', comingSoon: true, icon: <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+    { name: 'Post Calendar', path: '/post-scheduler', icon: <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
   ];
 
   const hubRoutes = [
@@ -66,6 +103,10 @@ export default function Sidebar() {
         );
     }
   }, []);
+
+  const displayName = getDisplayName(user);
+  const initial = getInitial(user);
+  const roleDisplay = getRoleDisplay(user);
 
   return (
     <aside ref={sidebarRef} className={`bg-white flex flex-col h-full shrink-0 z-10 relative transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? 'w-24' : 'w-64'} pt-2 pb-6 rounded-tr-[40px] rounded-br-[40px] shadow-[4px_0_24px_rgba(0,0,0,0.02)]`}>
@@ -156,19 +197,25 @@ export default function Sidebar() {
           </Link>
         )}
 
-        <div className={`${collapsed ? 'bg-transparent' : 'bg-[#f4f7fe]'} rounded-2xl ${collapsed ? 'p-0' : 'p-4'} flex flex-col gap-3 transition-colors`}>
+        <div className={`${collapsed ? 'bg-transparent' : 'bg-[#f4f7fe]'} rounded-2xl ${collapsed ? 'p-0' : 'p-3.5'} flex flex-col gap-2.5 transition-all border border-gray-100/80`}>
 
           <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-            <div className="w-10 h-10 shrink-0 rounded-xl bg-[#6c48ff] text-white flex items-center justify-center font-bold text-sm shadow-sm cursor-pointer" title={collapsed ? "User Account" : ""}>
-              {user ? user.firstName?.charAt(0) : 'U'}
+            <div 
+              className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-tr from-[#6c48ff] to-[#8f71ff] text-white flex items-center justify-center font-extrabold text-sm shadow-sm cursor-pointer tracking-wider" 
+              title={collapsed ? displayName : ""}
+            >
+              {initial}
             </div>
 
             {!collapsed && (
-              <div className="flex flex-col">
-                <span className="text-[13px] font-bold text-gray-900 leading-tight">
-                  {user ? `${user.firstName} ${user.lastName}` : 'User Account'}
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-[13px] font-bold text-gray-900 leading-tight truncate capitalize">
+                  {displayName}
                 </span>
-                <span className="text-[11px] font-medium text-gray-400 mt-0.5">Admin</span>
+                <span className="text-[11px] font-medium text-gray-400 mt-0.5 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                  <span>{roleDisplay}</span>
+                </span>
               </div>
             )}
           </div>
@@ -176,18 +223,18 @@ export default function Sidebar() {
           {collapsed ? (
             <button
               onClick={handleLogout}
-              className="mt-2 w-10 h-10 mx-auto flex items-center justify-center rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+              className="mt-2 w-9 h-9 mx-auto flex items-center justify-center rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
               title="Sign Out"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
           ) : (
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 py-2 mt-1 rounded-xl text-[12px] font-bold text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-1.5 rounded-xl text-[12px] font-bold text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-              Sign Out
+              <svg className="w-3.5 h-3.5 text-gray-400 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              <span>Sign Out</span>
             </button>
           )}
 
