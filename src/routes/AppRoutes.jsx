@@ -12,6 +12,7 @@ import PostScheduler from '../pages/PostScheduler';
 import Agents from '../pages/Agents';
 import PricingPlans from '../pages/PricingPlans';
 import SubscriptionUsageDashboard from '../pages/SubscriptionUsageDashboard';
+import AuditLogs from '../pages/SuperAdmin/AuditLogs';
 
 export const AppRoutes = (
   <Route element={<AppLayout />}>
@@ -27,6 +28,7 @@ export const AppRoutes = (
     <Route path="/post-scheduler" element={<PostScheduler />} />
     <Route path="/pricing" element={<PricingPlans />} />
     <Route path="/subscription" element={<SubscriptionUsageDashboard />} />
+    <Route path="/audit-logs" element={<AuditLogs />} />
   </Route>
 );
 
