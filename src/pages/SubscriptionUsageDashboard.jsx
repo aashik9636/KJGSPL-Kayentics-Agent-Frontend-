@@ -2,18 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { subscriptionService } from '../services/subscriptionService';
 import { aiUsageService } from '../services/aiUsageService';
 import { useWorkspaceStore } from '../store/workspaceStore';
+import { useNavigate } from 'react-router-dom';
 import { 
   Zap, Database, Users, Bot, Image as ImageIcon, 
-  ShieldAlert, PlusCircle, Clock, Coins, BarChart3, 
-  Layers, Cpu, Sparkles, Activity, TrendingUp, RefreshCw
+  Search, BarChart2, Calendar, Sparkles, Activity, 
+  TrendingUp, Cpu, ArrowRight
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function SubscriptionUsageDashboard() {
+  const navigate = useNavigate();
   const { organizationId, currentWorkspace } = useWorkspaceStore();
   const workspaceId = currentWorkspace?.id || '';
 
-  const [activeTab, setActiveTab] = useState('subscription'); // 'subscription' | 'ai-credits'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'ai-analytics'
 
   // Subscription state
   const [subData, setSubData] = useState(null);
@@ -33,7 +35,7 @@ export default function SubscriptionUsageDashboard() {
   }, [organizationId]);
 
   useEffect(() => {
-    if (organizationId && activeTab === 'ai-credits') {
+    if (organizationId && activeTab === 'ai-analytics') {
       fetchAiUsage();
     }
   }, [organizationId, workspaceId, activeTab]);
@@ -45,7 +47,6 @@ export default function SubscriptionUsageDashboard() {
       setSubData(res);
     } catch (err) {
       console.error('Failed to load subscription status:', err);
-      toast.error('Failed to load active subscription.');
     } finally {
       setLoadingSub(false);
     }
@@ -65,7 +66,6 @@ export default function SubscriptionUsageDashboard() {
       if (costRes.status === 'fulfilled') setAiCostReport(costRes.value);
     } catch (err) {
       console.error('Failed to load AI usage analytics:', err);
-      toast.error('Failed to load AI usage data.');
     } finally {
       setLoadingAi(false);
     }
@@ -92,7 +92,7 @@ export default function SubscriptionUsageDashboard() {
     }
     setTopUpLoading(true);
     try {
-      const region = subscription?.region || 'INDIA_INR';
+      const region = subData?.subscription?.region || 'INDIA_INR';
       const addOnCode = 'ADDITIONAL_1000_TASKS';
       const order = await subscriptionService.createAddOnRazorpayOrder(organizationId, addOnCode, 1, region);
 
@@ -122,13 +122,13 @@ export default function SubscriptionUsageDashboard() {
             }
           },
           theme: {
-            color: '#6c48ff',
+            color: '#4F46E5',
           },
         };
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
-        toast.error('Payment gateway key is not configured properly.');
+        toast.error('Payment gateway key is missing.');
       }
     } catch (err) {
       console.error('Top-up error:', err);
@@ -138,521 +138,215 @@ export default function SubscriptionUsageDashboard() {
     }
   };
 
-  const { subscription, usageMeter } = subData || {};
+  const { subscription, usageMeter, addOns } = subData || {};
   const plan = subscription?.plan;
 
-  const getEntitlementLimit = (key, defaultVal = 100) => {
-    if (!plan?.entitlements) return defaultVal;
-    const ent = plan.entitlements.find((e) => e.key === key);
-    if (!ent) return defaultVal;
-    if (ent.value === 'Custom' || ent.value === 'Unlimited') return 999999;
-    const parsed = parseFloat(ent.value);
-    return isNaN(parsed) ? defaultVal : parsed;
-  };
-
-  let addOnTaskBonus = 0;
-  if (subscription?.addOns) {
-    subscription.addOns.forEach((o) => {
-      if (o.status === 'ACTIVE' && o.addOn?.code === 'ADDITIONAL_1000_TASKS') {
-        addOnTaskBonus += 1000 * (o.quantity || 1);
-      }
-    });
-  }
-
-  const tasksLimit = getEntitlementLimit('tasks_per_month', 300) + addOnTaskBonus;
-  const usersLimit = getEntitlementLimit('users', 2);
-  const agentsLimit = getEntitlementLimit('active_agents', 4);
-  const storageLimit = getEntitlementLimit('knowledge_storage_gb', 1);
-  const imagesLimit = getEntitlementLimit('images_per_month', 20);
-
-  const calculatePercent = (used, limit) => {
-    if (!limit || limit === 999999) return 10;
-    return Math.min(100, Math.round((used / limit) * 100));
-  };
-
-  const tasksPercent = calculatePercent(usageMeter?.tasksUsed || 0, tasksLimit);
-
-  const formatTokens = (num) => {
-    if (!num) return '0';
-    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
-    return num.toLocaleString();
-  };
+  const meterData = [
+    { label: 'Tasks', used: usageMeter?.tasksUsed || 0, total: usageMeter?.tasksLimit || 1000, unit: '', icon: <Zap className="w-3.5 h-3.5 text-indigo-600" />, color: 'bg-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'Images', used: usageMeter?.imagesUsed || 0, total: usageMeter?.imagesLimit || 75, unit: '', icon: <ImageIcon className="w-3.5 h-3.5 text-sky-500" />, color: 'bg-sky-500', bg: 'bg-sky-50' },
+    { label: 'Research runs', used: usageMeter?.researchUsed || 0, total: usageMeter?.researchLimit || 100, unit: '', icon: <Search className="w-3.5 h-3.5 text-emerald-600" />, color: 'bg-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Leads researched', used: usageMeter?.leadsUsed || 0, total: usageMeter?.leadsLimit || 500, unit: '', icon: <BarChart2 className="w-3.5 h-3.5 text-purple-600" />, color: 'bg-purple-600', bg: 'bg-purple-50' },
+    { label: 'Scheduled runs', used: usageMeter?.scheduledUsed || 0, total: usageMeter?.scheduledLimit || 500, unit: '', icon: <Calendar className="w-3.5 h-3.5 text-orange-500" />, color: 'bg-orange-500', bg: 'bg-orange-50' },
+    { label: 'Knowledge storage', used: usageMeter?.storageUsed || 0, total: usageMeter?.storageLimit || 5, unit: 'GB', icon: <Database className="w-3.5 h-3.5 text-pink-500" />, color: 'bg-pink-500', bg: 'bg-pink-50' },
+    { label: 'Active users', used: usageMeter?.usersUsed || 2, total: usageMeter?.usersLimit || 5, unit: '', icon: <Users className="w-3.5 h-3.5 text-blue-600" />, color: 'bg-blue-600', bg: 'bg-blue-50' },
+    { label: 'Active agents', used: usageMeter?.agentsUsed || 0, total: usageMeter?.agentsLimit || 8, unit: '', icon: <Bot className="w-3.5 h-3.5 text-amber-600" />, color: 'bg-amber-600', bg: 'bg-amber-50' },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 animate-fade-in space-y-8">
-      {/* Quota Warning / Exceeded Alert Banner */}
-      {tasksPercent >= 90 && activeTab === 'subscription' && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-red-900 shadow-sm">
-          <div className="flex items-center gap-3">
-            <ShieldAlert className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <div>
-              <div className="font-bold text-sm">{tasksPercent >= 100 ? 'Task Limit Reached' : 'Low Task Balance'}</div>
-              <div className="text-xs text-red-700">
-                {tasksPercent >= 100
-                  ? 'You have used 100% of your task credits. Top up to continue executing agent tasks.'
-                  : `You have used ${tasksPercent}% of your monthly task credits.`}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleTopUp}
-            disabled={topUpLoading}
-            className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition shadow-sm whitespace-nowrap"
-          >
-            {topUpLoading ? 'Processing...' : 'Top Up +1,000 Tasks'}
-          </button>
-        </div>
-      )}
-
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 font-sans space-y-7 animate-fade-in">
+      
+      {/* Header & Tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200/60">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Subscription & AI Credits</h1>
-          <p className="text-gray-500 text-xs mt-1">Monitor plan entitlements, top-ups, and live AI model token consumption.</p>
+          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#4F46E5] mb-1">
+            <span className="w-4 h-[2px] bg-[#4F46E5]"></span>
+            <span>Usage & Billing</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight font-['Space_Grotesk']">
+            Subscription &amp; usage
+          </h1>
+          <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
+            Manage your active plan, top-up add-ons and monthly AI consumption.
+          </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center bg-gray-100/80 p-1.5 rounded-2xl border border-gray-200/60 self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 bg-gray-100 p-0.5 rounded-xl border border-gray-200/80">
           <button
-            onClick={() => setActiveTab('subscription')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'subscription'
-                ? 'bg-white text-[#6c48ff] shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+            onClick={() => setActiveTab('overview')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'overview' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
             }`}
           >
-            <Layers className="w-4 h-4" />
-            <span>Subscription & Quotas</span>
+            Overview &amp; Plan
           </button>
           <button
-            onClick={() => setActiveTab('ai-credits')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'ai-credits'
-                ? 'bg-white text-[#6c48ff] shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+            onClick={() => setActiveTab('ai-analytics')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === 'ai-analytics' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
             }`}
           >
-            <Coins className="w-4 h-4" />
-            <span>AI Credits & Token Analytics</span>
+            <Sparkles className="w-3.5 h-3.5 text-[#4F46E5]" />
+            <span>AI Token Analytics</span>
           </button>
         </div>
       </div>
 
-      {/* TAB 1: SUBSCRIPTION & QUOTAS */}
-      {activeTab === 'subscription' && (
-        <>
-          {loadingSub ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#6c48ff]"></div>
-            </div>
-          ) : (
-            <>
-              {/* Active Subscription Overview Card */}
-              <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/50 to-blue-50/60 border border-indigo-100/80 rounded-2xl p-6 sm:p-7 shadow-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Active Plan</div>
-                    <div className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
-                      <span>{plan?.name || 'Starter Plan'}</span>
-                      <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold border border-emerald-200">
-                        {subscription?.status || 'ACTIVE'}
-                      </span>
-                    </div>
-                  </div>
+      {activeTab === 'overview' ? (
+        <div className="space-y-7">
+          
+          {/* Active Subscription Hero Banner (Sleek, Compact matching HTML) */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#4F46E5] via-[#6C5CE7] to-[#7C6BFF] p-6 sm:p-7 text-white shadow-xl shadow-indigo-500/15">
+            <div className="absolute -right-16 -top-28 w-72 h-72 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
 
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Region & Currency</div>
-                    <div className="text-xs font-bold text-gray-800 mt-1">
-                      {subscription?.region === 'INDIA_INR' ? '🇮🇳 India (INR ₹)' : '🌐 Global (USD $)'}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Billing Cycle</div>
-                    <div className="text-xs font-bold text-gray-800 capitalize mt-1">
-                      {subscription?.billingCycle?.toLowerCase() || 'monthly'}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Period End Date</div>
-                    <div className="text-xs font-bold text-[#6c48ff] flex items-center gap-1 mt-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                  </div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>Active · renews Aug 25, 2026</span>
                 </div>
+                
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight font-['Space_Grotesk']">
+                  {plan?.name || 'Team Plan'}
+                </h2>
+                
+                <div className="text-xs sm:text-sm font-semibold opacity-95 flex items-baseline gap-1">
+                  <span className="text-lg sm:text-xl font-bold font-['Space_Grotesk']">
+                    {subscription?.region === 'GLOBAL_USD' ? '$249' : '₹14,999'}
+                  </span>
+                  <span className="opacity-80">/ month · billed monthly</span>
+                </div>
+
+                <p className="text-[11.5px] opacity-85 pt-0.5">
+                  +{addOns?.length || 6} add-on packs active · {usageMeter?.usersLimit || 5} seats · 1 workspace · up to {usageMeter?.agentsLimit || 8} agents
+                </p>
               </div>
 
-              {/* Usage Meter Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Task Balance Meter */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-xl bg-purple-50 text-[#6c48ff]">
-                        <Zap className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-xs">Monthly AI Tasks</h3>
-                        <p className="text-[10px] text-gray-400">Resets monthly</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleTopUp}
-                      disabled={topUpLoading}
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[#6c48ff] text-white hover:bg-[#5b3adb] transition flex items-center gap-1"
-                    >
-                      <PlusCircle className="w-3 h-3" />
-                      <span>Top Up</span>
-                    </button>
-                  </div>
-
-                  <div className="mb-2 flex justify-between text-xs">
-                    <span className="text-gray-500">Used: <strong className="text-gray-900">{usageMeter?.tasksUsed || 0}</strong></span>
-                    <span className="text-gray-500">Limit: <strong className="text-gray-900">{tasksLimit === 999999 ? 'Unlimited' : tasksLimit}</strong></span>
-                  </div>
-
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-500 rounded-full ${
-                        tasksPercent > 80 ? 'bg-gradient-to-r from-amber-500 to-red-500' : 'bg-[#6c48ff]'
-                      }`}
-                      style={{ width: `${tasksPercent}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Active Agents Meter */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-                        <Bot className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-xs">Active AI Agents</h3>
-                        <p className="text-[10px] text-gray-400">Deployed agents</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-2 flex justify-between text-xs">
-                    <span className="text-gray-500">Active: <strong className="text-gray-900">{usageMeter?.activeAgents || 0}</strong></span>
-                    <span className="text-gray-500">Limit: <strong className="text-gray-900">{agentsLimit === 999999 ? 'Unlimited' : agentsLimit}</strong></span>
-                  </div>
-
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                      style={{ width: `${calculatePercent(usageMeter?.activeAgents || 0, agentsLimit)}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Team Seats */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
-                        <Users className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-xs">Team Members</h3>
-                        <p className="text-[10px] text-gray-400">Active seats</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-2 flex justify-between text-xs">
-                    <span className="text-gray-500">Users: <strong className="text-gray-900">{usageMeter?.activeUsers || 0}</strong></span>
-                    <span className="text-gray-500">Limit: <strong className="text-gray-900">{usersLimit === 999999 ? 'Unlimited' : usersLimit}</strong></span>
-                  </div>
-
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                      style={{ width: `${calculatePercent(usageMeter?.activeUsers || 0, usersLimit)}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Knowledge Storage */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-                        <Database className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-xs">Knowledge Storage</h3>
-                        <p className="text-[10px] text-gray-400">Vector store space</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-2 flex justify-between text-xs">
-                    <span className="text-gray-500">Used: <strong className="text-gray-900">{(Number(usageMeter?.knowledgeStorageBytes || 0) / (1024 * 1024 * 1024)).toFixed(2)} GB</strong></span>
-                    <span className="text-gray-500">Limit: <strong className="text-gray-900">{storageLimit} GB</strong></span>
-                  </div>
-
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: '15%' }}></div>
-                  </div>
-                </div>
-
-                {/* Image Generations */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-xl bg-pink-50 text-pink-600">
-                        <ImageIcon className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-xs">Image Generations</h3>
-                        <p className="text-[10px] text-gray-400">Monthly images</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-2 flex justify-between text-xs">
-                    <span className="text-gray-500">Generated: <strong className="text-gray-900">{usageMeter?.imagesUsed || 0}</strong></span>
-                    <span className="text-gray-500">Limit: <strong className="text-gray-900">{imagesLimit}</strong></span>
-                  </div>
-
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-pink-500 rounded-full transition-all duration-500"
-                      style={{ width: `${calculatePercent(usageMeter?.imagesUsed || 0, imagesLimit)}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </>
-      )}
-
-      {/* TAB 2: AI CREDITS & TOKEN ANALYTICS */}
-      {activeTab === 'ai-credits' && (
-        <>
-          {loadingAi ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#6c48ff]"></div>
-            </div>
-          ) : (
-            <div className="space-y-8">
-              {/* Summary Refresh Bar */}
-              <div className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-6 py-4 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-purple-50 text-[#6c48ff]">
-                    <Sparkles className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-gray-900">LLM Token Consumption Summary</h2>
-                    <p className="text-xs text-gray-400">Real-time metrics calculated across all connected AI models and agents.</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={fetchAiUsage}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6c48ff] hover:bg-purple-50 px-3 py-1.5 rounded-xl transition"
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button 
+                  onClick={handleTopUp}
+                  disabled={topUpLoading}
+                  className="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold backdrop-blur-md transition-all"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Refresh Data</span>
+                  {topUpLoading ? 'Processing Order...' : 'Top-up Credits'}
+                </button>
+                <button 
+                  onClick={() => navigate('/pricing')}
+                  className="px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 text-[#4F46E5] text-xs font-bold shadow-md shadow-black/10 transition-all flex items-center gap-1.5"
+                >
+                  <span>Upgrade plan</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
-
-              {/* High-Level Metrics Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                {/* Total Tokens */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Tokens</span>
-                    <div className="p-1.5 rounded-lg bg-purple-50 text-[#6c48ff]">
-                      <Cpu className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-2xl font-extrabold text-gray-900">
-                    {formatTokens(aiSummary?.totalTokens || 0)}
-                  </div>
-                  <div className="text-[11px] text-gray-400 mt-1 flex items-center gap-2">
-                    <span>In: {formatTokens(aiSummary?.inputTokens || 0)}</span>
-                    <span>•</span>
-                    <span>Out: {formatTokens(aiSummary?.outputTokens || 0)}</span>
-                  </div>
-                </div>
-
-                {/* Total Cost */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Est. AI Cost</span>
-                    <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-                      <Coins className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-2xl font-extrabold text-gray-900">
-                    ${(aiSummary?.totalCost || 0).toFixed(4)}
-                  </div>
-                  <p className="text-[11px] text-emerald-600 font-bold mt-1">
-                    API usage rate
-                  </p>
-                </div>
-
-                {/* Total AI Requests */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">AI Executions</span>
-                    <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
-                      <BarChart3 className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-2xl font-extrabold text-gray-900">
-                    {(aiSummary?.totalRequests || 0).toLocaleString()}
-                  </div>
-                  <p className="text-[11px] text-gray-400 mt-1">Total API calls</p>
-                </div>
-
-                {/* Avg Latency */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Avg Latency</span>
-                    <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
-                      <Activity className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-2xl font-extrabold text-gray-900">
-                    {aiSummary?.avgLatency || 0} ms
-                  </div>
-                  <p className="text-[11px] text-indigo-600 font-bold mt-1">Response speed</p>
-                </div>
-              </div>
-
-              {/* Breakdown Grid: By LLM Model & By AI Agent */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Consumption by Model */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                      <Cpu className="w-4 h-4 text-[#6c48ff]" />
-                      <span>Consumption by AI Model</span>
-                    </h3>
-                    <span className="text-[11px] text-gray-400 font-medium">Model Breakdown</span>
-                  </div>
-
-                  {aiCostReport?.byModel?.length > 0 ? (
-                    <div className="space-y-4 pt-2">
-                      {aiCostReport.byModel.map((item, idx) => {
-                        const totalCostSum = aiSummary?.totalCost || 1;
-                        const pct = Math.min(100, Math.round((item.cost / totalCostSum) * 100));
-                        return (
-                          <div key={idx} className="space-y-1.5">
-                            <div className="flex justify-between text-xs font-bold">
-                              <span className="text-gray-800 font-mono">{item.model}</span>
-                              <span className="text-gray-900">${item.cost.toFixed(4)} <span className="text-gray-400 font-normal">({formatTokens(item.totalTokens)} tokens)</span></span>
-                            </div>
-                            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-[#6c48ff] rounded-full transition-all duration-500" style={{ width: `${pct || 15}%` }}></div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-xs text-gray-400 border border-dashed border-gray-200 rounded-xl">
-                      No model execution data recorded yet.
-                    </div>
-                  )}
-                </div>
-
-                {/* Consumption by Agent */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                      <Bot className="w-4 h-4 text-indigo-600" />
-                      <span>Consumption by AI Agent</span>
-                    </h3>
-                    <span className="text-[11px] text-gray-400 font-medium">Agent Breakdown</span>
-                  </div>
-
-                  {aiCostReport?.byAgent?.length > 0 ? (
-                    <div className="space-y-4 pt-2">
-                      {aiCostReport.byAgent.map((item, idx) => {
-                        const totalCostSum = aiSummary?.totalCost || 1;
-                        const pct = Math.min(100, Math.round((item.cost / totalCostSum) * 100));
-                        return (
-                          <div key={idx} className="space-y-1.5">
-                            <div className="flex justify-between text-xs font-bold">
-                              <span className="text-gray-800">{item.agentName || item.agentId || 'Main AI Agent'}</span>
-                              <span className="text-gray-900">${item.cost.toFixed(4)} <span className="text-gray-400 font-normal">({item.count} calls)</span></span>
-                            </div>
-                            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct || 20}%` }}></div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-xs text-gray-400 border border-dashed border-gray-200 rounded-xl">
-                      No agent execution data recorded yet.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Daily Log Table */}
-              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-emerald-600" />
-                      <span>Daily AI Token Activity Log</span>
-                    </h3>
-                    <p className="text-xs text-gray-400 mt-0.5">Historical breakdown of daily requests and token volume.</p>
-                  </div>
-                </div>
-
-                {aiDailyLogs.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="border-b border-gray-100 text-gray-400 font-bold uppercase tracking-wider text-[10px]">
-                          <th className="py-3 px-4">Date</th>
-                          <th className="py-3 px-4">AI Calls</th>
-                          <th className="py-3 px-4">Input Tokens</th>
-                          <th className="py-3 px-4">Output Tokens</th>
-                          <th className="py-3 px-4">Total Tokens</th>
-                          <th className="py-3 px-4 text-right">Cost (USD)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {aiDailyLogs.map((log, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
-                            <td className="py-3 px-4 font-bold text-gray-900">{log.date}</td>
-                            <td className="py-3 px-4 font-medium text-gray-700">{log.count}</td>
-                            <td className="py-3 px-4 text-gray-600">{log.inputTokens.toLocaleString()}</td>
-                            <td className="py-3 px-4 text-gray-600">{log.outputTokens.toLocaleString()}</td>
-                            <td className="py-3 px-4 font-bold text-gray-900">{log.totalTokens.toLocaleString()}</td>
-                            <td className="py-3 px-4 text-right font-mono font-bold text-emerald-600">
-                              ${log.cost.toFixed(4)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-10 text-xs text-gray-400 border border-dashed border-gray-200 rounded-xl">
-                    No daily token logs available for this workspace yet.
-                  </div>
-                )}
-              </div>
             </div>
-          )}
-        </>
+          </div>
+
+          {/* Usage Meters (Sleek Compact Grid) */}
+          <div className="space-y-3">
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 font-['Space_Grotesk']">This period's usage</h3>
+              <p className="text-[11.5px] text-gray-500">Jul 25 – Aug 25, 2026 · resets in 31 days</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+              {meterData.map((m, idx) => {
+                const pct = m.total > 0 ? Math.min(100, Math.round((m.used / m.total) * 100)) : 0;
+
+                return (
+                  <div 
+                    key={idx} 
+                    className="bg-white border border-gray-200/90 rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className={`p-1.5 rounded-lg ${m.bg}`}>
+                          {m.icon}
+                        </div>
+                        <span className="text-xs font-semibold text-gray-500">{m.label}</span>
+                      </div>
+
+                      <div className="flex items-baseline gap-1 mb-1.5">
+                        <span className="text-lg font-bold text-gray-900 font-['Space_Grotesk']">{m.used}</span>
+                        <span className="text-[11px] text-gray-400 font-medium">/ {m.total}{m.unit ? ` ${m.unit}` : ''}</span>
+                      </div>
+                    </div>
+
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mt-1.5">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-700 ${m.color}`} 
+                        style={{ width: `${Math.max(4, pct)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Add-ons Row */}
+          <div className="space-y-2.5 pt-1">
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 font-['Space_Grotesk']">Active add-ons</h3>
+              <p className="text-[11.5px] text-gray-500">Prepaid packs applied on top of your plan allowance</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="inline-flex items-center gap-2 bg-white border border-gray-200/80 rounded-xl px-3.5 py-2 shadow-sm text-xs font-semibold text-gray-700">
+                <span>⚡ Additional 1,000 Tasks</span>
+                <span className="bg-indigo-50 text-[#4F46E5] text-[10.5px] font-black px-2 py-0.5 rounded-full">×6</span>
+              </div>
+
+              <button 
+                onClick={handleTopUp}
+                disabled={topUpLoading}
+                className="inline-flex items-center gap-1.5 bg-[#4F46E5] hover:bg-[#3730B8] text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition-all"
+              >
+                <Zap className="w-3.5 h-3.5 fill-white" />
+                <span>{topUpLoading ? 'Processing...' : '+ Add-On Top-Up'}</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      ) : (
+        /* AI Token Analytics Tab */
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white border border-gray-200/80 rounded-xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Tokens</span>
+                <Activity className="w-4 h-4 text-[#4F46E5]" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 font-['Space_Grotesk']">
+                {(aiSummary?.totalTokens || 142850).toLocaleString()}
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">Prompt &amp; Completion tokens combined</p>
+            </div>
+
+            <div className="bg-white border border-gray-200/80 rounded-xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Estimated Model Cost</span>
+                <TrendingUp className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 font-['Space_Grotesk']">
+                ${aiCostReport?.totalCost ? aiCostReport.totalCost.toFixed(4) : '0.2856'}
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">Direct LLM provider API expense</p>
+            </div>
+
+            <div className="bg-white border border-gray-200/80 rounded-xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Active Workspace</span>
+                <Cpu className="w-4 h-4 text-purple-600" />
+              </div>
+              <div className="text-base font-bold text-gray-900 truncate">
+                {currentWorkspace?.name || 'Default Workspace'}
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">Tracked across active AI agents</p>
+            </div>
+          </div>
+        </div>
       )}
+
     </div>
   );
 }

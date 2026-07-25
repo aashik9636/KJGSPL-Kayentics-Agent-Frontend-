@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { subscriptionService } from '../services/subscriptionService';
 import { useWorkspaceStore } from '../store/workspaceStore';
-import { Sparkles, Layers, Cpu, ArrowRight, Check, X, ShieldCheck } from 'lucide-react';
+import { 
+  Sparkles, ArrowRight, Layers, Cpu, ChevronDown, ChevronUp
+} from 'lucide-react';
 import { toast } from 'react-toastify';
+import gsap from 'gsap';
 
 export default function PricingPlans() {
   const { organizationId } = useWorkspaceStore();
@@ -11,9 +14,113 @@ export default function PricingPlans() {
   const [taskRules, setTaskRules] = useState([]);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [region, setRegion] = useState('INDIA_INR');
-  const [billingCycle, setBillingCycle] = useState('MONTHLY');
+  const [region, setRegion] = useState('INDIA_INR'); // 'INDIA_INR' | 'GLOBAL_USD'
+  const [billingCycle, setBillingCycle] = useState('MONTHLY'); // 'MONTHLY' | 'ANNUAL'
   const [checkoutLoading, setCheckoutLoading] = useState(null);
+  const [expandedPlans, setExpandedPlans] = useState({});
+
+  const containerRef = useRef(null);
+
+  const toggleExpandPlan = (planCode) => {
+    setExpandedPlans((prev) => ({
+      ...prev,
+      [planCode]: !prev[planCode],
+    }));
+  };
+
+  // Fallback plans matching subscription-billing.html design specs
+  const fallbackPlans = [
+    {
+      code: 'STARTER',
+      name: 'Starter Plan',
+      desc: 'Essential agentic tools for small teams and solo builders.',
+      inr: { m: 4999, a: 3999 },
+      usd: { m: 79, a: 65 },
+      feats: [
+        '2 Included user seats',
+        '1 Included workspace',
+        '1 Selectable workforce bundle',
+        '4 Maximum active agents',
+        '300 Monthly task unit allowance',
+        '1 Knowledge base vector storage',
+        '10 Knowledge sources allowed',
+        '3 Active automated workflows',
+        '100 Scheduled post & publishing runs',
+        '3 Standard platform integrations',
+        '20 Standard image generations'
+      ],
+      off: ['API & Webhooks', 'BYO model keys', 'Advanced analytics']
+    },
+    {
+      code: 'TEAM',
+      name: 'Team Plan',
+      desc: 'Advanced multi-agent workflows, higher task limits and team collaboration.',
+      popular: true,
+      inr: { m: 14999, a: 11999 },
+      usd: { m: 249, a: 199 },
+      feats: [
+        '5 Included user seats',
+        '1 Included workspace',
+        '2 Selectable workforce bundles',
+        '8 Maximum active agents',
+        '1000 Monthly task unit allowance',
+        '5 Knowledge base vector storage',
+        '50 Knowledge sources allowed',
+        '15 Active automated workflows',
+        '500 Scheduled post & publishing runs',
+        '10 Standard platform integrations',
+        '75 Standard image generations',
+        'Advanced analytics'
+      ],
+      off: ['API & Webhooks', 'BYO model keys']
+    },
+    {
+      code: 'BUSINESS',
+      name: 'Business Plan',
+      desc: 'Full organizational AI workforce, high volume tasks, custom workflows and priority support.',
+      highlight: true,
+      inr: { m: 39999, a: 31999 },
+      usd: { m: 599, a: 479 },
+      feats: [
+        '15 Included user seats',
+        '3 Included workspaces',
+        '5 All standard workforce bundles',
+        '20 Maximum active agents',
+        '3000 Monthly task unit allowance',
+        '25 Knowledge base vector storage',
+        '250 Knowledge sources allowed',
+        '50 Active automated workflows',
+        '2000 Scheduled post & publishing runs',
+        '25 Standard platform integrations',
+        '250 Standard image generations',
+        'API & Webhooks',
+        'BYO model keys',
+        'Advanced analytics'
+      ],
+      off: []
+    },
+    {
+      code: 'ENTERPRISE',
+      name: 'Enterprise Plan',
+      desc: 'Dedicated AI infrastructure, custom integrations, SLAs and white-glove onboarding.',
+      custom: true,
+      inr: { m: null, a: null },
+      usd: { m: null, a: null },
+      feats: [
+        'Custom Unlimited user seats',
+        'Custom Unlimited workspaces',
+        'Custom workforce bundles',
+        'Custom active agent limit',
+        'Custom high-volume task allowance',
+        'Custom Dedicated vector storage',
+        'Custom Unlimited knowledge sources',
+        'Custom Unlimited automated workflows',
+        'Custom Unlimited scheduled runs',
+        'Custom integrations & SLAs'
+      ],
+      off: []
+    }
+  ];
 
   useEffect(() => {
     fetchPlans();
@@ -21,6 +128,16 @@ export default function PricingPlans() {
       fetchCurrentSubscription();
     }
   }, [region, organizationId]);
+
+  useEffect(() => {
+    if (!loading && containerRef.current) {
+      gsap.fromTo(
+        containerRef.current.querySelectorAll('.animate-gsap'),
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, stagger: 0.06, ease: 'power2.out' }
+      );
+    }
+  }, [loading, region, billingCycle]);
 
   const fetchCurrentSubscription = async () => {
     try {
@@ -35,12 +152,11 @@ export default function PricingPlans() {
     setLoading(true);
     try {
       const data = await subscriptionService.getPlans(region);
-      setPlans(data.plans || []);
+      setPlans(data.plans && data.plans.length > 0 ? data.plans : []);
       setAddOns(data.addOns || []);
       setTaskRules(data.taskRules || []);
     } catch (err) {
       console.error('Failed to load plans:', err);
-      toast.error('Failed to load subscription plans.');
     } finally {
       setLoading(false);
     }
@@ -82,7 +198,7 @@ export default function PricingPlans() {
           amount: order.amount,
           currency: order.currency,
           name: 'Kaynetics AI',
-          description: `${order.planName} Plan (${billingCycle})`,
+          description: `${order.planName || planCode} Plan (${billingCycle})`,
           ...(order?.razorpayOrderId ? { order_id: order.razorpayOrderId } : {}),
           handler: async (response) => {
             try {
@@ -95,7 +211,7 @@ export default function PricingPlans() {
                 region,
                 billingCycle
               );
-              toast.success(`Subscribed to ${order.planName}!`);
+              toast.success(`Subscribed to ${order.planName || planCode}!`);
               fetchPlans();
               fetchCurrentSubscription();
             } catch {
@@ -103,7 +219,7 @@ export default function PricingPlans() {
             }
           },
           theme: {
-            color: '#6c48ff',
+            color: '#4F46E5',
           },
         };
         const rzp = new window.Razorpay(options);
@@ -119,57 +235,184 @@ export default function PricingPlans() {
     }
   };
 
-  // Format Entitlements Dynamically & Cleanly
-  const renderEntitlementText = (ent) => {
-    const val = ent.value;
-    const desc = ent.description || ent.key?.replace(/_/g, ' ') || '';
-    
-    if (val === true || val === 'true') {
-      return desc;
+  // Helper to extract & format features cleanly for simple, sensible taxonomy
+  const getPlanFeatures = (p) => {
+    if (p.entitlements && Array.isArray(p.entitlements) && p.entitlements.length > 0) {
+      const included = [];
+      const excluded = [];
+
+      p.entitlements.forEach((ent) => {
+        const val = ent.value;
+        const isFalse = val === false || val === 'false' || val === 0 || val === '0';
+
+        let text = '';
+        const desc = ent.description || '';
+        const key = ent.key || '';
+
+        if (val === true || val === 'true') {
+          text = desc || key.replace(/_/g, ' ');
+        } else if (typeof val === 'number' || (typeof val === 'string' && !isNaN(val))) {
+          if (desc && desc.toLowerCase().includes(String(val))) {
+            text = desc;
+          } else {
+            const cleanKey = (desc || key).replace(/_/g, ' ');
+            text = `${val} ${cleanKey}`;
+          }
+        } else if (val) {
+          if (desc && desc.toLowerCase().includes(String(val).toLowerCase())) {
+            text = desc;
+          } else {
+            text = `${val} ${desc || key.replace(/_/g, ' ')}`;
+          }
+        } else {
+          text = desc || key.replace(/_/g, ' ');
+        }
+
+        // Clean sensible taxonomy
+        text = text
+          .replace(/tasks_per_month/gi, 'Monthly Tasks')
+          .replace(/active_agents/gi, 'Active Agents')
+          .replace(/users/gi, 'User Seats')
+          .replace(/vector_storage_gb/gi, 'Vector Storage (GB)')
+          .replace(/scheduled_runs/gi, 'Scheduled Runs')
+          .replace(/image_generations/gi, 'Image Generations')
+          .replace(/standard_integrations/gi, 'Integrations');
+
+        if (isFalse) {
+          excluded.push(text);
+        } else {
+          included.push(text);
+        }
+      });
+
+      if (included.length > 0 || excluded.length > 0) {
+        return { included, excluded };
+      }
     }
-    if (val === false || val === 'false') {
-      return desc;
+
+    if ((p.feats && p.feats.length > 0) || (p.off && p.off.length > 0)) {
+      return {
+        included: p.feats || [],
+        excluded: p.off || []
+      };
     }
-    // Avoid duplicate words like "Custom Custom workforce"
-    if (typeof val === 'string' && desc.toLowerCase().startsWith(val.toLowerCase())) {
-      return desc;
+
+    const code = (p.code || p.name || '').toUpperCase();
+    if (code.includes('STARTER')) {
+      return {
+        included: [
+          '2 Included user seats',
+          '1 Included workspace',
+          '1 Selectable workforce bundle',
+          '4 Maximum active agents',
+          '300 Monthly task unit allowance',
+          '1 Knowledge base vector storage',
+          '10 Knowledge sources allowed',
+          '3 Active automated workflows',
+          '100 Scheduled post & publishing runs',
+          '3 Standard platform integrations',
+          '20 Standard image generations'
+        ],
+        excluded: ['API & Webhooks', 'BYO model keys', 'Advanced analytics']
+      };
     }
-    return `${val} ${desc}`;
+    if (code.includes('TEAM')) {
+      return {
+        included: [
+          '5 Included user seats',
+          '1 Included workspace',
+          '2 Selectable workforce bundles',
+          '8 Maximum active agents',
+          '1000 Monthly task unit allowance',
+          '5 Knowledge base vector storage',
+          '50 Knowledge sources allowed',
+          '15 Active automated workflows',
+          '500 Scheduled post & publishing runs',
+          '10 Standard platform integrations',
+          '75 Standard image generations',
+          'Advanced analytics'
+        ],
+        excluded: ['API & Webhooks', 'BYO model keys']
+      };
+    }
+    if (code.includes('BUSINESS')) {
+      return {
+        included: [
+          '15 Included user seats',
+          '3 Included workspaces',
+          '5 All standard workforce bundles',
+          '20 Maximum active agents',
+          '3000 Monthly task unit allowance',
+          '25 Knowledge base vector storage',
+          '250 Knowledge sources allowed',
+          '50 Active automated workflows',
+          '2000 Scheduled post & publishing runs',
+          '25 Standard platform integrations',
+          '250 Standard image generations',
+          'API & Webhooks',
+          'BYO model keys',
+          'Advanced analytics'
+        ],
+        excluded: []
+      };
+    }
+    if (code.includes('ENTERPRISE')) {
+      return {
+        included: [
+          'Custom Unlimited user seats',
+          'Custom Unlimited workspaces',
+          'Custom workforce bundles',
+          'Custom active agent limit',
+          'Custom high-volume task allowance',
+          'Custom Dedicated vector storage',
+          'Custom Unlimited knowledge sources',
+          'Custom Unlimited automated workflows',
+          'Custom Unlimited scheduled runs',
+          'Custom integrations & SLAs'
+        ],
+        excluded: []
+      };
+    }
+
+    return { included: [], excluded: [] };
   };
 
+  const activePlanCode = currentSubscription?.planCode || 'TEAM';
+
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 font-sans space-y-8">
+    <div ref={containerRef} className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 font-sans space-y-8">
       
-      {/* ── Header & Selectors ────────────────────────────────────────────── */}
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-100 text-[#6c48ff] text-xs font-bold mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
+      {/* ── Page Header & Controls Bar ───────────────────────────────────────── */}
+      <div className="animate-gsap text-center max-w-xl mx-auto space-y-2.5">
+        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-[#4F46E5] text-[11px] font-bold">
+          <Sparkles className="w-3 h-3" />
           <span>Plans & Pricing</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
+        
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight font-['Space_Grotesk']">
           Flexible Pricing for Your AI Team
         </h1>
-        <p className="text-gray-500 text-sm">
+        
+        <p className="text-gray-500 text-xs sm:text-sm">
           Scale workspace seats, active agents, and AI task units with zero hidden fees.
         </p>
 
-        {/* Region & Billing Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
-          
-          {/* Region Switcher */}
-          <div className="bg-gray-100 p-1 rounded-2xl flex items-center border border-gray-200/60 shadow-inner">
+        {/* Currency & Billing Switcher */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
+          {/* Currency Toggle */}
+          <div className="bg-white p-0.5 rounded-xl border border-gray-200 shadow-sm flex items-center">
             <button
               onClick={() => setRegion('INDIA_INR')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                region === 'INDIA_INR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                region === 'INDIA_INR' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               🇮🇳 India (INR ₹)
             </button>
             <button
               onClick={() => setRegion('GLOBAL_USD')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                region === 'GLOBAL_USD' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                region === 'GLOBAL_USD' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               🌐 Global (USD $)
@@ -177,23 +420,25 @@ export default function PricingPlans() {
           </div>
 
           {/* Billing Cycle Switcher */}
-          <div className="bg-gray-100 p-1 rounded-2xl flex items-center border border-gray-200/60 shadow-inner">
+          <div className="bg-white p-0.5 rounded-xl border border-gray-200 shadow-sm flex items-center">
             <button
               onClick={() => setBillingCycle('MONTHLY')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                billingCycle === 'MONTHLY' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                billingCycle === 'MONTHLY' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setBillingCycle('ANNUAL')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                billingCycle === 'ANNUAL' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                billingCycle === 'ANNUAL' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <span>Annual</span>
-              <span className="bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded-md font-extrabold">
+              <span className={`text-[9.5px] px-1 py-0.5 rounded font-extrabold ${
+                billingCycle === 'ANNUAL' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'
+              }`}>
                 Save ~20%
               </span>
             </button>
@@ -201,162 +446,207 @@ export default function PricingPlans() {
         </div>
       </div>
 
-      {/* ── Dynamic Plan Cards Grid ───────────────────────────────────────── */}
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent"></div>
-        </div>
-      ) : plans.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm">
-          <p className="text-gray-500 text-sm font-medium">No subscription plans currently available for this region.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-          {plans.map((plan) => {
-            const priceRecord = plan.prices?.find((p) => p.billingCycle === billingCycle) || plan.prices?.[0];
-            const displayPrice = priceRecord ? priceRecord.price : 0;
-            const dynamicCurrencySymbol = priceRecord?.currency === 'INR' || region === 'INDIA_INR' ? '₹' : '$';
-            const isPopular = plan.code === 'TEAM';
-            const isCurrentPlan = currentSubscription?.planCode === plan.code;
+      {/* ── Compare Plans Grid Section (Collapsible Features, Small Sleek Cards) ─ */}
+      <div className="animate-gsap">
+        {loading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-7 w-7 border-2 border-[#4F46E5] border-t-transparent"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+            {(plans && plans.length > 0 ? plans : fallbackPlans).map((p, idx) => {
+              const isCurrent = activePlanCode === p.code;
+              const isPopular = p.popular || p.code === 'TEAM';
+              const isHighlight = p.highlight || p.code === 'BUSINESS';
+              const isEnterprise = p.custom || p.code === 'ENTERPRISE';
+              const isExpanded = !!expandedPlans[p.code || idx];
 
-            return (
-              <div
-                key={plan.id}
-                className={`relative rounded-[32px] p-6 flex flex-col justify-between transition-all duration-300 ${
-                  isCurrentPlan
-                    ? 'bg-white border-2 border-emerald-500 shadow-lg ring-4 ring-emerald-500/10'
-                    : isPopular
-                    ? 'bg-white border-2 border-[#6c48ff] shadow-xl shadow-purple-500/10'
-                    : 'bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-lg'
-                }`}
-              >
-                {/* Popular / Active Badges */}
-                {isCurrentPlan ? (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md whitespace-nowrap z-10">
-                    Active Plan
-                  </div>
-                ) : isPopular ? (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#6c48ff] text-white text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md z-10">
-                    Most Popular
-                  </div>
-                ) : null}
+              // Price Calculation
+              let displayPrice = null;
+              if (!isEnterprise) {
+                if (p.prices && p.prices.length > 0) {
+                  const matched = p.prices.find((pr) => pr.billingCycle === billingCycle) || p.prices[0];
+                  displayPrice = matched ? matched.price : 0;
+                } else if (p.inr && p.usd) {
+                  const src = region === 'INDIA_INR' ? p.inr : p.usd;
+                  displayPrice = billingCycle === 'MONTHLY' ? src.m : src.a;
+                }
+              }
 
-                {/* Card Top Section */}
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-1 font-['Space_Grotesk']">{plan.name}</h3>
-                  <p className="text-xs text-gray-500 mb-5 min-h-[32px] leading-relaxed">{plan.description}</p>
+              const symbol = region === 'INDIA_INR' ? '₹' : '$';
 
-                  {/* Price Section */}
-                  <div className="mb-6 pb-5 border-b border-gray-100">
-                    {plan.code === 'ENTERPRISE' ? (
-                      <div className="text-2xl font-black text-gray-900">Custom Pricing</div>
-                    ) : (
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-gray-900 tracking-tight">
-                          {dynamicCurrencySymbol}{displayPrice.toLocaleString()}
-                        </span>
-                        <span className="text-gray-400 text-xs font-semibold">
-                          {billingCycle === 'ANNUAL' ? '/yr' : '/mo'}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Features / Entitlements List */}
-                  {plan.entitlements && plan.entitlements.length > 0 && (
-                    <div className="space-y-3 mb-6">
-                      <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block mb-1">
-                        Included Features
-                      </span>
-
-                      <div className="space-y-2.5">
-                        {plan.entitlements.map((ent) => {
-                          const isExcluded = ent.value === false || ent.value === 'false' || ent.value === 0;
-                          const featureText = renderEntitlementText(ent);
-
-                          return (
-                            <div key={ent.key} className="flex items-start gap-2.5 text-xs">
-                              {isExcluded ? (
-                                <div className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 mt-0.5">
-                                  <X className="w-2.5 h-2.5" />
-                                </div>
-                              ) : (
-                                <div className="w-4 h-4 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
-                                  <Check className="w-2.5 h-2.5 stroke-[3]" />
-                                </div>
-                              )}
-
-                              <span className={`leading-tight ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-700 font-medium'}`}>
-                                {featureText}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
+              return (
+                <div 
+                  key={p.code || idx}
+                  className={`relative rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 ${
+                    isCurrent 
+                      ? 'bg-white border-2 border-[#4F46E5] shadow-lg ring-2 ring-indigo-500/10'
+                      : isHighlight
+                      ? 'bg-white border border-indigo-200 shadow-md'
+                      : 'bg-white border border-gray-200/90 shadow-sm hover:shadow-md'
+                  }`}
+                >
+                  {/* Card Header Badge */}
+                  {isCurrent ? (
+                    <div className="absolute -top-3 left-5 bg-[#4F46E5] text-white text-[9.5px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm z-10 whitespace-nowrap">
+                      CURRENT PLAN
                     </div>
-                  )}
-                </div>
+                  ) : isPopular ? (
+                    <div className="absolute -top-3 left-5 bg-purple-600 text-white text-[9.5px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm z-10 whitespace-nowrap">
+                      MOST POPULAR
+                    </div>
+                  ) : null}
 
-                {/* Call to Action Button */}
-                <div className="pt-4 mt-auto">
-                  {isCurrentPlan ? (
-                    <button
-                      disabled
-                      className="w-full py-3 px-4 rounded-2xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default flex items-center justify-center gap-2"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                      <span>Current Active Plan</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleSubscribe(plan.code)}
-                      disabled={checkoutLoading === plan.code}
-                      className={`w-full py-3 px-4 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${
-                        isPopular
-                          ? 'bg-[#6c48ff] hover:bg-[#5b3adb] text-white shadow-purple-500/25'
-                          : 'bg-gray-900 hover:bg-black text-white'
-                      }`}
-                    >
-                      {checkoutLoading === plan.code ? (
-                        <span>Processing Order...</span>
+                  <div>
+                    <h4 className="text-base font-bold text-gray-900 mb-1 font-['Space_Grotesk']">{p.name || p.code}</h4>
+                    <p className="text-[11.5px] text-gray-500 leading-normal min-h-[36px] mb-3">{p.desc || p.description}</p>
+
+                    {/* Price Section */}
+                    <div className="mb-4 pb-3 border-b border-gray-100">
+                      {isEnterprise ? (
+                        <div className="text-xl font-bold text-gray-900 font-['Space_Grotesk']">Custom Pricing</div>
                       ) : (
-                        <>
-                          <span>{plan.code === 'ENTERPRISE' ? 'Contact Sales' : 'Upgrade Plan'}</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </>
+                        <div>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight font-['Space_Grotesk']">
+                              {symbol}{displayPrice !== null ? displayPrice.toLocaleString() : '0'}
+                            </span>
+                            <span className="text-xs text-gray-400 font-medium">/mo</span>
+                          </div>
+
+                          {billingCycle === 'ANNUAL' && displayPrice && (
+                            <p className="text-[10.5px] font-semibold text-emerald-600 mt-0.5">
+                              Billed {symbol}{(displayPrice * 12).toLocaleString()} / year
+                            </p>
+                          )}
+                        </div>
                       )}
-                    </button>
-                  )}
+                    </div>
+
+                    {/* CTA Button */}
+                    <div className="mb-4">
+                      {isCurrent ? (
+                        <button disabled className="w-full py-2.5 rounded-xl bg-gray-100 text-gray-400 text-xs font-bold cursor-default">
+                          Current plan
+                        </button>
+                      ) : isEnterprise ? (
+                        <button 
+                          onClick={() => window.open('mailto:sales@kaynetics.com', '_blank')}
+                          className="w-full py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-900 text-xs font-bold transition-all"
+                        >
+                          Contact sales
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => handleSubscribe(p.code)}
+                          disabled={checkoutLoading === p.code}
+                          className="w-full py-2.5 rounded-xl bg-[#4F46E5] hover:bg-[#3730B8] text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
+                        >
+                          {checkoutLoading === p.code ? (
+                            <span>Processing...</span>
+                          ) : (
+                            <>
+                              <span>{p.code === 'STARTER' ? 'Downgrade' : 'Upgrade'} to {p.name || p.code}</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Included Features with Expand/Collapse */}
+                    {(() => {
+                      const { included, excluded } = getPlanFeatures(p);
+                      const maxInitial = 5;
+                      const visibleIncluded = isExpanded ? included : included.slice(0, maxInitial);
+                      const visibleExcluded = isExpanded 
+                        ? excluded 
+                        : (included.length < maxInitial ? excluded.slice(0, maxInitial - included.length) : []);
+                      
+                      const totalCount = included.length + excluded.length;
+                      const hasMore = totalCount > maxInitial;
+
+                      return (
+                        <div className="space-y-2 pt-3 border-t border-gray-100">
+                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block mb-1.5">
+                            INCLUDED FEATURES
+                          </span>
+                          
+                          <div className="space-y-2">
+                            {visibleIncluded.map((feat, fIdx) => (
+                              <div key={fIdx} className="flex items-center gap-2 text-[11.5px] text-gray-700 font-medium">
+                                <span className="w-4 h-4 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center text-[9.5px] font-black shrink-0">
+                                  ✓
+                                </span>
+                                <span className="leading-snug">{feat}</span>
+                              </div>
+                            ))}
+
+                            {visibleExcluded.map((offFeat, oIdx) => (
+                              <div key={oIdx} className="flex items-center gap-2 text-[11.5px] text-gray-400">
+                                <span className="w-4 h-4 rounded bg-gray-100 text-gray-400 flex items-center justify-center text-[9.5px] font-black shrink-0">
+                                  –
+                                </span>
+                                <span className="leading-snug line-through">{offFeat}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Expand / Collapse Button */}
+                          {hasMore && !isExpanded && (
+                            <button
+                              onClick={() => toggleExpandPlan(p.code || idx)}
+                              className="w-full mt-2.5 pt-2 border-t border-dashed border-gray-200 text-left text-[11px] font-bold text-[#4F46E5] hover:text-[#3730B8] flex items-center justify-between transition-colors group"
+                            >
+                              <span>Show all features ({totalCount})</span>
+                              <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
+                            </button>
+                          )}
+
+                          {isExpanded && (
+                            <button
+                              onClick={() => toggleExpandPlan(p.code || idx)}
+                              className="w-full mt-2.5 pt-2 border-t border-dashed border-gray-200 text-left text-[11px] font-bold text-gray-500 hover:text-gray-800 flex items-center justify-between transition-colors"
+                            >
+                              <span>Show fewer features</span>
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ── Add-ons Section ──────────────────────────────────────────────── */}
+      {/* ── Capacity Add-ons Section ────────────────────────────────────────── */}
       {addOns && addOns.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 rounded-2xl bg-purple-50 text-[#6c48ff]">
-              <Layers className="w-5 h-5" />
+        <div className="animate-gsap bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm space-y-3">
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="p-2 rounded-xl bg-indigo-50 text-[#4F46E5]">
+              <Layers className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 font-['Space_Grotesk']">Available Capacity Add-Ons</h2>
+              <h3 className="text-base font-bold text-gray-900 font-['Space_Grotesk']">Available Capacity Add-Ons</h3>
               <p className="text-xs text-gray-500">Add extra user seats and task top-ups on demand</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {addOns.map((addon) => {
               const price = region === 'INDIA_INR' ? `₹${addon.priceInr?.toLocaleString()}` : `$${addon.priceUsd}`;
               return (
-                <div key={addon.id} className="bg-gray-50/70 border border-gray-100 rounded-2xl p-4.5 hover:bg-gray-50 transition">
-                  <div className="flex justify-between items-center mb-1.5">
+                <div key={addon.id} className="bg-gray-50/70 border border-gray-200/60 rounded-xl p-3.5 hover:bg-gray-50 transition">
+                  <div className="flex justify-between items-center mb-1">
                     <h4 className="font-bold text-gray-900 text-xs">{addon.name}</h4>
-                    <span className="text-[#6c48ff] font-extrabold text-xs bg-purple-50 px-2 py-0.5 rounded-full">{price}</span>
+                    <span className="text-[#4F46E5] font-extrabold text-xs bg-indigo-50 px-2 py-0.5 rounded-full">{price}</span>
                   </div>
-                  <p className="text-[11px] text-gray-500 leading-normal">{addon.notes || addon.deliveryCondition || 'Prepaid top-up'}</p>
+                  <p className="text-[11px] text-gray-500">{addon.notes || addon.deliveryCondition || 'Prepaid top-up'}</p>
                 </div>
               );
             })}
@@ -364,40 +654,7 @@ export default function PricingPlans() {
         </div>
       )}
 
-      {/* ── Task Usage Rules Table ───────────────────────────────────────── */}
-      {taskRules && taskRules.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600">
-              <Cpu className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 font-['Space_Grotesk']">Task Consumption Rates</h2>
-              <p className="text-xs text-gray-500">Transparent task unit deduction schedule by AI action type</p>
-            </div>
-          </div>
-          <div className="overflow-x-auto rounded-2xl border border-gray-100">
-            <table className="w-full text-left text-xs text-gray-700">
-              <thead className="bg-gray-50 text-gray-400 uppercase font-extrabold text-[10px] tracking-wider border-b border-gray-100">
-                <tr>
-                  <th className="p-3.5">Activity Type</th>
-                  <th className="p-3.5">Task Deduction</th>
-                  <th className="p-3.5">Customer Explanation</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 font-medium">
-                {taskRules.map((rule) => (
-                  <tr key={rule.id} className="hover:bg-gray-50/60 transition">
-                    <td className="p-3.5 font-bold text-gray-900">{rule.activityType}</td>
-                    <td className="p-3.5 font-black text-[#6c48ff]">{rule.taskUnits} Units</td>
-                    <td className="p-3.5 text-gray-500">{rule.customerExplanation}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

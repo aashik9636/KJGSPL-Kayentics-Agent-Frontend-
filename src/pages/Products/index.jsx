@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { productService } from '../../services/productService';
 import { 
-  Package, Plus, Search, Edit3, Trash2, CheckCircle2, X 
+  Package, Plus, Search, Edit3, Trash2, CheckCircle2, X, ExternalLink, Video, FileText 
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -20,12 +20,17 @@ export default function Products() {
     category: '',
     subCategory: '',
     shortDescription: '',
+    longDescription: '',
     usp: '',
     targetAudience: '',
     features: '',
-    price: '',
-    currency: 'USD',
-    productStatus: 'ACTIVE',
+    benefits: '',
+    tags: '',
+    seoKeywords: '',
+    brochure: '',
+    demoVideo: '',
+    landingPage: '',
+    productStatus: 'DRAFT',
     lifecycle: 'DEVELOPMENT'
   };
 
@@ -62,12 +67,17 @@ export default function Products() {
       category: product.category || '',
       subCategory: product.subCategory || '',
       shortDescription: product.shortDescription || product.description || '',
+      longDescription: product.longDescription || '',
       usp: product.usp || '',
       targetAudience: product.targetAudience || '',
       features: product.features || '',
-      price: product.price ?? '',
-      currency: product.currency || 'USD',
-      productStatus: product.productStatus || 'ACTIVE',
+      benefits: product.benefits || '',
+      tags: product.tags || '',
+      seoKeywords: product.seoKeywords || '',
+      brochure: product.brochure || '',
+      demoVideo: product.demoVideo || '',
+      landingPage: product.landingPage || '',
+      productStatus: product.productStatus || 'DRAFT',
       lifecycle: product.lifecycle || 'DEVELOPMENT'
     });
     setIsModalOpen(true);
@@ -87,12 +97,17 @@ export default function Products() {
         category: formData.category.trim() || undefined,
         subCategory: formData.subCategory.trim() || undefined,
         shortDescription: formData.shortDescription.trim() || undefined,
+        longDescription: formData.longDescription.trim() || undefined,
         usp: formData.usp.trim() || undefined,
         targetAudience: formData.targetAudience.trim() || undefined,
         features: formData.features.trim() || undefined,
-        price: formData.price !== '' ? Number(formData.price) : undefined,
-        currency: formData.currency || 'USD',
-        productStatus: formData.productStatus || 'ACTIVE',
+        benefits: formData.benefits.trim() || undefined,
+        tags: formData.tags.trim() || undefined,
+        seoKeywords: formData.seoKeywords.trim() || undefined,
+        brochure: formData.brochure.trim() || undefined,
+        demoVideo: formData.demoVideo.trim() || undefined,
+        landingPage: formData.landingPage.trim() || undefined,
+        productStatus: formData.productStatus || 'DRAFT',
         lifecycle: formData.lifecycle || 'DEVELOPMENT',
       };
 
@@ -130,7 +145,8 @@ export default function Products() {
       const matchesSearch = !searchQuery.trim() || 
         p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category?.toLowerCase().includes(searchQuery.toLowerCase());
+        p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.tags?.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = statusFilter === 'ALL' || p.productStatus === statusFilter;
       return matchesSearch && matchesStatus;
@@ -148,7 +164,7 @@ export default function Products() {
       case 'DISCONTINUED':
         return <span className="bg-red-50 text-red-500 border border-red-200 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">Discontinued</span>;
       default:
-        return <span className="bg-purple-50 text-[#6c48ff] border border-purple-100 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">{status || 'Active'}</span>;
+        return <span className="bg-purple-50 text-[#6c48ff] border border-purple-100 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">{status || 'Draft'}</span>;
     }
   };
 
@@ -179,13 +195,13 @@ export default function Products() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, SKU, or category..."
+            placeholder="Search by name, SKU, category, or tags..."
             className="w-full pl-9 pr-4 py-2 rounded-xl bg-gray-50 border border-gray-100 text-xs text-gray-900 font-medium outline-none focus:bg-white focus:border-[#6c48ff] transition-all"
           />
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-hide">
-          {['ALL', 'ACTIVE', 'DRAFT', 'ARCHIVED'].map((st) => (
+          {['ALL', 'DRAFT', 'ACTIVE', 'ARCHIVED', 'DISCONTINUED'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
@@ -224,9 +240,6 @@ export default function Products() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map(product => {
-            const currencySym = product.currency === 'INR' ? '₹' : product.currency === 'EUR' ? '€' : product.currency === 'GBP' ? '£' : '$';
-            const priceDisplay = typeof product.price === 'number' ? `${currencySym}${product.price.toLocaleString()}` : `${currencySym}0`;
-
             return (
               <div 
                 key={product.id} 
@@ -236,13 +249,18 @@ export default function Products() {
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div>
                       <h3 className="font-bold text-gray-900 text-[16px] leading-tight">{product.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 wrap flex-wrap">
                         <span className="inline-block px-2 py-0.5 bg-blue-50 text-[#1967d2] text-[11px] font-bold rounded-md uppercase tracking-wider">
                           SKU: {product.sku}
                         </span>
                         {product.category && (
                           <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-[11px] font-medium rounded-md">
                             {product.category}
+                          </span>
+                        )}
+                        {product.subCategory && (
+                          <span className="inline-block px-2 py-0.5 bg-purple-50 text-[#6c48ff] text-[11px] font-medium rounded-md">
+                            {product.subCategory}
                           </span>
                         )}
                       </div>
@@ -265,7 +283,7 @@ export default function Products() {
                     </div>
                   </div>
 
-                  <p className="text-gray-500 text-[13px] my-3 flex-1">{product.shortDescription || product.description || 'No description provided.'}</p>
+                  <p className="text-gray-500 text-[13px] my-3 flex-1">{product.shortDescription || product.longDescription || 'No description provided.'}</p>
                   
                   {product.usp && (
                     <div className="pt-3 border-t border-gray-100 mb-2">
@@ -280,6 +298,34 @@ export default function Products() {
                       <p className="text-[13px] text-gray-600 whitespace-pre-line">{product.features}</p>
                     </div>
                   )}
+
+                  {product.benefits && (
+                    <div className="pt-3 border-t border-gray-100 mb-2">
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Benefits</p>
+                      <p className="text-[13px] text-gray-600 whitespace-pre-line">{product.benefits}</p>
+                    </div>
+                  )}
+
+                  {/* Resource Links */}
+                  {(product.landingPage || product.demoVideo || product.brochure) && (
+                    <div className="pt-3 border-t border-gray-100 flex items-center gap-3 text-xs font-semibold text-[#6c48ff]">
+                      {product.landingPage && (
+                        <a href={product.landingPage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:underline">
+                          <ExternalLink className="w-3.5 h-3.5" /> Landing
+                        </a>
+                      )}
+                      {product.demoVideo && (
+                        <a href={product.demoVideo} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:underline">
+                          <Video className="w-3.5 h-3.5" /> Demo
+                        </a>
+                      )}
+                      {product.brochure && (
+                        <a href={product.brochure} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:underline">
+                          <FileText className="w-3.5 h-3.5" /> Brochure
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-3 border-t border-gray-100 mt-4 flex items-center justify-between">
@@ -287,7 +333,7 @@ export default function Products() {
                     {getStatusBadge(product.productStatus)}
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-bold text-gray-900">{priceDisplay}</span>
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{product.lifecycle || 'DEVELOPMENT'}</span>
                   </div>
                 </div>
               </div>
@@ -328,40 +374,6 @@ export default function Products() {
                   <div>
                     <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">SKU *</label>
                     <input type="text" value={formData.sku} onChange={(e) => setFormData({...formData, sku: e.target.value})} required placeholder="e.g. KAY-AI-001" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
-                  </div>
-                </div>
-
-                {/* Price & Currency */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Price Amount
-                    </label>
-                    <input 
-                      type="number" 
-                      step="0.01" 
-                      min="0"
-                      value={formData.price} 
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })} 
-                      placeholder="0.00" 
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Currency Code
-                    </label>
-                    <select 
-                      value={formData.currency} 
-                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-bold outline-none focus:border-[#6c48ff]"
-                    >
-                      <option value="USD">USD ($)</option>
-                      <option value="INR">INR (₹)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="GBP">GBP (£)</option>
-                    </select>
                   </div>
                 </div>
 
@@ -408,7 +420,21 @@ export default function Products() {
                   />
                 </div>
 
-                {/* Features & USP */}
+                {/* Long Description */}
+                <div>
+                  <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Long Description
+                  </label>
+                  <textarea 
+                    value={formData.longDescription} 
+                    onChange={(e) => setFormData({ ...formData, longDescription: e.target.value })} 
+                    placeholder="Detailed explanation of the product offering..." 
+                    rows="3" 
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
+                  />
+                </div>
+
+                {/* Features & Benefits */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -417,7 +443,7 @@ export default function Products() {
                     <textarea 
                       value={formData.features} 
                       onChange={(e) => setFormData({ ...formData, features: e.target.value })} 
-                      placeholder="- Feature 1&#10;- Feature 2" 
+                      placeholder="- Multi-modal AI generation&#10;- Post scheduling" 
                       rows="3" 
                       className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
                     />
@@ -425,30 +451,116 @@ export default function Products() {
 
                   <div>
                     <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Unique Selling Proposition (USP)
+                      Benefits
                     </label>
                     <textarea 
-                      value={formData.usp} 
-                      onChange={(e) => setFormData({ ...formData, usp: e.target.value })} 
-                      placeholder="Why choose this product over competitors..." 
+                      value={formData.benefits} 
+                      onChange={(e) => setFormData({ ...formData, benefits: e.target.value })} 
+                      placeholder="Reduces management overhead by 80%" 
                       rows="3" 
                       className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
                     />
                   </div>
                 </div>
 
-                {/* Target Audience */}
-                <div>
-                  <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
-                    Target Audience
-                  </label>
-                  <input 
-                    type="text" 
-                    value={formData.targetAudience} 
-                    onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })} 
-                    placeholder="e.g. Enterprise marketing teams, SaaS founders" 
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
-                  />
+                {/* USP & Target Audience */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Unique Selling Proposition (USP)
+                    </label>
+                    <input 
+                      type="text" 
+                      value={formData.usp} 
+                      onChange={(e) => setFormData({ ...formData, usp: e.target.value })} 
+                      placeholder="e.g. End-to-end autonomous agent workflow" 
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Target Audience
+                    </label>
+                    <input 
+                      type="text" 
+                      value={formData.targetAudience} 
+                      onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })} 
+                      placeholder="e.g. Agencies, SaaS Founders" 
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
+                    />
+                  </div>
+                </div>
+
+                {/* Tags & SEO Keywords */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Tags
+                    </label>
+                    <input 
+                      type="text" 
+                      value={formData.tags} 
+                      onChange={(e) => setFormData({ ...formData, tags: e.target.value })} 
+                      placeholder="e.g. AI, SaaS, Automation" 
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                      SEO Keywords
+                    </label>
+                    <input 
+                      type="text" 
+                      value={formData.seoKeywords} 
+                      onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })} 
+                      placeholder="e.g. AI agent, post scheduler" 
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
+                    />
+                  </div>
+                </div>
+
+                {/* Resource Links (Landing Page, Demo Video, Brochure) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Landing Page URL
+                    </label>
+                    <input 
+                      type="url" 
+                      value={formData.landingPage} 
+                      onChange={(e) => setFormData({ ...formData, landingPage: e.target.value })} 
+                      placeholder="https://..." 
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Demo Video URL
+                    </label>
+                    <input 
+                      type="url" 
+                      value={formData.demoVideo} 
+                      onChange={(e) => setFormData({ ...formData, demoVideo: e.target.value })} 
+                      placeholder="https://..." 
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Brochure URL
+                    </label>
+                    <input 
+                      type="url" 
+                      value={formData.brochure} 
+                      onChange={(e) => setFormData({ ...formData, brochure: e.target.value })} 
+                      placeholder="https://..." 
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]" 
+                    />
+                  </div>
                 </div>
 
                 {/* Product Status & Lifecycle Enums */}
@@ -462,8 +574,8 @@ export default function Products() {
                       onChange={(e) => setFormData({ ...formData, productStatus: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-gray-900 text-xs font-bold outline-none focus:border-[#6c48ff]"
                     >
-                      <option value="ACTIVE">ACTIVE</option>
                       <option value="DRAFT">DRAFT</option>
+                      <option value="ACTIVE">ACTIVE</option>
                       <option value="ARCHIVED">ARCHIVED</option>
                       <option value="DISCONTINUED">DISCONTINUED</option>
                     </select>
