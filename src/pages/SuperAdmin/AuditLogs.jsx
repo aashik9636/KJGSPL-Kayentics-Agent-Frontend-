@@ -36,7 +36,13 @@ export default function AuditLogs() {
         ? await superAdminService.getAuditLogs(queryParams)
         : await auditLogService.getAuditLogs(queryParams);
 
-      setLogs(res.items || res.data?.items || (Array.isArray(res) ? res : []));
+      const logItems =
+        res?.items ||
+        res?.data?.items ||
+        res?.data ||
+        (Array.isArray(res) ? res : []);
+
+      setLogs(Array.isArray(logItems) ? logItems : []);
     } catch (err) {
       console.error('Failed to load audit logs:', err);
       toast.error('Failed to load audit logs.');
