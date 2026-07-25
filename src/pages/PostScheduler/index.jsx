@@ -300,32 +300,8 @@ export default function PostScheduler() {
   };
 
   return (
-    <div className="ps-page-container relative overflow-hidden">
-
-      {/* ── Frosted Glass Coming Soon Overlay & Centered Tag ── */}
-      <div className="absolute inset-0 z-40 flex items-center justify-center p-6 bg-slate-900/5 backdrop-blur-[2px] pointer-events-none">
-        <div className="bg-white/90 backdrop-blur-2xl border border-purple-100/80 rounded-3xl p-8 shadow-[0_20px_50px_rgba(108,72,255,0.15)] flex flex-col items-center text-center max-w-sm w-full mx-4 pointer-events-auto font-sans">
-          <div className="w-14 h-14 rounded-2xl bg-purple-50 text-[#6c48ff] flex items-center justify-center mb-4 shadow-sm border border-purple-100">
-            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <span className="bg-[#6c48ff] text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full mb-3 shadow-md">
-            Coming Soon
-          </span>
-          <h2 className="text-xl font-extrabold text-gray-900 mb-1.5 font-['Space_Grotesk']">
-            Post Calendar & Scheduler
-          </h2>
-          <p className="text-xs text-gray-500 font-medium leading-relaxed mb-5">
-            Visual multi-channel post scheduling and automated AI publishing will unlock in our upcoming release.
-          </p>
-          <span className="text-xs font-bold text-[#6c48ff] bg-purple-50 px-4 py-2 rounded-xl border border-purple-100/80">
-            Feature Locked • Release v2.0
-          </span>
-        </div>
-      </div>
-
-      <div className="cal-main filter blur-[3px] opacity-70 pointer-events-none select-none">
+    <div className="ps-page-container">
+      <div className="cal-main">
         <div className="head-row">
           <div>
             <div className="eyebrow"><span className="ln"></span>Content ops</div>
