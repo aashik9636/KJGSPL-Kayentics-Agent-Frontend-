@@ -7,7 +7,7 @@ import './styles.css';
 export default function PostScheduler() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('month'); // 'month', 'week', 'list'
 
@@ -105,7 +105,7 @@ export default function PostScheduler() {
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  
+
   const nextTime = () => {
     if (viewMode === 'week') {
       setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 7));
@@ -131,7 +131,7 @@ export default function PostScheduler() {
 
   const visibleDays = useMemo(() => {
     let lastValidIndex = 0;
-    daysArray.forEach((d, i) => { if(d) lastValidIndex = i; });
+    daysArray.forEach((d, i) => { if (d) lastValidIndex = i; });
     const rows = Math.ceil((lastValidIndex + 1) / 7);
     return daysArray.slice(0, rows * 7);
   }, [daysArray]);
@@ -149,9 +149,9 @@ export default function PostScheduler() {
     if (!dateObj) return [];
     return posts.filter(post => {
       const postDate = new Date(post.scheduledAt);
-      return postDate.getDate() === dateObj.getDate() && 
-             postDate.getMonth() === dateObj.getMonth() && 
-             postDate.getFullYear() === dateObj.getFullYear();
+      return postDate.getDate() === dateObj.getDate() &&
+        postDate.getMonth() === dateObj.getMonth() &&
+        postDate.getFullYear() === dateObj.getFullYear();
     });
   };
 
@@ -182,7 +182,7 @@ export default function PostScheduler() {
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(post);
     });
-    return Object.keys(groups).sort((a,b) => new Date(a) - new Date(b)).map(dateKey => ({
+    return Object.keys(groups).sort((a, b) => new Date(a) - new Date(b)).map(dateKey => ({
       date: dateKey,
       posts: groups[dateKey]
     }));
@@ -207,12 +207,12 @@ export default function PostScheduler() {
           <span className="time">{time}</span>
         </div>
         <p>{post.content || 'Media Post'}</p>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className={`sp-status ${getStatusClass(post.status)}`}>
             ● {post.status || 'SCHEDULED'}
           </span>
-          <button 
+          <button
             onClick={(e) => handleCancelPost(post.id, e)}
             style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted-2)' }}
             title="Delete Post"
@@ -234,8 +234,32 @@ export default function PostScheduler() {
   };
 
   return (
-    <div className="ps-page-container">
-      <div className="cal-main">
+    <div className="ps-page-container relative overflow-hidden">
+
+      {/* ── Frosted Glass Coming Soon Overlay & Centered Tag ── */}
+      <div className="absolute inset-0 z-40 flex items-center justify-center p-6 bg-slate-900/5 backdrop-blur-[2px] pointer-events-none">
+        <div className="bg-white/90 backdrop-blur-2xl border border-purple-100/80 rounded-3xl p-8 shadow-[0_20px_50px_rgba(108,72,255,0.15)] flex flex-col items-center text-center max-w-sm w-full mx-4 pointer-events-auto font-sans">
+          <div className="w-14 h-14 rounded-2xl bg-purple-50 text-[#6c48ff] flex items-center justify-center mb-4 shadow-sm border border-purple-100">
+            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <span className="bg-[#6c48ff] text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full mb-3 shadow-md">
+            Coming Soon
+          </span>
+          <h2 className="text-xl font-extrabold text-gray-900 mb-1.5 font-['Space_Grotesk']">
+            Post Calendar & Scheduler
+          </h2>
+          <p className="text-xs text-gray-500 font-medium leading-relaxed mb-5">
+            Visual multi-channel post scheduling and automated AI publishing will unlock in our upcoming release.
+          </p>
+          <span className="text-xs font-bold text-[#6c48ff] bg-purple-50 px-4 py-2 rounded-xl border border-purple-100/80">
+            Feature Locked • Release v2.0
+          </span>
+        </div>
+      </div>
+
+      <div className="cal-main filter blur-[3px] opacity-70 pointer-events-none select-none">
         <div className="head-row">
           <div>
             <div className="eyebrow"><span className="ln"></span>Content ops</div>
@@ -259,10 +283,10 @@ export default function PostScheduler() {
 
         {viewMode !== 'list' && (
           <div className="cal-legend">
-            <div className="li"><span className="sw" style={{background: 'var(--blue)'}}></span>LinkedIn</div>
-            <div className="li"><span className="sw" style={{background: 'var(--pink)'}}></span>Instagram</div>
-            <div className="li"><span className="sw" style={{background: 'var(--ink)'}}></span>X</div>
-            <div className="li"><span className="sw" style={{background: 'var(--accent)'}}></span>Draft</div>
+            <div className="li"><span className="sw" style={{ background: 'var(--blue)' }}></span>LinkedIn</div>
+            <div className="li"><span className="sw" style={{ background: 'var(--pink)' }}></span>Instagram</div>
+            <div className="li"><span className="sw" style={{ background: 'var(--ink)' }}></span>X</div>
+            <div className="li"><span className="sw" style={{ background: 'var(--accent)' }}></span>Draft</div>
           </div>
         )}
 
@@ -273,59 +297,59 @@ export default function PostScheduler() {
             </div>
             <div className={`cal-grid ${viewMode === 'week' ? 'week-grid' : ''}`}>
               {(viewMode === 'month' ? visibleDays : currentWeekDays).map((dateObj, i) => {
-                 if (!dateObj) {
-                   return <div key={i} className="cal-cell empty"></div>;
-                 }
-                 const dayPosts = getPostsForDay(dateObj);
-                 const isToday = dateObj.toDateString() === new Date().toDateString();
+                if (!dateObj) {
+                  return <div key={i} className="cal-cell empty"></div>;
+                }
+                const dayPosts = getPostsForDay(dateObj);
+                const isToday = dateObj.toDateString() === new Date().toDateString();
 
-                 return (
-                   <div 
-                     key={i} 
-                     className={`cal-cell ${isToday ? 'today' : ''} ${viewMode === 'week' ? 'selected' : ''}`}
-                     style={viewMode === 'week' ? { background: 'var(--surface)' } : {}}
-                   >
-                     <span className="daynum">{dateObj.getDate()}</span>
-                     <div className="posts-wrap">
-                       {viewMode === 'month' ? (
-                         <>
-                           {dayPosts.slice(0, 2).map(p => {
-                             const pf = getPlatformInfo(p.platforms?.[0] || '');
-                             return (
-                               <div key={p.id} className="post-chip" style={{ background: `${pf.c}22`, color: pf.c }}>
-                                 <span className="d" style={{ background: pf.c }}></span>
-                                 {p.content ? (p.content.length > 16 ? p.content.slice(0, 16) + '...' : p.content) : 'Post'}
-                               </div>
-                             );
-                           })}
-                           {dayPosts.length > 2 && (
-                             <div className="more-chip">+{dayPosts.length - 2} more</div>
-                           )}
-                         </>
-                       ) : (
-                         <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                           {dayPosts.map(post => {
-                              const pf = getPlatformInfo(post.platforms?.[0] || '');
-                              const time = new Date(post.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                              return (
-                                <div key={post.id} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg)' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: pf.c, color: '#fff', fontSize: '9px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      {pf.label}
-                                    </div>
-                                    <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>{time}</span>
+                return (
+                  <div 
+                    key={i} 
+                    className={`cal-cell ${isToday ? 'today' : ''} ${viewMode === 'week' ? 'selected' : ''}`}
+                    style={viewMode === 'week' ? { background: 'var(--surface)' } : {}}
+                  >
+                    <span className="daynum">{dateObj.getDate()}</span>
+                    <div className="posts-wrap">
+                      {viewMode === 'month' ? (
+                        <>
+                          {dayPosts.slice(0, 2).map(p => {
+                            const pf = getPlatformInfo(p.platforms?.[0] || '');
+                            return (
+                              <div key={p.id} className="post-chip" style={{ background: `${pf.c}22`, color: pf.c }}>
+                                <span className="d" style={{ background: pf.c }}></span>
+                                {p.content ? (p.content.length > 16 ? p.content.slice(0, 16) + '...' : p.content) : 'Post'}
+                              </div>
+                            );
+                          })}
+                          {dayPosts.length > 2 && (
+                            <div className="more-chip">+{dayPosts.length - 2} more</div>
+                          )}
+                        </>
+                      ) : (
+                        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {dayPosts.map(post => {
+                            const pf = getPlatformInfo(post.platforms?.[0] || '');
+                            const time = new Date(post.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            return (
+                              <div key={post.id} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                  <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: pf.c, color: '#fff', fontSize: '9px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {pf.label}
                                   </div>
-                                  <div style={{ fontSize: '11px', color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                    {post.content || 'Media Post'}
-                                  </div>
+                                  <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>{time}</span>
                                 </div>
-                              );
-                           })}
-                         </div>
-                       )}
-                     </div>
-                   </div>
-                 );
+                                <div style={{ fontSize: '11px', color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  {post.content || 'Media Post'}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
               })}
             </div>
           </div>

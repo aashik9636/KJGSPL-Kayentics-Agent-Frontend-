@@ -181,11 +181,11 @@ export default function Dashboard() {
           </div>
           <div className="flex items-baseline gap-1.5 flex-wrap">
             <h3 className="text-3xl font-bold text-gray-900">
-              {typeof credits.remaining === 'number' ? `$${credits.remaining.toFixed(2)}` : '$0.00'}
+              {typeof credits.remaining === 'number' ? credits.remaining.toLocaleString() : '0'}
             </h3>
             {typeof credits.total === 'number' && (
               <span className="text-xs text-gray-400 font-medium whitespace-nowrap pb-0.5">
-                of ${credits.total}
+                of {credits.total.toLocaleString()} Credits
               </span>
             )}
           </div>

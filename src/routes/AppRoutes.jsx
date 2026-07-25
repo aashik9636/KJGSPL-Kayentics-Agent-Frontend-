@@ -24,7 +24,7 @@ export const AppRoutes = (
     <Route path="/profile" element={<Profile />} />
     <Route path="/products" element={<Products />} />
     <Route path="/storage" element={<Storage />} />
-    <Route path="/content-hub" element={<ContentHub />} />
+    <Route path="/content-hub" element={<Storage />} />
     <Route path="/post-scheduler" element={<PostScheduler />} />
     <Route path="/pricing" element={<PricingPlans />} />
     <Route path="/subscription" element={<SubscriptionUsageDashboard />} />

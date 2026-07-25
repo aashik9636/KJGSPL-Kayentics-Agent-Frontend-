@@ -1,8 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { storageService } from '../../services/storageService';
 import { KnowledgeService } from '../../services/knowledgeService';
+import { 
+  FolderPlus, Upload, Search, Grid, List, Trash2, 
+  Edit3, ExternalLink, FileText, Image as ImageIcon, 
+  Film, File, ChevronRight, Folder, Download, Copy, Check 
+} from 'lucide-react';
 import { toast } from 'react-toastify';
+
+// Helper for formatting file size safely
+const formatBytes = (bytes) => {
+  if (!bytes || isNaN(bytes)) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i] || 'MB'}`;
+};
 
 export default function Storage() {
   const [files, setFiles] = useState([]);
@@ -11,28 +25,35 @@ export default function Storage() {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [currentFolderId, setCurrentFolderId] = useState(null);
+  const [currentFolderPath, setCurrentFolderPath] = useState([]);
+  
   const [newFolderName, setNewFolderName] = useState('');
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [copiedId, setCopiedId] = useState(null);
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const [filesData, foldersData] = await Promise.all([
         storageService.getFiles(currentFolderId ? { folderId: currentFolderId } : {}),
         storageService.getFolders(currentFolderId ? { parentId: currentFolderId } : {})
       ]);
       setFiles(Array.isArray(filesData) ? filesData : filesData?.data || []);
       setFolders(Array.isArray(foldersData) ? foldersData : foldersData?.data || []);
-    } catch (err) {
-      toast.error('Failed to load storage');
+    } catch {
+      // Fallback safe state
+      setFiles([]);
+      setFolders([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    setLoading(true);
     fetchData();
   }, [currentFolderId]);
 
@@ -43,7 +64,7 @@ export default function Storage() {
     setUploading(true);
     try {
       await KnowledgeService.uploadFile(targetFile);
-      toast.success('File uploaded successfully');
+      toast.success(`Uploaded ${targetFile.name}`);
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'File upload failed');
@@ -58,21 +79,22 @@ export default function Storage() {
     maxSize: 104857600,
     accept: {
       'application/pdf': ['.pdf'],
-      'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+      'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.svg'],
       'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'video/*': ['.mp4', '.mov']
     },
   });
 
-  const handleDelete = async (id, e) => {
+  const handleDeleteFile = async (id, e) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to permanently delete this file?')) return;
+    if (!confirm('Permanently delete this asset?')) return;
     try {
       await storageService.deleteFile(id);
-      toast.success('File deleted');
+      toast.success('Asset deleted');
       fetchData();
-    } catch (err) {
-      // Error handled by interceptor
+    } catch {
+      toast.error('Failed to delete asset');
     }
   };
 
@@ -87,280 +109,430 @@ export default function Storage() {
       setNewFolderName('');
       setShowNewFolder(false);
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error('Failed to create folder');
     }
   };
 
   const handleDeleteFolder = async (id, e) => {
     e.stopPropagation();
-    if (!confirm('Delete this folder and its contents?')) return;
+    if (!confirm('Delete folder and all enclosed assets?')) return;
     try {
       await storageService.deleteFolder(id);
       toast.success('Folder deleted');
       fetchData();
-    } catch (err) {
-      // Error handled by interceptor
+    } catch {
+      toast.error('Failed to delete folder');
     }
-  };
-
-  const handleRename = async (id, e) => {
-    e.stopPropagation();
-    setRenamingId(id);
-    setRenameValue('');
-    setTimeout(() => document.getElementById(`rename-${id}`)?.focus(), 100);
   };
 
   const handleRenameSubmit = async (id) => {
-    if (!renameValue.trim()) return;
+    if (!renameValue.trim()) {
+      setRenamingId(null);
+      return;
+    }
     try {
       await storageService.renameFile(id, { name: renameValue.trim() });
-      toast.success('File renamed');
+      toast.success('Asset renamed');
       setRenamingId(null);
       fetchData();
-    } catch (err) {
-      toast.error('Failed to rename');
+    } catch {
+      toast.error('Failed to rename asset');
     }
   };
 
-  const getFileIcon = (mimeType) => {
-    if (mimeType?.includes('pdf')) {
-      return (
-        <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 9h1.5m1.5 0H15m-4.5 4h3" />
-        </svg>
-      );
-    }
-    if (mimeType?.includes('word')) {
-      return (
-        <svg className="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13l2 2 4-4" />
-        </svg>
-      );
-    }
-    return (
-      <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-      </svg>
-    );
+  const handleCopyLink = (url, id, e) => {
+    e.stopPropagation();
+    if (!url) return;
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    toast.success('Asset URL copied!');
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handlePreview = (file) => {
-    if (file.mimeType?.includes('image')) {
-      setPreviewUrl(file.url);
-    } else {
-      window.open(file.url, '_blank');
+  // Filtered Folders & Files by Search Query
+  const filteredFolders = useMemo(() => {
+    if (!searchQuery.trim()) return folders;
+    return folders.filter(f => f.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [folders, searchQuery]);
+
+  const filteredFiles = useMemo(() => {
+    if (!searchQuery.trim()) return files;
+    return files.filter(f => f.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [files, searchQuery]);
+
+  const renderFileIcon = (file) => {
+    const mime = file.mimeType || file.type || '';
+    const ext = file.name ? file.name.split('.').pop().toLowerCase() : '';
+
+    if (mime.includes('image') || ['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(ext)) {
+      return <ImageIcon className="w-6 h-6 text-blue-500" />;
     }
+    if (mime.includes('pdf') || ext === 'pdf') {
+      return <FileText className="w-6 h-6 text-red-500" />;
+    }
+    if (mime.includes('video') || ['mp4', 'mov', 'avi'].includes(ext)) {
+      return <Film className="w-6 h-6 text-purple-500" />;
+    }
+    return <File className="w-6 h-6 text-gray-400" />;
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 h-full overflow-y-auto animate-fade-in">
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 font-sans space-y-6 animate-fade-in">
       
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-[13px] text-gray-400 mb-3">
-          <button 
-            onClick={() => setCurrentFolderId(null)} 
-            className={`hover:text-gray-900 transition-colors ${!currentFolderId ? 'font-bold text-gray-900' : ''}`}
-          >
-            Storage
-          </button>
-          {currentFolderId && (
-            <>
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              <span className="font-bold text-gray-900">Current Folder</span>
-            </>
-          )}
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Media Storage</h1>
-            <p className="text-gray-500 text-sm mt-1">Upload and manage your brand assets, images, and documents.</p>
+      {/* ── Page Header & Breadcrumb ───────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2 font-medium">
+            <button 
+              onClick={() => { setCurrentFolderId(null); setCurrentFolderPath([]); }}
+              className={`hover:text-[#6c48ff] transition-colors ${!currentFolderId ? 'font-bold text-gray-900' : ''}`}
+            >
+              Content & Media Hub
+            </button>
+            {currentFolderPath.map((folder, idx) => (
+              <React.Fragment key={folder.id}>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                <button 
+                  onClick={() => {
+                    setCurrentFolderId(folder.id);
+                    setCurrentFolderPath(prev => prev.slice(0, idx + 1));
+                  }}
+                  className={`hover:text-[#6c48ff] transition-colors ${idx === currentFolderPath.length - 1 ? 'font-bold text-gray-900' : ''}`}
+                >
+                  {folder.name}
+                </button>
+              </React.Fragment>
+            ))}
           </div>
+
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight font-['Space_Grotesk']">
+            Content & Media Hub
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Centralized cloud repository for brand assets, images, documents, and AI media.
+          </p>
+        </div>
+
+        {/* Top Actions */}
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <button 
-            onClick={() => setShowNewFolder(!showNewFolder)}
-            className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm hover:bg-gray-50 transition-all text-sm flex items-center gap-2"
+            onClick={() => setShowNewFolder(true)}
+            className="flex-1 sm:flex-none px-4 py-2.5 rounded-2xl bg-white border border-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-50 shadow-sm transition-all flex items-center justify-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
-            New Folder
+            <FolderPlus className="w-4 h-4 text-[#6c48ff]" />
+            <span>New Folder</span>
           </button>
         </div>
       </div>
 
-      {/* New Folder Input */}
+      {/* ── New Folder Input Modal/Inline ───────────────────────────────────── */}
       {showNewFolder && (
-        <div className="mb-6 flex items-center gap-3">
+        <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-100 flex items-center gap-3 animate-fade-in">
+          <Folder className="w-5 h-5 text-[#6c48ff] shrink-0" />
           <input
             type="text"
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
-            placeholder="Folder name..."
-            className="flex-1 max-w-xs px-4 py-2.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+            placeholder="Enter folder name..."
+            autoFocus
+            className="flex-1 max-w-sm px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]"
           />
-          <button onClick={handleCreateFolder} className="px-4 py-2.5 rounded-xl bg-[#1967d2] text-white text-sm font-medium hover:bg-[#1557b0] transition-colors">
+          <button 
+            onClick={handleCreateFolder} 
+            className="px-4 py-2 rounded-xl bg-[#6c48ff] hover:bg-[#5b3adb] text-white text-xs font-bold transition-all shadow-sm"
+          >
             Create
           </button>
-          <button onClick={() => { setShowNewFolder(false); setNewFolderName(''); }} className="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors">
+          <button 
+            onClick={() => { setShowNewFolder(false); setNewFolderName(''); }} 
+            className="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-800"
+          >
             Cancel
           </button>
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6 mb-8">
-        {/* Upload Zone */}
-        <div className="w-full lg:w-1/3 shrink-0">
+      {/* ── Main Layout: Dropzone Hero + File Explorer ────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        
+        {/* Upload Zone Hero */}
+        <div className="lg:col-span-1">
           <div 
             {...getRootProps()}
-            className={`relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-3xl cursor-pointer transition-all duration-300 bg-white ${
+            className={`relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-3xl cursor-pointer transition-all duration-300 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.02)] ${
               isDragActive 
-                ? 'border-[#1967d2] bg-blue-50/50' 
-                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                ? 'border-[#6c48ff] bg-purple-50/50 scale-[1.01]' 
+                : 'border-gray-200 hover:border-[#6c48ff]/50 hover:bg-gray-50/50'
             }`}
           >
             <input {...getInputProps()} />
             {uploading ? (
-              <div className="flex flex-col items-center">
-                <svg className="animate-spin w-8 h-8 text-[#1967d2] mb-3" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                </svg>
-                <span className="text-[13px] font-bold text-gray-900">Uploading asset...</span>
+              <div className="flex flex-col items-center py-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent mb-3"></div>
+                <span className="text-xs font-bold text-gray-900">Uploading asset...</span>
               </div>
             ) : (
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-blue-50 text-[#1967d2] flex items-center justify-center mb-3">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
+              <div className="flex flex-col items-center text-center py-4">
+                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#6c48ff] flex items-center justify-center mb-3 shadow-sm">
+                  <Upload className="w-6 h-6" />
                 </div>
-                <p className="text-[13px] font-bold text-gray-900 text-center px-4">
-                  {isDragActive ? 'Drop file here' : 'Click or drag file to upload'}
+                <h4 className="text-xs font-bold text-gray-900 mb-1">
+                  {isDragActive ? 'Drop File to Upload' : 'Upload Asset'}
+                </h4>
+                <p className="text-[11px] text-gray-500 mb-3 font-medium">
+                  Drag & drop or click to select files
                 </p>
-                <p className="text-[11px] text-gray-500 font-medium mt-1">Up to 100MB (Images, PDF, DOCX)</p>
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {['PDF', 'PNG', 'JPG', 'DOCX', 'MP4'].map(tag => (
+                    <span key={tag} className="text-[9px] font-extrabold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Gallery */}
-        <div className="flex-1 bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] min-h-[400px]">
-          <h3 className="text-[16px] font-bold text-gray-900 mb-6">{currentFolderId ? 'Folder Contents' : 'All Files'}</h3>
+        {/* File Gallery & Controls */}
+        <div className="lg:col-span-3 bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] min-h-[480px] flex flex-col justify-between">
           
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <svg className="animate-spin w-8 h-8 text-[#1967d2]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-            </div>
-          ) : (files.length === 0 && folders.length === 0) ? (
-            <div className="flex flex-col items-center justify-center h-40">
-              <p className="text-[13px] font-medium text-gray-500">No files or folders yet.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
-              {/* Folders */}
-              {folders.map(folder => (
-                <div 
-                  key={folder.id}
-                  onClick={() => setCurrentFolderId(folder.id)}
-                  className="group relative bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden cursor-pointer hover:shadow-md hover:border-blue-200 transition-all aspect-square flex flex-col items-center justify-center"
-                >
-                  <button 
-                    onClick={(e) => handleDeleteFolder(folder.id, e)}
-                    className="absolute top-2 right-2 p-1.5 bg-white/90 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm z-10"
-                    title="Delete Folder"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  </button>
-                  <svg className="w-12 h-12 text-[#1967d2] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                  </svg>
-                  <p className="text-[12px] font-bold text-[#1967d2] truncate w-full text-center px-2">{folder.name}</p>
-                </div>
-              ))}
+          {/* Controls Bar: Search & View Toggle */}
+          <div>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-72">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search assets & folders..."
+                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-gray-50 border border-gray-100 text-xs text-gray-900 font-medium outline-none focus:bg-white focus:border-[#6c48ff] transition-all"
+                />
+              </div>
 
-              {/* Files */}
-              {files.map(file => (
-                <div 
-                  key={file.id} 
-                  onClick={() => handlePreview(file)}
-                  className="group relative bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md hover:border-gray-200 transition-all aspect-square flex flex-col"
+              {/* View Mode Switches */}
+              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl self-end sm:self-auto">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-[#6c48ff] shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
+                  title="Grid View"
                 >
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
-                    <button 
-                      onClick={(e) => handleRename(file.id, e)}
-                      className="p-1.5 bg-white/90 text-gray-400 hover:text-[#1967d2] rounded-lg shadow-sm"
-                      title="Rename"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                    </button>
-                    <button 
-                      onClick={(e) => handleDelete(file.id, e)}
-                      className="p-1.5 bg-white/90 text-gray-400 hover:text-red-500 rounded-lg shadow-sm"
-                      title="Delete File"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                  </div>
+                  <Grid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-[#6c48ff] shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
-                  <div className="flex-1 w-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                    {file.mimeType?.includes('image') ? (
-                      <img src={file.url} alt={file.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="group-hover:scale-110 transition-transform duration-300">
-                        {getFileIcon(file.mimeType)}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-3 bg-white border-t border-gray-100">
-                    {renamingId === file.id ? (
-                      <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                        <input
-                          id={`rename-${file.id}`}
-                          type="text"
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit(file.id)}
-                          onBlur={() => handleRenameSubmit(file.id)}
-                          placeholder={file.name}
-                          className="flex-1 text-[12px] font-bold text-gray-900 px-1 py-0.5 border border-[#1967d2] rounded outline-none"
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-[12px] font-bold text-gray-900 truncate" title={file.name}>{file.name}</p>
-                    )}
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-[10px] text-gray-400 font-medium">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${file.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : file.status === 'failed' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
-                        {file.status || 'READY'}
-                      </span>
+            {/* Folder & Files Contents */}
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent"></div>
+              </div>
+            ) : filteredFolders.length === 0 && filteredFiles.length === 0 ? (
+              <div className="text-center py-16">
+                <Folder className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                <p className="text-xs font-bold text-gray-700 mb-1">No Assets Found</p>
+                <p className="text-[11px] text-gray-400">Upload a file or create a folder to populate your Media Hub.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                
+                {/* Folders Section */}
+                {filteredFolders.length > 0 && (
+                  <div>
+                    <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block mb-3">
+                      Folders ({filteredFolders.length})
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {filteredFolders.map(folder => (
+                        <div
+                          key={folder.id}
+                          onClick={() => {
+                            setCurrentFolderId(folder.id);
+                            setCurrentFolderPath(prev => [...prev, { id: folder.id, name: folder.name }]);
+                          }}
+                          className="group relative p-3.5 rounded-2xl bg-purple-50/60 border border-purple-100 hover:bg-purple-50 hover:border-purple-200 cursor-pointer transition-all flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2.5 truncate">
+                            <Folder className="w-5 h-5 text-[#6c48ff] shrink-0" />
+                            <span className="text-xs font-bold text-gray-900 truncate" title={folder.name}>
+                              {folder.name}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => handleDeleteFolder(folder.id, e)}
+                            className="p-1 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Delete Folder"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                )}
+
+                {/* Files Section */}
+                {filteredFiles.length > 0 && (
+                  <div>
+                    <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block mb-3">
+                      Files ({filteredFiles.length})
+                    </span>
+
+                    {viewMode === 'grid' ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {filteredFiles.map(file => {
+                          const isImage = file.mimeType?.includes('image') || ['png', 'jpg', 'jpeg', 'webp'].some(ext => file.name?.toLowerCase().endsWith(ext));
+
+                          return (
+                            <div
+                              key={file.id}
+                              className="group relative bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md hover:border-purple-100 transition-all flex flex-col justify-between"
+                            >
+                              {/* Quick Action Overlay */}
+                              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                <button
+                                  onClick={(e) => handleCopyLink(file.url, file.id, e)}
+                                  className="p-1.5 bg-white/90 text-gray-600 hover:text-[#6c48ff] rounded-lg shadow-sm backdrop-blur-sm"
+                                  title="Copy URL"
+                                >
+                                  {copiedId === file.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setRenamingId(file.id); setRenameValue(file.name); }}
+                                  className="p-1.5 bg-white/90 text-gray-600 hover:text-[#6c48ff] rounded-lg shadow-sm backdrop-blur-sm"
+                                  title="Rename"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => handleDeleteFile(file.id, e)}
+                                  className="p-1.5 bg-white/90 text-gray-600 hover:text-red-500 rounded-lg shadow-sm backdrop-blur-sm"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              {/* Asset Thumbnail / Icon */}
+                              <div 
+                                onClick={() => isImage && file.url ? setPreviewUrl(file.url) : window.open(file.url, '_blank')}
+                                className="h-32 bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer relative"
+                              >
+                                {isImage && file.url ? (
+                                  <img 
+                                    src={file.url} 
+                                    alt={file.name} 
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                  />
+                                ) : (
+                                  <div className="p-4 rounded-2xl bg-white shadow-sm border border-gray-100">
+                                    {renderFileIcon(file)}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Details Bottom */}
+                              <div className="p-3 border-t border-gray-100 bg-white">
+                                {renamingId === file.id ? (
+                                  <input
+                                    type="text"
+                                    value={renameValue}
+                                    onChange={(e) => setRenameValue(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit(file.id)}
+                                    onBlur={() => handleRenameSubmit(file.id)}
+                                    autoFocus
+                                    className="w-full text-xs font-bold text-gray-900 border border-[#6c48ff] rounded px-1.5 py-0.5 outline-none"
+                                  />
+                                ) : (
+                                  <p className="text-xs font-bold text-gray-900 truncate" title={file.name}>
+                                    {file.name}
+                                  </p>
+                                )}
+                                <div className="flex items-center justify-between mt-1 text-[10px] text-gray-400 font-medium">
+                                  <span>{formatBytes(file.size)}</span>
+                                  <span className="uppercase text-[9px] font-extrabold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                                    {file.status || 'READY'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      /* Table / List View */
+                      <div className="rounded-2xl border border-gray-100 overflow-hidden">
+                        <table className="w-full text-left text-xs text-gray-700">
+                          <thead className="bg-gray-50 text-gray-400 uppercase font-extrabold text-[10px] tracking-wider border-b border-gray-100">
+                            <tr>
+                              <th className="p-3">Name</th>
+                              <th className="p-3">Size</th>
+                              <th className="p-3 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100 font-medium">
+                            {filteredFiles.map(file => (
+                              <tr key={file.id} className="hover:bg-gray-50/60 transition">
+                                <td className="p-3 flex items-center gap-2.5">
+                                  {renderFileIcon(file)}
+                                  <span className="font-bold text-gray-900 truncate max-w-xs">{file.name}</span>
+                                </td>
+                                <td className="p-3 text-gray-500">{formatBytes(file.size)}</td>
+                                <td className="p-3 text-right space-x-2">
+                                  <button
+                                    onClick={(e) => handleCopyLink(file.url, file.id, e)}
+                                    className="p-1 text-gray-400 hover:text-[#6c48ff]"
+                                    title="Copy Link"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => handleDeleteFile(file.id, e)}
+                                    className="p-1 text-gray-400 hover:text-red-500"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Image Preview Modal */}
+      {/* ── Image Preview Lightbox Modal ───────────────────────────────────── */}
       {previewUrl && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fade-in"
           onClick={() => setPreviewUrl(null)}
         >
-          <div className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center">
-            <button 
-              onClick={() => setPreviewUrl(null)}
-              className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white transition-colors"
-            >
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <img src={previewUrl} alt="Preview" className="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain" onClick={e => e.stopPropagation()} />
+          <div className="relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center">
+            <img 
+              src={previewUrl} 
+              alt="Preview" 
+              className="max-w-full max-h-[80vh] rounded-3xl shadow-2xl object-contain border border-white/20" 
+              onClick={e => e.stopPropagation()} 
+            />
           </div>
         </div>
       )}
