@@ -158,20 +158,23 @@ export default function RightSidebar({
               
               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pb-4 pr-1">
                 {[
-                  { id: 'brain', image: '/premium_3d_brain.png', isVideo: false, name: 'Brain Agent', desc: 'General-purpose assistant' },
-                  { id: 'content', image: '/agent 1.mp4', isVideo: true, name: 'Content Creator', desc: 'Briefs and channel plans' },
-                  { id: 'social', image: '/agent2.mp4', isVideo: true, name: 'Social Media Agent', desc: 'Social strategy and posts' },
-                  { id: 'recruiter', image: '/agent3.mp4', isVideo: true, name: 'Recruiter Agent', desc: 'Sourcing and outreach' },
+                  { id: 'brain', image: '/premium_3d_brain.png', isVideo: false, name: 'Brain Agent', desc: 'General-purpose assistant', comingSoon: false },
+                  { id: 'content', image: '/agent 1.mp4', isVideo: true, name: 'Content Creator', desc: 'Briefs and channel plans', comingSoon: true },
+                  { id: 'social', image: '/agent2.mp4', isVideo: true, name: 'Social Media Agent', desc: 'Social strategy and posts', comingSoon: true },
+                  { id: 'recruiter', image: '/agent3.mp4', isVideo: true, name: 'Recruiter Agent', desc: 'Sourcing and outreach', comingSoon: true },
                 ].map((agent, i) => {
                   const isActive = selectedAgent === agent.id;
+                  const isLocked = agent.comingSoon;
                   return (
                     <div 
                       key={agent.id} 
-                      onClick={() => setSelectedAgent(agent.id)}
-                      className={`group relative border rounded-[12px] p-3 cursor-pointer transition-all ${
-                        isActive 
-                          ? 'bg-[#EEEDFE] border-[#4F46E5]/40 shadow-sm' 
-                          : 'bg-[#F5F5FA] border-[#E8E7F1] hover:shadow-sm hover:border-[#D7D5F6]'
+                      onClick={() => !isLocked && setSelectedAgent(agent.id)}
+                      className={`group relative border rounded-[12px] p-3 transition-all ${
+                        isLocked 
+                          ? 'bg-gray-50 border-gray-200 opacity-75 cursor-not-allowed pointer-events-none'
+                          : isActive 
+                            ? 'bg-[#EEEDFE] border-[#4F46E5]/40 shadow-sm cursor-pointer' 
+                            : 'bg-[#F5F5FA] border-[#E8E7F1] hover:shadow-sm hover:border-[#D7D5F6] cursor-pointer'
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -182,8 +185,13 @@ export default function RightSidebar({
                             <img src={agent.image} alt={agent.name} className="w-[120%] h-[120%] object-cover object-top mix-blend-multiply" />
                           )}
                         </div>
-                        <div>
-                          <h4 className={`font-semibold text-[13px] mb-0.5 ${isActive ? 'text-[#3730B8]' : 'text-[#14141D]'}`} style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{agent.name}</h4>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className={`font-semibold text-[13px] mb-0.5 ${isActive ? 'text-[#3730B8]' : 'text-[#14141D]'}`} style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{agent.name}</h4>
+                            {isLocked && (
+                              <span className="text-[9px] font-extrabold bg-[#6c48ff] text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">Soon</span>
+                            )}
+                          </div>
                           <p className={`text-[11.5px] leading-snug font-sans m-0 ${isActive ? 'text-[#4F46E5]/80' : 'text-[#6D6D7C]'}`}>{agent.desc}</p>
                         </div>
                       </div>
