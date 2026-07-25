@@ -137,40 +137,19 @@ export default function CreateOrganization() {
 
       <form className="w-full space-y-6" onSubmit={handleSubmit}>
 
-        {/* Row 1: Name and Slug */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="flex items-center text-[12px] font-bold text-[#4b5563] mb-2 uppercase tracking-wider">
-              Organization Name <span className="text-red-500 ml-1 text-lg leading-none">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Acme AI Corp"
-              value={name}
-              onChange={handleNameChange}
-              required
-              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[15px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] shadow-sm"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center text-[12px] font-bold text-[#4b5563] mb-2 uppercase tracking-wider">
-              URL Slug <span className="text-red-500 ml-1 text-lg leading-none">*</span>
-            </label>
-            <div className="flex items-stretch shadow-sm rounded-xl overflow-hidden border border-gray-200 focus-within:ring-2 focus-within:ring-[#1967d2]/20 focus-within:border-[#1967d2] transition-all">
-              <div className="flex items-center px-4 bg-gray-50 border-r border-gray-200 text-gray-500 text-[14px] font-medium whitespace-nowrap">
-                kaynetics.com/
-              </div>
-              <input
-                type="text"
-                placeholder="acme-ai-corp"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                required
-                className="w-full px-4 py-3.5 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[15px] outline-none"
-              />
-            </div>
-          </div>
+        {/* Row 1: Organization Name */}
+        <div>
+          <label className="flex items-center text-[12px] font-bold text-[#4b5563] mb-2 uppercase tracking-wider">
+            Organization Name <span className="text-red-500 ml-1 text-lg leading-none">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Acme AI Corp"
+            value={name}
+            onChange={handleNameChange}
+            required
+            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[15px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] shadow-sm"
+          />
         </div>
 
         {/* Row 2: Email and Industry */}
