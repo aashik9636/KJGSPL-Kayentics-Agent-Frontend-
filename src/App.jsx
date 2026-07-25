@@ -26,6 +26,8 @@ import Products from './pages/Products';
 import Storage from './pages/Storage';
 import ContentHub from './pages/ContentHub';
 import PostScheduler from './pages/PostScheduler';
+import PricingPlans from './pages/PricingPlans';
+import SubscriptionUsageDashboard from './pages/SubscriptionUsageDashboard';
 
 function App() {
   return (
@@ -65,6 +67,8 @@ function App() {
                   <Route path="/storage" element={<Storage />} />
                   <Route path="/content-hub" element={<ContentHub />} />
                   <Route path="/post-scheduler" element={<PostScheduler />} />
+                  <Route path="/pricing" element={<PricingPlans />} />
+                  <Route path="/subscription" element={<SubscriptionUsageDashboard />} />
                 </Route>
               </Route>
 
