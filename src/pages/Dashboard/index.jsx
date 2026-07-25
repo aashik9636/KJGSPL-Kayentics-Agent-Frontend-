@@ -38,7 +38,7 @@ export default function Dashboard() {
 
         setMetrics({
           activeAgents: { 
-            value: isEmpty ? 4 : (topAgents.length || counts.users || 0), 
+            value: isEmpty ? 4 : (counts.agents ?? topAgents.length ?? counts.users ?? 0), 
             trend: isEmpty ? '+2 this week' : '', 
             isPositive: true 
           },
