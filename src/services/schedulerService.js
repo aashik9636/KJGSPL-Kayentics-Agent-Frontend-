@@ -43,8 +43,10 @@ export const schedulerService = {
     return response.data;
   },
 
-  rejectPost: async (postId) => {
-    const response = await apiClient.post(`/post-scheduler/posts/${postId}/reject`);
+  rejectPost: async (postId, feedback = 'Rejection requested by reviewer') => {
+    const response = await apiClient.post(`/post-scheduler/posts/${postId}/reject`, {
+      feedback
+    });
     return response.data;
   },
 

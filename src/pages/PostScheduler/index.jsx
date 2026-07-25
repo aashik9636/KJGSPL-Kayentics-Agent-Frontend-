@@ -4,12 +4,43 @@ import { toast } from 'react-toastify';
 import gsap from 'gsap';
 import './styles.css';
 
+// Helper to safely parse local date without timezone shifting
+function parseLocalDate(dateStr) {
+  if (!dateStr) return null;
+  if (typeof dateStr === 'string') {
+    const cleanStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+    const parts = cleanStr.split('-');
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        return new Date(y, m, d);
+      }
+    }
+  }
+  return new Date(dateStr);
+}
+
 export default function PostScheduler() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('month'); // 'month', 'week', 'list'
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [genMode, setGenMode] = useState('custom'); // 'custom' | 'festivals'
+  
+  const [formData, setFormData] = useState({
+    eventName: '',
+    eventDate: new Date().toISOString().split('T')[0],
+    topic: '',
+    platform: 'linkedin',
+    postType: 'custom_event',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+    countryCode: 'US'
+  });
 
   const fetchPosts = async () => {
     try {
@@ -67,6 +98,38 @@ export default function PostScheduler() {
     }
   }, [currentDate, loading, viewMode]);
 
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    try {
+      if (genMode === 'custom') {
+        if (!formData.topic && !formData.eventName) {
+          toast.error('Please enter a topic or event name');
+          return;
+        }
+        await schedulerService.scheduleCustomPost({
+          eventName: formData.eventName,
+          eventDate: formData.eventDate,
+          topic: formData.topic,
+          platform: formData.platform,
+          postType: formData.postType
+        });
+        toast.success('Custom post generated successfully');
+      } else {
+        await schedulerService.schedulePost({
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          platform: formData.platform,
+          countryCode: formData.countryCode
+        });
+        toast.success('Festival posts batch generated successfully');
+      }
+      setIsModalOpen(false);
+      fetchPosts();
+    } catch (err) {
+      // Error toast handled by axios response interceptor
+    }
+  };
+
   const handleCancelPost = async (id, e) => {
     e.stopPropagation();
     if (!confirm('Are you sure you want to cancel this scheduled post?')) return;
@@ -92,10 +155,11 @@ export default function PostScheduler() {
 
   const handleRejectPost = async (id, e) => {
     e.stopPropagation();
-    if (!confirm('Reject this post?')) return;
+    const feedback = prompt('Please enter feedback for rejection:', 'Needs revisions on caption/hashtags');
+    if (!feedback) return;
     try {
-      await schedulerService.rejectPost(id);
-      toast.success('Post rejected');
+      await schedulerService.rejectPost(id, feedback);
+      toast.success('Post rejected with feedback');
       fetchPosts();
     } catch (err) {
       // Error handled by interceptor
@@ -148,10 +212,11 @@ export default function PostScheduler() {
   const getPostsForDay = (dateObj) => {
     if (!dateObj) return [];
     return posts.filter(post => {
-      const postDate = new Date(post.scheduledAt);
-      return postDate.getDate() === dateObj.getDate() &&
-        postDate.getMonth() === dateObj.getMonth() &&
-        postDate.getFullYear() === dateObj.getFullYear();
+      const postDate = parseLocalDate(post.scheduledAt);
+      if (!postDate) return false;
+      return postDate.getDate() === dateObj.getDate() && 
+             postDate.getMonth() === dateObj.getMonth() && 
+             postDate.getFullYear() === dateObj.getFullYear();
     });
   };
 
@@ -177,7 +242,7 @@ export default function PostScheduler() {
   const groupedPosts = useMemo(() => {
     const groups = {};
     posts.forEach(post => {
-      const d = new Date(post.scheduledAt);
+      const d = parseLocalDate(post.scheduledAt) || new Date();
       const dateKey = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(post);
@@ -197,14 +262,15 @@ export default function PostScheduler() {
   }
 
   const renderPostCard = (post) => {
-    const pf = getPlatformInfo(post.platforms?.[0] || '');
-    const time = new Date(post.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const pf = getPlatformInfo(post.platforms?.[0] || post.platform || '');
+    const pDate = parseLocalDate(post.scheduledAt);
+    const time = pDate ? pDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
     return (
       <div key={post.id} className="sp-post">
         <div className="plat">
           <div className="ic" style={{ background: pf.c }}>{pf.label}</div>
           <b>{pf.name}</b>
-          <span className="time">{time}</span>
+          {time && <span className="time">{time}</span>}
         </div>
         <p>{post.content || 'Media Post'}</p>
 
@@ -223,7 +289,7 @@ export default function PostScheduler() {
           </button>
         </div>
 
-        {(!post.status || post.status === 'PENDING') && (
+        {(!post.status || post.status === 'PENDING' || post.status === 'DRAFT') && (
           <div className="sp-actions">
             <button className="approve" onClick={(e) => handleApprovePost(post.id, e)}>Approve</button>
             <button className="reject" onClick={(e) => handleRejectPost(post.id, e)}>Reject</button>
@@ -277,7 +343,7 @@ export default function PostScheduler() {
               <div className="label">{timeLabel}</div>
               <button className="arrow" onClick={nextTime}>›</button>
             </div>
-            <button className="new-post-btn">＋ New post</button>
+            <button className="new-post-btn" onClick={() => setIsModalOpen(true)}>＋ New post</button>
           </div>
         </div>
 
@@ -314,7 +380,7 @@ export default function PostScheduler() {
                       {viewMode === 'month' ? (
                         <>
                           {dayPosts.slice(0, 2).map(p => {
-                            const pf = getPlatformInfo(p.platforms?.[0] || '');
+                            const pf = getPlatformInfo(p.platforms?.[0] || p.platform || '');
                             return (
                               <div key={p.id} className="post-chip" style={{ background: `${pf.c}22`, color: pf.c }}>
                                 <span className="d" style={{ background: pf.c }}></span>
@@ -329,21 +395,22 @@ export default function PostScheduler() {
                       ) : (
                         <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           {dayPosts.map(post => {
-                            const pf = getPlatformInfo(post.platforms?.[0] || '');
-                            const time = new Date(post.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                            return (
-                              <div key={post.id} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                                  <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: pf.c, color: '#fff', fontSize: '9px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    {pf.label}
-                                  </div>
-                                  <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>{time}</span>
-                                </div>
-                                <div style={{ fontSize: '11px', color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                  {post.content || 'Media Post'}
-                                </div>
-                              </div>
-                            );
+                             const pf = getPlatformInfo(post.platforms?.[0] || post.platform || '');
+                             const pDate = parseLocalDate(post.scheduledAt);
+                             const time = pDate ? pDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                             return (
+                               <div key={post.id} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg)' }}>
+                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                   <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: pf.c, color: '#fff', fontSize: '9px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                     {pf.label}
+                                   </div>
+                                   {time && <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>{time}</span>}
+                                 </div>
+                                 <div style={{ fontSize: '11px', color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                   {post.content || 'Media Post'}
+                                 </div>
+                               </div>
+                             );
                           })}
                         </div>
                       )}
@@ -375,6 +442,95 @@ export default function PostScheduler() {
         )}
 
       </div>
+
+      {/* New Post Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <h2 className="text-lg font-bold text-gray-900">Generate & Schedule Post</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
+                <button 
+                  type="button"
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${genMode === 'custom' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                  onClick={() => setGenMode('custom')}
+                >
+                  Custom Topic / Event
+                </button>
+                <button 
+                  type="button"
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${genMode === 'festivals' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                  onClick={() => setGenMode('festivals')}
+                >
+                  Batch Festivals
+                </button>
+              </div>
+
+              <form id="postGenForm" onSubmit={handleCreatePost} className="space-y-4">
+                {genMode === 'custom' ? (
+                  <>
+                    <div>
+                      <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Topic / Campaign Prompt *</label>
+                      <input type="text" value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} placeholder="e.g. Product launch update or Industry insights" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Event Name</label>
+                        <input type="text" value={formData.eventName} onChange={(e) => setFormData({...formData, eventName: e.target.value})} placeholder="e.g. AI Webinar" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                      </div>
+                      <div>
+                        <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Scheduled Date</label>
+                        <input type="date" value={formData.eventDate} onChange={(e) => setFormData({...formData, eventDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Start Date *</label>
+                        <input type="date" value={formData.startDate} onChange={(e) => setFormData({...formData, startDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                      </div>
+                      <div>
+                        <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">End Date *</label>
+                        <input type="date" value={formData.endDate} onChange={(e) => setFormData({...formData, endDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Country Code</label>
+                      <input type="text" value={formData.countryCode} onChange={(e) => setFormData({...formData, countryCode: e.target.value})} placeholder="e.g. US, IN, GB" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Target Platform</label>
+                  <select value={formData.platform} onChange={(e) => setFormData({...formData, platform: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]">
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="twitter">X (Twitter)</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0 rounded-b-3xl">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium text-sm hover:bg-white transition-colors">
+                Cancel
+              </button>
+              <button type="submit" form="postGenForm" className="px-6 py-2.5 rounded-xl bg-[#1967d2] hover:bg-[#1557b0] text-white font-medium text-sm shadow-sm hover:shadow transition-all">
+                Generate Post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
