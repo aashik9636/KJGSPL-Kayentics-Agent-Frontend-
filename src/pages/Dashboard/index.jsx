@@ -81,9 +81,13 @@ export default function Dashboard() {
   const usageGraph = metrics?.usageGraph || [];
   const activities = metrics?.recentActivities || [];
   const rawByModel = costBreakdown?.byModel || [];
-  const modelItems = Array.isArray(rawByModel)
+  const parsedModelItems = Array.isArray(rawByModel)
     ? rawByModel.map(item => typeof item === 'object' && item !== null ? { name: item.model || item.name || 'Model', cost: Number(item.cost || 0) } : { name: String(item), cost: 0 })
     : Object.entries(rawByModel).map(([k, v]) => ({ name: k, cost: Number(v) || 0 }));
+  const modelItems = parsedModelItems.length > 0 ? parsedModelItems : [
+    { name: 'gpt-4.1-mini', cost: 0.00 },
+    { name: 'claude-3-5-sonnet', cost: 0.00 }
+  ];
 
   // Formatted Tokens
   const totalTokens = aiUsage.totalTokens || 0;
@@ -284,7 +288,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-bold text-gray-900">Top Performing Agents</h3>
             <span className="text-xs font-semibold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
-              {topAgents.length} Agents
+              {counts.agents || topAgents.length || 0} Agents
             </span>
           </div>
 
