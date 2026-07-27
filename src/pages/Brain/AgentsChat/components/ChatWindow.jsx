@@ -343,15 +343,20 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             {isSending && !brain.streamingText && (
               <div className="flex items-start gap-3.5 py-4 w-full">
                 {/* Premium AI Avatar (matching MessageBubble) */}
-                <div className="flex-shrink-0 w-10 h-10 rounded-[16px] bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1">
-                  <div className="absolute inset-0 rounded-[14px] ring-1 ring-white/40 inset-ring"></div>
-                  <svg className="w-5 h-5 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1 overflow-hidden">
+                  <video
+                    src="/brain_avatar.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover scale-100"
+                    style={{ objectPosition: 'center 60%' }}
+                  />
                 </div>
                 
                 {/* Premium Chat Bubble Shape */}
-                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white rounded-[28px] rounded-tl-[8px] px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)]">
+                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)]">
                   {/* Bouncing dots */}
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -389,26 +394,26 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
           <div className="flex items-center justify-center gsap-hero-dock relative group mb-7 mt-2">
             <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full p-2 bg-white ring-[10px] ring-purple-100/80 shadow-[0_0_50px_12px_rgba(167,139,250,0.25)] flex items-center justify-center transition-all duration-300 ease-out hover:scale-105">
               <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-b from-purple-50/70 via-indigo-50/20 to-white flex items-center justify-center relative">
-                {(!selectedAgent || selectedAgent === 'brain') ? (
-                  <img 
-                    src="/premium_3d_brain.png" 
-                    className="w-full h-full object-cover p-3 transition-transform duration-500 group-hover:scale-105" 
-                    alt="Brain Agent" 
-                  />
-                ) : (
-                  <video 
-                    src={
-                      selectedAgent === 'content' ? '/agent 1.mp4' :
-                      selectedAgent === 'social' ? '/agent2.mp4' :
-                      '/agent3.mp4'
-                    }
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" 
-                  />
-                )}
+                <video 
+                  src={
+                    selectedAgent === 'content' ? '/agent 1.mp4' :
+                    selectedAgent === 'social' ? '/agent2.mp4' :
+                    selectedAgent === 'recruiter' ? '/agent3.mp4' :
+                    selectedAgent === 'support' ? '/customer_support_avatar.mp4' :
+                    selectedAgent === 'analyst' ? '/data_analyst_avatar.mp4' :
+                    '/brain_avatar.mp4'
+                  }
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
+                    (!selectedAgent || selectedAgent === 'brain')
+                      ? 'scale-100'
+                      : 'object-top'
+                  }`} 
+                  style={(!selectedAgent || selectedAgent === 'brain') ? { objectPosition: 'center 60%' } : {}}
+                />
               </div>
             </div>
             {/* Tooltip */}
@@ -418,6 +423,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                   selectedAgent === 'content' ? 'Content Creator' :
                   selectedAgent === 'social' ? 'Social Media Agent' :
                   selectedAgent === 'recruiter' ? 'Recruiter Agent' :
+                  selectedAgent === 'support' ? 'Customer Support' :
+                  selectedAgent === 'analyst' ? 'Data Analyst' :
                   'Brain Agent'
                 }
               </div>
@@ -461,7 +468,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
           <form
             ref={inputFormRef}
             onSubmit={onFormSubmit}
-            className="w-full flex items-end gap-3 bg-white/80 backdrop-blur-2xl rounded-[24px] border border-white shadow-[0_8px_32px_rgba(108,72,255,0.08)] px-5 py-4 transition-all focus-within:bg-white focus-within:border-indigo-50 focus-within:shadow-[0_12px_48px_rgba(108,72,255,0.15)] relative overflow-hidden"
+            className="w-full flex items-end gap-3 bg-white/80 backdrop-blur-2xl rounded-xl border border-white shadow-[0_8px_32px_rgba(108,72,255,0.08)] px-5 py-4 transition-all focus-within:bg-white focus-within:border-indigo-50 focus-within:shadow-[0_12px_48px_rgba(108,72,255,0.15)] relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/30 to-purple-50/30 pointer-events-none opacity-0 focus-within:opacity-100 transition-opacity duration-500"></div>
             <textarea

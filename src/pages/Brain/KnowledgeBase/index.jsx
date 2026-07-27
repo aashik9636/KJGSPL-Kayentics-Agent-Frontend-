@@ -16,7 +16,7 @@ export default function KnowledgeBase() {
     <div className="w-full h-full pb-10 flex flex-col gap-6 animate-fade-in">
       
       {/* Header Info Card */}
-      <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-[#e0d4ff] flex items-center justify-center">
@@ -64,13 +64,13 @@ export default function KnowledgeBase() {
       {activeTab === 'documents' ? (
         <>
           {/* Uploader Card */}
-          <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
             <h3 className="text-[16px] font-bold text-gray-900 mb-4">Ingest New Document</h3>
             <KnowledgeUploader onSuccess={handleUploadSuccess} />
           </div>
 
           {/* Database Explorer Card */}
-          <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
             <h3 className="text-[16px] font-bold text-gray-900 mb-6">Knowledge Database</h3>
             <KnowledgeExplorer key={explorerKey} />
           </div>

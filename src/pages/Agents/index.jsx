@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 
 const AGENTS = [
-  { id: 'brain', name: 'Brain Agent', role: 'General-purpose assistant', img: '/premium_3d_brain.png', isVideo: false, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false },
-  { id: 'content', name: 'Content Creator', role: 'Briefs and channel plans', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: true },
-  { id: 'social', name: 'Social Media', role: 'Social strategy and posts', img: '/agent2.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: true },
-  { id: 'recruiter', name: 'Recruiter', role: 'Sourcing and outreach', img: '/agent3.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: true },
-  { id: 'sales', name: 'Sales Rep', role: 'Lead generation', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: true },
-  { id: 'support', name: 'Customer Support', role: 'Ticketing and FAQs', img: '/agent2.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: true },
-  { id: 'analyst', name: 'Data Analyst', role: 'Reporting and insights', img: '/agent3.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: true },
+  { id: 'brain', name: 'Brain Agent', role: 'General-purpose assistant', img: '/brain_avatar.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
+  { id: 'content', name: 'Content Creator', role: 'Briefs and channel plans', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
+  { id: 'social', name: 'Social Media', role: 'Social strategy and posts', img: '/agent2.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
+  { id: 'recruiter', name: 'Recruiter', role: 'Sourcing and outreach', img: '/agent3.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
+  { id: 'sales', name: 'Sales Rep', role: 'Lead generation', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
+  { id: 'support', name: 'Customer Support', role: 'Ticketing and FAQs', img: '/customer_support_avatar.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
+  { id: 'analyst', name: 'Data Analyst', role: 'Reporting and insights', img: '/data_analyst_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
 ];
 
 export default function AgentsDirectory() {
@@ -49,14 +49,14 @@ export default function AgentsDirectory() {
             return (
               <div 
                 key={agent.id} 
-                className={`agent-card group relative bg-white rounded-[28px] overflow-hidden border transition-all duration-300 flex flex-col ${
+                className={`agent-card group relative bg-white rounded-xl overflow-hidden border transition-all duration-300 flex flex-col ${
                   isLocked 
                     ? 'border-gray-200 opacity-90 shadow-sm' 
                     : 'border-[#E8E7F1] hover:border-[#6c48ff]/40 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(108,72,255,0.1)]'
                 }`}
               >
                 {/* Image Container with Gradient Background */}
-                <div className={`h-48 w-full bg-gradient-to-b ${agent.bg} relative flex items-center justify-center overflow-hidden pt-6`}>
+                <div className={`h-52 w-full bg-gradient-to-b ${agent.bg} relative flex items-center justify-center overflow-hidden`}>
                   
                   {/* Badge */}
                   {isLocked ? (
@@ -72,7 +72,7 @@ export default function AgentsDirectory() {
                   {/* Subtle Lock Overlay for Coming Soon Agents */}
                   {isLocked && (
                     <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-[1px] z-10 flex items-center justify-center pointer-events-none">
-                      <div className="w-10 h-10 rounded-2xl bg-white/85 shadow-lg flex items-center justify-center text-gray-700">
+                      <div className="w-10 h-10 rounded-xl bg-white/85 shadow-lg flex items-center justify-center text-gray-700">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
@@ -87,19 +87,24 @@ export default function AgentsDirectory() {
                       loop
                       muted
                       playsInline
-                      className={`h-[120%] w-[120%] object-cover drop-shadow-2xl transition-transform duration-500 origin-bottom mix-blend-multiply ${isLocked ? '' : 'group-hover:scale-110 group-hover:-translate-y-2'}`}
+                      className={`w-full h-full object-cover transition-transform duration-500 ${isLocked ? '' : 'group-hover:scale-105'}`}
+                      style={{
+                        objectPosition: agent.objectPos || 'center 15%',
+                        mixBlendMode: agent.id === 'brain' ? 'normal' : 'multiply'
+                      }}
                     />
                   ) : (
                     <img 
                       src={agent.img} 
                       alt={agent.name} 
-                      className={`h-[120%] object-contain drop-shadow-2xl transition-transform duration-500 origin-bottom mix-blend-multiply ${isLocked ? '' : 'group-hover:scale-110 group-hover:-translate-y-2'}`}
+                      className={`w-full h-full object-cover transition-transform duration-500 ${isLocked ? '' : 'group-hover:scale-105'}`}
+                      style={{ objectPosition: 'center 15%', mixBlendMode: 'multiply' }}
                     />
                   )}
                 </div>
 
                 {/* Content */}
-                <div className="p-6 flex flex-col flex-1 bg-white relative z-10 -mt-4 rounded-t-[24px]">
+                <div className="p-6 flex flex-col flex-1 bg-white relative z-10 -mt-4 rounded-t-lg">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="text-lg font-bold text-gray-900 font-['Space_Grotesk']">{agent.name}</h3>
                   </div>

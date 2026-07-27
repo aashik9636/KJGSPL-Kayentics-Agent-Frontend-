@@ -158,10 +158,12 @@ export default function RightSidebar({
               
               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pb-4 pr-1">
                 {[
-                  { id: 'brain', image: '/premium_3d_brain.png', isVideo: false, name: 'Brain Agent', desc: 'General-purpose assistant', comingSoon: false },
+                  { id: 'brain', image: '/brain_avatar.mp4', isVideo: true, name: 'Brain Agent', desc: 'General-purpose assistant', comingSoon: false },
                   { id: 'content', image: '/agent 1.mp4', isVideo: true, name: 'Content Creator', desc: 'Briefs and channel plans', comingSoon: true },
                   { id: 'social', image: '/agent2.mp4', isVideo: true, name: 'Social Media Agent', desc: 'Social strategy and posts', comingSoon: true },
                   { id: 'recruiter', image: '/agent3.mp4', isVideo: true, name: 'Recruiter Agent', desc: 'Sourcing and outreach', comingSoon: true },
+                  { id: 'support', image: '/customer_support_avatar.mp4', isVideo: true, name: 'Customer Support', desc: 'Ticketing and FAQs', comingSoon: true },
+                  { id: 'analyst', image: '/data_analyst_avatar.mp4', isVideo: true, name: 'Data Analyst', desc: 'Reporting and insights', comingSoon: true },
                 ].map((agent, i) => {
                   const isActive = selectedAgent === agent.id;
                   const isLocked = agent.comingSoon;
@@ -169,7 +171,7 @@ export default function RightSidebar({
                     <div 
                       key={agent.id} 
                       onClick={() => !isLocked && setSelectedAgent(agent.id)}
-                      className={`group relative border rounded-[12px] p-3 transition-all ${
+                      className={`group relative border rounded-lg p-3 transition-all ${
                         isLocked 
                           ? 'bg-gray-50 border-gray-200 opacity-75 cursor-not-allowed pointer-events-none'
                           : isActive 
@@ -178,9 +180,20 @@ export default function RightSidebar({
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-[10px] overflow-hidden flex items-center justify-center shadow-sm flex-shrink-0 ${isActive ? 'bg-[#D7D5F6]' : 'bg-[#E8E7F1]'}`}>
+                        <div className={`w-10 h-10 rounded-md overflow-hidden flex items-center justify-center shadow-sm flex-shrink-0 ${isActive ? 'bg-[#D7D5F6]' : 'bg-[#E8E7F1]'}`}>
                           {agent.isVideo ? (
-                            <video src={agent.image} autoPlay loop muted playsInline className="w-[120%] h-[120%] object-cover object-top mix-blend-multiply" />
+                            <video 
+                              src={agent.image} 
+                              autoPlay 
+                              loop 
+                              muted 
+                              playsInline 
+                              className="w-full h-full object-cover" 
+                              style={{
+                                objectPosition: agent.id === 'brain' ? 'center 60%' : 'center 15%',
+                                mixBlendMode: agent.id === 'brain' ? 'normal' : 'multiply'
+                              }}
+                            />
                           ) : (
                             <img src={agent.image} alt={agent.name} className="w-[120%] h-[120%] object-cover object-top mix-blend-multiply" />
                           )}

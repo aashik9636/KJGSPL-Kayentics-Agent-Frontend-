@@ -188,7 +188,7 @@ export default function Products() {
       </div>
 
       {/* Controls Bar: Search & Status Filter */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-3xl border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -223,7 +223,7 @@ export default function Products() {
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent"></div>
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+        <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
           <Package className="w-12 h-12 text-purple-200 mx-auto mb-3" />
           <h3 className="text-base font-bold text-gray-900 mb-1 font-['Space_Grotesk']">No Products Found</h3>
           <p className="text-gray-500 text-xs mb-5 max-w-sm mx-auto">
@@ -243,7 +243,7 @@ export default function Products() {
             return (
               <div 
                 key={product.id} 
-                className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group relative flex flex-col justify-between"
+                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group relative flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-2">
@@ -345,7 +345,7 @@ export default function Products() {
       {/* ── Create / Edit Product Schema Modal ─────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">

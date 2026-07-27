@@ -166,7 +166,7 @@ export const BrandKitEditor = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Visual Identity Card */}
-        <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-6">
           <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
             <Palette className="w-5 h-5 text-[#6c48ff]" />
             <h3 className="text-base font-bold text-gray-900">Visual Identity & Colors</h3>
@@ -301,7 +301,7 @@ export const BrandKitEditor = () => {
         </div>
 
         {/* Brand Voice & Personality */}
-        <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-5">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-5">
           <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
             <Volume2 className="w-5 h-5 text-[#6c48ff]" />
             <h3 className="text-base font-bold text-gray-900">Brand Voice & Persona</h3>
@@ -380,7 +380,7 @@ export const BrandKitEditor = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Social Media Guidelines */}
-        <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-5">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-5">
           <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
             <Hash className="w-5 h-5 text-[#6c48ff]" />
             <h3 className="text-base font-bold text-gray-900">Social Media & Hashtag Guidelines</h3>
@@ -427,7 +427,7 @@ export const BrandKitEditor = () => {
         </div>
 
         {/* AI Social Media Agent Live Preview */}
-        <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl flex flex-col justify-between relative overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-xl flex flex-col justify-between relative overflow-hidden">
           <div className="absolute top-0 right-0 translate-x-6 -translate-y-6 w-32 h-32 bg-[#6c48ff]/20 rounded-full blur-2xl pointer-events-none"></div>
 
           <div>

@@ -2,6 +2,48 @@
 import { useWorkspaceStore } from '../store/workspaceStore';
 
 export const rbacService = {
+  // ─── Modules ────────────────────────────────────────────────────────────────
+  getModules: async () => {
+    const response = await apiClient.get('/modules');
+    return response.data;
+  },
+
+  createModule: async (data) => {
+    const response = await apiClient.post('/modules', data);
+    return response.data;
+  },
+
+  updateModule: async (id, data) => {
+    const response = await apiClient.put(`/modules/${id}`, data);
+    return response.data;
+  },
+
+  deleteModule: async (id) => {
+    const response = await apiClient.delete(`/modules/${id}`);
+    return response.data;
+  },
+
+  // ─── Actions ────────────────────────────────────────────────────────────────
+  getActions: async () => {
+    const response = await apiClient.get('/actions');
+    return response.data;
+  },
+
+  createAction: async (data) => {
+    const response = await apiClient.post('/actions', data);
+    return response.data;
+  },
+
+  updateAction: async (id, data) => {
+    const response = await apiClient.put(`/actions/${id}`, data);
+    return response.data;
+  },
+
+  deleteAction: async (id) => {
+    const response = await apiClient.delete(`/actions/${id}`);
+    return response.data;
+  },
+
   // ─── Permissions ───────────────────────────────────────────────────────────
   getPermissions: async () => {
     const response = await apiClient.get('/permissions');

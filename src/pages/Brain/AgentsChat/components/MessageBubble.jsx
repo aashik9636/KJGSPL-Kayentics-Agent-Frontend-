@@ -208,11 +208,16 @@ export default function MessageBubble({ message, isStreaming }) {
 
       {/* AI avatar */}
       {!isUser && (
-        <div className="flex-shrink-0 w-10 h-10 rounded-[16px] bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1">
-          <div className="absolute inset-0 rounded-[14px] ring-1 ring-white/40 inset-ring"></div>
-          <svg className="w-5 h-5 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1 overflow-hidden">
+          <video
+            src="/brain_avatar.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover scale-100"
+            style={{ objectPosition: 'center 60%' }}
+          />
         </div>
       )}
 
@@ -243,8 +248,8 @@ export default function MessageBubble({ message, isStreaming }) {
         {/* ── Message bubble ── */}
         <div className={`relative px-6 py-4 transition-all ${
           isUser
-            ? 'bg-gradient-to-br from-[#5030e5] to-[#7b61ff] text-white rounded-[28px] rounded-br-[8px] shadow-[0_8px_24px_rgba(108,72,255,0.25)] border border-white/10'
-            : 'bg-white/80 backdrop-blur-xl text-gray-800 rounded-[28px] rounded-tl-[8px] border border-white shadow-[0_4px_32px_rgba(0,0,0,0.03)]'
+            ? 'bg-gradient-to-br from-[#5030e5] to-[#7b61ff] text-white rounded-2xl rounded-br-sm shadow-[0_8px_24px_rgba(108,72,255,0.25)] border border-white/10'
+            : 'bg-white/80 backdrop-blur-xl text-gray-800 rounded-2xl rounded-tl-sm border border-white shadow-[0_4px_32px_rgba(0,0,0,0.03)]'
         }`}>
           {isUser ? (
             <p className="text-[15px] leading-[1.6] font-medium whitespace-pre-wrap">{message.content}</p>

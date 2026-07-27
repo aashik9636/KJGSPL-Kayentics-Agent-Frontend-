@@ -262,7 +262,7 @@ export default function Storage() {
         <div className="lg:col-span-1">
           <div 
             {...getRootProps()}
-            className={`relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-3xl cursor-pointer transition-all duration-300 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.02)] ${
+            className={`relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.02)] ${
               isDragActive 
                 ? 'border-[#6c48ff] bg-purple-50/50 scale-[1.01]' 
                 : 'border-gray-200 hover:border-[#6c48ff]/50 hover:bg-gray-50/50'
@@ -298,7 +298,7 @@ export default function Storage() {
         </div>
 
         {/* File Gallery & Controls */}
-        <div className="lg:col-span-3 bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] min-h-[480px] flex flex-col justify-between">
+        <div className="lg:col-span-3 bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] min-h-[480px] flex flex-col justify-between">
           
           {/* Controls Bar: Search & View Toggle */}
           <div>
@@ -530,7 +530,7 @@ export default function Storage() {
             <img 
               src={previewUrl} 
               alt="Preview" 
-              className="max-w-full max-h-[80vh] rounded-3xl shadow-2xl object-contain border border-white/20" 
+              className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-white/20" 
               onClick={e => e.stopPropagation()} 
             />
           </div>

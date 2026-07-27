@@ -53,7 +53,7 @@ export default function Integrations() {
         {integrations.map((integration) => (
           <div 
             key={integration.name} 
-            className="relative rounded-3xl p-7 flex flex-col justify-between bg-gray-50/70 border border-gray-100 transition-all duration-300 opacity-90"
+            className="relative rounded-2xl p-7 flex flex-col justify-between bg-gray-50/70 border border-gray-100 transition-all duration-300 opacity-90"
           >
             {/* Coming Soon Badge */}
             <div className="absolute top-5 right-5 z-10">

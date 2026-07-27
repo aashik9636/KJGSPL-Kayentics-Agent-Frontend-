@@ -81,9 +81,13 @@ export default function Dashboard() {
   const usageGraph = metrics?.usageGraph || [];
   const activities = metrics?.recentActivities || [];
   const rawByModel = costBreakdown?.byModel || [];
-  const modelItems = Array.isArray(rawByModel)
+  const parsedModelItems = Array.isArray(rawByModel)
     ? rawByModel.map(item => typeof item === 'object' && item !== null ? { name: item.model || item.name || 'Model', cost: Number(item.cost || 0) } : { name: String(item), cost: 0 })
     : Object.entries(rawByModel).map(([k, v]) => ({ name: k, cost: Number(v) || 0 }));
+  const modelItems = parsedModelItems.length > 0 ? parsedModelItems : [
+    { name: 'gpt-4.1-mini', cost: 0.00 },
+    { name: 'claude-3-5-sonnet', cost: 0.00 }
+  ];
 
   // Formatted Tokens
   const totalTokens = aiUsage.totalTokens || 0;
@@ -130,7 +134,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
         
         {/* Active Agents */}
-        <div className="stagger-card bg-white rounded-3xl p-5 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
+        <div className="stagger-card bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[13px] font-semibold text-gray-500">Active Agents</span>
             <div className="p-2.5 bg-purple-50 text-[#6c48ff] rounded-xl">
@@ -144,7 +148,7 @@ export default function Dashboard() {
         </div>
 
         {/* Tasks Executed */}
-        <div className="stagger-card bg-white rounded-3xl p-5 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
+        <div className="stagger-card bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[13px] font-semibold text-gray-500">Total Requests</span>
             <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -158,7 +162,7 @@ export default function Dashboard() {
         </div>
 
         {/* Tokens Consumed */}
-        <div className="stagger-card bg-white rounded-3xl p-5 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
+        <div className="stagger-card bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[13px] font-semibold text-gray-500">Tokens Consumed</span>
             <div className="p-2.5 bg-cyan-50 text-cyan-600 rounded-xl">
@@ -172,7 +176,7 @@ export default function Dashboard() {
         </div>
 
         {/* Credits Remaining */}
-        <div className="stagger-card bg-white rounded-3xl p-5 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
+        <div className="stagger-card bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[13px] font-semibold text-gray-500">Credits Balance</span>
             <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -196,7 +200,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
         
         {/* Daily Token & Cost Usage Over Time */}
-        <div className="stagger-card lg:col-span-2 bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
+        <div className="stagger-card lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-base font-bold text-gray-900">Daily Token & Cost Volume</h3>
@@ -238,7 +242,7 @@ export default function Dashboard() {
         </div>
 
         {/* AI Model Cost Breakdown */}
-        <div className="stagger-card bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+        <div className="stagger-card bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between">
           <div>
             <h3 className="text-base font-bold text-gray-900 mb-1">AI Model Breakdown</h3>
             <p className="text-xs text-gray-400 mb-4">Cost distribution by active LLMs</p>
@@ -280,11 +284,11 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         
         {/* Top Performing Agents */}
-        <div className="stagger-card bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
+        <div className="stagger-card bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-bold text-gray-900">Top Performing Agents</h3>
             <span className="text-xs font-semibold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
-              {topAgents.length} Agents
+              {counts.agents || topAgents.length || 0} Agents
             </span>
           </div>
 
@@ -324,7 +328,7 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity Log */}
-        <div className="stagger-card bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
+        <div className="stagger-card bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-bold text-gray-900">Recent Activity</h3>
             <span className="text-xs text-gray-400">System Logs</span>
