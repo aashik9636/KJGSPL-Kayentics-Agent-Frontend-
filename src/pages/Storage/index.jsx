@@ -207,7 +207,7 @@ export default function Storage() {
             ))}
           </div>
 
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight font-['Space_Grotesk']">
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
             Content & Media Hub
           </h1>
           <p className="text-xs text-gray-500 mt-1">

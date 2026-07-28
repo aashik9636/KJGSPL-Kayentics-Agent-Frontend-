@@ -25,7 +25,7 @@ export default function AppLayout() {
         className="flex-1 flex flex-col min-w-0 bg-transparent relative"
       >
         {!isChatRoute && <Navbar />}
-        <main className={`flex-1 relative flex flex-col ${isChatRoute ? 'p-0 overflow-hidden' : 'p-4 lg:p-8 overflow-y-auto'}`}>
+        <main className={`flex-1 relative flex flex-col ${isChatRoute ? 'p-0 overflow-hidden' : 'px-4 lg:px-8 pb-6 lg:pb-8 pt-1 overflow-y-auto'}`}>
           <Outlet />
         </main>
       </div>

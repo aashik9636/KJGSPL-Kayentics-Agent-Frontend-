@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { subscriptionService } from '../services/subscriptionService';
 import { useWorkspaceStore } from '../store/workspaceStore';
 import { 
-  Sparkles, ArrowRight, Layers, Cpu, ChevronDown, ChevronUp
+  Sparkles, ArrowRight, Layers, Cpu, ChevronDown, ChevronUp, CheckCircle
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import gsap from 'gsap';
@@ -380,68 +380,89 @@ export default function PricingPlans() {
   const activePlanCode = currentSubscription?.planCode || 'TEAM';
 
   return (
-    <div ref={containerRef} className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 font-sans space-y-8">
+    <div ref={containerRef} className="w-full max-w-[1600px] mx-auto px-4 md:px-8 pb-8 pt-2 font-sans space-y-6">
       
-      {/* ── Page Header & Controls Bar ───────────────────────────────────────── */}
-      <div className="animate-gsap text-center max-w-xl mx-auto space-y-2.5">
-        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-[#4F46E5] text-[11px] font-bold">
-          <Sparkles className="w-3 h-3" />
-          <span>Plans & Pricing</span>
-        </div>
-        
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight font-['Space_Grotesk']">
-          Flexible Pricing for Your AI Team
-        </h1>
-        
-        <p className="text-gray-500 text-xs sm:text-sm">
-          Scale workspace seats, active agents, and AI task units with zero hidden fees.
-        </p>
+      {/* Page Header - Clean White Aesthetic */}
+      <div className="bg-white border border-gray-200/90 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div className="space-y-2 text-center lg:text-left max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-[#6c48ff] text-xs font-semibold border border-purple-100">
+            <Sparkles className="w-4 h-4 text-[#6c48ff]" />
+            <span>Plans & Subscription Pricing</span>
+          </div>
+          
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 leading-tight">
+            Flexible Pricing Built for Your AI Team
+          </h1>
+          
+          <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
+            Scale workspace seats, active agents, and AI task units with zero hidden fees. Upgrade or adjust anytime.
+          </p>
 
-        {/* Currency & Billing Switcher */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
-          {/* Currency Toggle */}
-          <div className="bg-white p-0.5 rounded-xl border border-gray-200 shadow-sm flex items-center">
-            <button
-              onClick={() => setRegion('INDIA_INR')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                region === 'INDIA_INR' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              🇮🇳 India (INR ₹)
-            </button>
-            <button
-              onClick={() => setRegion('GLOBAL_USD')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                region === 'GLOBAL_USD' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              🌐 Global (USD $)
-            </button>
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-xs text-gray-500 font-medium">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>No credit card required to start</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Cancel or switch plans anytime</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Currency & Billing Controls */}
+        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200/80 space-y-3 w-full lg:w-auto shrink-0">
+          <div className="text-center lg:text-left">
+            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Customize Billing</span>
           </div>
 
-          {/* Billing Cycle Switcher */}
-          <div className="bg-white p-0.5 rounded-xl border border-gray-200 shadow-sm flex items-center">
-            <button
-              onClick={() => setBillingCycle('MONTHLY')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                billingCycle === 'MONTHLY' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBillingCycle('ANNUAL')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                billingCycle === 'ANNUAL' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <span>Annual</span>
-              <span className={`text-[9.5px] px-1 py-0.5 rounded font-extrabold ${
-                billingCycle === 'ANNUAL' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'
-              }`}>
-                Save ~20%
-              </span>
-            </button>
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            {/* Currency Switcher */}
+            <div className="bg-white p-1 rounded-xl border border-gray-200 shadow-xs flex items-center w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setRegion('INDIA_INR')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  region === 'INDIA_INR' ? 'bg-[#6c48ff] text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                🇮🇳 India (INR ₹)
+              </button>
+              <button
+                type="button"
+                onClick={() => setRegion('GLOBAL_USD')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  region === 'GLOBAL_USD' ? 'bg-[#6c48ff] text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                🌐 Global (USD $)
+              </button>
+            </div>
+
+            {/* Billing Cycle Switcher */}
+            <div className="bg-white p-1 rounded-xl border border-gray-200 shadow-xs flex items-center w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setBillingCycle('MONTHLY')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  billingCycle === 'MONTHLY' ? 'bg-[#6c48ff] text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle('ANNUAL')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  billingCycle === 'ANNUAL' ? 'bg-[#6c48ff] text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span>Annual</span>
+                <span className="text-[9.5px] px-1.5 py-0.5 rounded font-black bg-emerald-500 text-white">
+                  Save 20%
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

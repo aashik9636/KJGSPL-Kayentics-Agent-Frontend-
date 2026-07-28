@@ -1,33 +1,52 @@
 import apiClient from './apiClient';
 
 export const brandService = {
-  getBrandProfile: async () => {
-    const response = await apiClient.get('/brand-profile').catch(() => null);
+  // GET /brand-guidelines (with fallback to /brand-profile)
+  getBrandGuidelines: async () => {
+    let response = await apiClient.get('/brand-guidelines').catch(() => null);
+    if (!response?.data) {
+      response = await apiClient.get('/brand-profile').catch(() => null);
+    }
     return response?.data || null;
   },
 
-  createBrandProfile: async (data) => {
-    const response = await apiClient.post('/brand-profile', data);
+  // Alias for backward compatibility
+  getBrandProfile: async () => {
+    let response = await apiClient.get('/brand-guidelines').catch(() => null);
+    if (!response?.data) {
+      response = await apiClient.get('/brand-profile').catch(() => null);
+    }
+    return response?.data || null;
+  },
+
+  // POST /brand-guidelines
+  createBrandGuidelines: async (data) => {
+    const response = await apiClient.post('/brand-guidelines', data);
     return response.data;
   },
 
-  updateBrandProfile: async (data) => {
-    const response = await apiClient.put('/brand-profile', data);
+  // PUT /brand-guidelines
+  updateBrandGuidelines: async (data) => {
+    const response = await apiClient.put('/brand-guidelines', data);
     return response.data;
   },
 
-  // Smart upsert: creates if not exists, updates if exists
+  // DELETE /brand-guidelines
+  resetBrandGuidelines: async () => {
+    const response = await apiClient.delete('/brand-guidelines');
+    return response.data;
+  },
+
+  // Smart upsert: tries PUT /brand-guidelines first, falls back to POST /brand-guidelines
   upsertBrandGuidelines: async (data) => {
     try {
-      const existing = await apiClient.get('/brand-profile').catch(() => null);
+      const existing = await apiClient.get('/brand-guidelines').catch(() => null);
       if (existing?.data) {
-        const response = await apiClient.put('/brand-profile', data);
+        const response = await apiClient.put('/brand-guidelines', data);
         return response.data;
       }
-    } catch (_) {
-      // fall through to create
-    }
-    const response = await apiClient.post('/brand-profile', data);
+    } catch (_) {}
+    const response = await apiClient.post('/brand-guidelines', data);
     return response.data;
   },
 };

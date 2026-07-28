@@ -36,7 +36,7 @@ export default function AgentsDirectory() {
         
         {/* Header */}
         <div className="mb-10 text-center">
-          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight font-['Space_Grotesk'] mb-3">All Agents</h1>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">All Agents</h1>
           <p className="text-gray-500 text-[15px] max-w-lg mx-auto">
             Meet your dedicated AI workforce. Each agent is highly specialized to handle specific tasks for your business.
           </p>

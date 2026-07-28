@@ -13,6 +13,9 @@ import Agents from '../pages/Agents';
 import PricingPlans from '../pages/PricingPlans';
 import SubscriptionUsageDashboard from '../pages/SubscriptionUsageDashboard';
 import AuditLogs from '../pages/SuperAdmin/AuditLogs';
+import RoleMaster from '../pages/RBAC/RoleMaster';
+import RoleEditorPage from '../pages/RBAC/RoleEditorPage';
+import TeamMaster from '../pages/RBAC/TeamMaster';
 import Unauthorized from '../pages/Unauthorized';
 
 export const AppRoutes = (
@@ -30,6 +33,10 @@ export const AppRoutes = (
     <Route path="/pricing" element={<PricingPlans />} />
     <Route path="/subscription" element={<SubscriptionUsageDashboard />} />
     <Route path="/audit-logs" element={<AuditLogs />} />
+    <Route path="/roles" element={<RoleMaster />} />
+    <Route path="/roles/new" element={<RoleEditorPage />} />
+    <Route path="/roles/edit/:roleId" element={<RoleEditorPage />} />
+    <Route path="/teams" element={<TeamMaster />} />
     <Route path="/unauthorized" element={<Unauthorized />} />
   </Route>
 );

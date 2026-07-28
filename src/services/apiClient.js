@@ -5,7 +5,6 @@ import { toast } from 'react-toastify';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
-  timeout: 120000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -44,7 +43,7 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register');
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') || originalRequest?.url?.includes('/auth/register');
 
     // Handle 403 Forbidden gracefully
     if (error.response?.status === 403) {
@@ -86,7 +85,6 @@ apiClient.interceptors.response.use(
     }
 
     // Global Error Toasting
-    // We avoid toasting on 401s if we are currently refreshing the token
     if (!originalRequest._retry || error.response?.status !== 401) {
       if (error.response?.data) {
         const data = error.response.data;

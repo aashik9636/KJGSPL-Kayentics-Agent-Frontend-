@@ -153,7 +153,7 @@ export default function SubscriptionUsageDashboard() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 font-sans space-y-7 animate-fade-in">
+    <div className="w-full max-w-[1600px] mx-auto px-4 md:px-8 pb-8 pt-2 font-sans space-y-6 animate-fade-in">
       
       {/* Header & Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200/60">

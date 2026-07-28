@@ -39,7 +39,7 @@ export default function Integrations() {
             <Sparkles className="w-3.5 h-3.5" />
             <span>App Integrations</span>
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight font-['Space_Grotesk']">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
             Channel Integrations
           </h1>
           <p className="text-xs text-gray-500 mt-1">

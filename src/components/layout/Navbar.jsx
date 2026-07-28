@@ -117,11 +117,21 @@ export default function Navbar() {
         <h2 className="text-[22px] font-bold text-[#111827] tracking-tight">
           {(() => {
             const p = location.pathname;
-            if (p.includes('/chat')) return 'Brain Agent';
-            if (p.includes('/content-hub')) return 'Content Hub';
-            if (p.includes('/profile')) return 'Profile';
-            if (p.includes('/team')) return 'Team Management';
-            if (p.includes('/integrations')) return 'Integrations';
+            if (p === '/') return 'Dashboard';
+            if (p.includes('/chat')) return 'AI Chat Studio';
+            if (p.includes('/agents')) return 'AI Agents';
+            if (p.includes('/products')) return 'Products';
+            if (p.includes('/post-scheduler')) return 'Post Calendar';
+            if (p.includes('/knowledge-base')) return 'Knowledge Base';
+            if (p.includes('/storage') || p.includes('/content-hub')) return 'Content & Media Hub';
+            if (p.includes('/integrations')) return 'Integrations & APIs';
+            if (p.includes('/roles')) return 'Role Master (RBAC)';
+            if (p.includes('/teams')) return 'Team Master';
+            if (p.includes('/pricing')) return 'Plans & Pricing';
+            if (p.includes('/subscription')) return 'Subscription & Usage';
+            if (p.includes('/audit-logs')) return 'Audit Trail';
+            if (p.includes('/profile')) return 'Account Profile';
+            if (p.includes('/superadmin')) return 'Superadmin Control Center';
             return 'Dashboard';
           })()}
         </h2>
