@@ -8,14 +8,41 @@ export const chatService = {
     return response.data;
   },
 
-  runBrainAgent: async (sessionId, userQuery) => {
+  runBrainAgent: async (sessionId, userQuery, options = {}) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
     const response = await apiClient.post('/api/brain/run', {
       userQuery,
       sessionId,
+      jobId: options?.jobId || options?.job_id || undefined,
       companyId: workspaceId || undefined,
       organizationId: organizationId || undefined,
     });
+    return response.data;
+  },
+
+  replayBrainStream: async (sessionId, jobId) => {
+    const query = jobId ? `?job_id=${encodeURIComponent(jobId)}` : '';
+    const response = await apiClient.get(`/api/brain/replay/${sessionId}${query}`);
+    return response.data;
+  },
+
+  stopBrainSession: async (sessionId) => {
+    const response = await apiClient.post(`/api/brain/stop/${sessionId}`);
+    return response.data;
+  },
+
+  getBrainModels: async (category = 'llm') => {
+    const response = await apiClient.get('/api/brain/models', { params: { category } });
+    return response.data;
+  },
+
+  getBrainModelPreference: async (category = 'llm') => {
+    const response = await apiClient.get('/api/brain/model-preference', { params: { category } });
+    return response.data;
+  },
+
+  setBrainModelPreference: async (preference) => {
+    const response = await apiClient.put('/api/brain/model-preference', preference);
     return response.data;
   },
 
@@ -38,6 +65,23 @@ export const chatService = {
     });
     return response.data;
   },
+
+  runSubAgentChat: async (agentSlug, data) => {
+    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const response = await apiClient.post(`/api/chat/${agentSlug}`, {
+      ...data,
+      organizationId,
+      workspaceId
+    });
+    return response.data;
+  },
+
+  runStockMarketAgent: async (data) => chatService.runSubAgentChat('stock-market', data),
+  runResearchAgent: async (data) => chatService.runSubAgentChat('research', data),
+  runMarketAgent: async (data) => chatService.runSubAgentChat('market', data),
+  runLeadGenAgent: async (data) => chatService.runSubAgentChat('lead-generation', data),
+  runRecruitmentAgent: async (data) => chatService.runSubAgentChat('recruitment', data),
+  runSocialTrendsAgent: async (data) => chatService.runSubAgentChat('social-trends', data),
 
   searchTrends: async (data) => {
     const response = await apiClient.post('/api/trends/search', data);

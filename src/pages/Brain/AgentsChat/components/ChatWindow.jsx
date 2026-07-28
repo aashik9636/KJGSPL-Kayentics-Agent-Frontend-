@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import { chatService } from '../../../../services/chatService';
 import { useBrainStream } from '../../../../hooks/useBrainStream';
+import { useSubAgentStream } from '../../../../hooks/useSubAgentStream';
 import MessageBubble from './MessageBubble';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '../../../../store/authStore';
@@ -66,6 +67,12 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
   useEffect(() => {
     brainRef.current = brain;
   }, [brain]);
+
+  const subAgent  = useSubAgentStream();
+  const subAgentRef = useRef(subAgent);
+  useEffect(() => {
+    subAgentRef.current = subAgent;
+  }, [subAgent]);
 
   useEffect(() => {
     setMessages([]);
@@ -170,6 +177,9 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         throw new Error('No response generated.');
       }
 
+      const artifacts = brainRef.current.artifacts || brainRef.current.metadata?.artifacts || [];
+      const metrics = brainRef.current.metrics || brainRef.current.metadata?.metrics || null;
+
       // Append the fully resolved content to the message history
       setMessages(prev => [...prev, {
         role: 'ASSISTANT',
@@ -179,6 +189,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         inScope,
         tokensUsed,
         model,
+        artifacts,
+        metrics,
       }]);
 
       // Check for clarification from execution results
@@ -211,6 +223,58 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     }
   }, [activeConversationId, brain]);
 
+  // ── Sub-Agent direct query handler ─────────────────────────────────────────
+  const callSubAgent = useCallback(async (userQuery, sessionIdOverride) => {
+    const sessionId = sessionIdOverride || activeConversationId;
+    setIsSending(true);
+
+    try {
+      subAgent.send(selectedAgent, sessionId, userQuery);
+
+      await new Promise(resolve => {
+        const check = setInterval(() => {
+          const currentSub = subAgentRef.current;
+          if (!currentSub.isStreaming) {
+            if (currentSub.streamingText || currentSub.error || currentSub.metadata) {
+              clearInterval(check);
+              resolve();
+            } else if (currentSub.error === null && !currentSub.status) {
+              clearInterval(check);
+              resolve();
+            }
+          }
+        }, 100);
+      });
+
+      const finalAnswer = subAgentRef.current.streamingText;
+      if (!finalAnswer) {
+        // If non-streaming REST fallback is needed (e.g. social-trends)
+        const res = await chatService.runSubAgentChat(selectedAgent, { message: userQuery, sessionId });
+        const answer = res?.response || res?.finalAnswer || 'Task completed.';
+        setMessages(prev => [...prev, {
+          role: 'ASSISTANT',
+          content: answer,
+          model: selectedAgent,
+          sources: res?.sources || [],
+        }]);
+        return;
+      }
+
+      setMessages(prev => [...prev, {
+        role: 'ASSISTANT',
+        content: finalAnswer,
+        model: selectedAgent,
+        sources: subAgentRef.current.sources || [],
+      }]);
+    } catch (err) {
+      console.error(`${selectedAgent} request failed`, err);
+      subAgent.reset();
+      toast.error(err.response?.data?.message || 'Failed to get a response from sub-agent. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
+  }, [activeConversationId, selectedAgent, subAgent]);
+
   // ── Handle user submit ────────────────────────────────────────────────────
   const handleSubmit = useCallback(async (queryText) => {
     const trimmed = (queryText ?? input).trim();
@@ -225,6 +289,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     }
 
     setInput('');
+
+    const isBrain = !selectedAgent || selectedAgent === 'brain';
 
     if (inClarifyMode) {
       const currentQ  = clarifyQueue[clarifyIndex - 1];
@@ -245,7 +311,11 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         setClarifyQueue([]);
         setClarifyIndex(0);
         setClarifyAnswers({});
-        await callBrainAgent(combinedQuery, currentSessionId);
+        if (isBrain) {
+          await callBrainAgent(combinedQuery, currentSessionId);
+        } else {
+          await callSubAgent(combinedQuery, currentSessionId);
+        }
       } else {
         const nextQ = clarifyQueue[clarifyIndex];
         setMessages(prev => [...prev, {
@@ -260,9 +330,13 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     } else {
       setMessages(prev => [...prev, { role: 'USER', content: trimmed }]);
       if (onMessageSent) onMessageSent();
-      await callBrainAgent(trimmed, currentSessionId);
+      if (isBrain) {
+        await callBrainAgent(trimmed, currentSessionId);
+      } else {
+        await callSubAgent(trimmed, currentSessionId);
+      }
     }
-  }, [input, isSending, activeConversationId, inClarifyMode, clarifyQueue, clarifyIndex, clarifyAnswers, callBrainAgent, onNewChat]);
+  }, [input, isSending, activeConversationId, inClarifyMode, clarifyQueue, clarifyIndex, clarifyAnswers, callBrainAgent, callSubAgent, selectedAgent, onNewChat]);
 
   const onFormSubmit = (e) => {
     e.preventDefault();
@@ -301,7 +375,15 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v1m6 11h2m-6 0h-8m0 0H4m4 0h4m-4-8h8m-4 0v8" />
             </svg>
           </div>
-          Brain Agent
+          {
+            selectedAgent === 'stock-market' ? 'Stock Market Agent' :
+            selectedAgent === 'research' ? 'Universal Research Agent' :
+            selectedAgent === 'market' ? 'Competitor Intelligence' :
+            selectedAgent === 'lead-generation' ? 'Lead Generation Agent' :
+            selectedAgent === 'recruitment' ? 'Recruitment Agent' :
+            selectedAgent === 'social-trends' ? 'Social Trends Agent' :
+            'Brain Agent'
+          }
           <svg className="w-4 h-4 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
           </svg>
@@ -328,35 +410,42 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             ))}
 
             {/* Live Streaming Message Bubble */}
-            {isSending && brain.streamingText && (
+            {isSending && (brain.streamingText || subAgent.streamingText) && (
               <MessageBubble 
                 message={{
                   role: 'ASSISTANT',
-                  content: brain.streamingText,
-                  status: brain.status
+                  content: brain.streamingText || subAgent.streamingText,
+                  status: brain.status || subAgent.status
                 }} 
                 isStreaming={true} 
               />
             )}
 
             {/* Thinking indicator — show only when sending but no streaming text yet */}
-            {isSending && !brain.streamingText && (
+            {isSending && !brain.streamingText && !subAgent.streamingText && (
               <div className="flex items-start gap-3.5 py-4 w-full animate-fade-in">
                 {/* Premium AI Avatar (matching MessageBubble) */}
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1 overflow-hidden">
                   <video
-                    src="/brain_avatar.mp4"
+                    src={
+                      selectedAgent === 'content' ? '/agent 1.mp4' :
+                      selectedAgent === 'social' || selectedAgent === 'market' ? '/agent2.mp4' :
+                      selectedAgent === 'recruitment' ? '/agent3.mp4' :
+                      selectedAgent === 'social-trends' ? '/customer_support_avatar.mp4' :
+                      selectedAgent === 'stock-market' ? '/data_analyst_avatar.mp4' :
+                      '/brain_avatar.mp4'
+                    }
                     autoPlay
                     loop
                     muted
                     playsInline
                     className="w-full h-full object-cover scale-100"
-                    style={{ objectPosition: 'center 60%' }}
+                    style={{ objectPosition: selectedAgent === 'brain' ? 'center 60%' : 'center 15%' }}
                   />
                 </div>
                 
                 {Boolean(
-                  brain.status?.toLowerCase().match(/image|visual|generating|design|picture|photo|drawing|logo|art|synthesize/) ||
+                  (brain.status || subAgent.status)?.toLowerCase().match(/image|visual|generating|design|picture|photo|drawing|logo|art|synthesize/) ||
                   input?.toLowerCase().match(/image|generate|draw|design|picture|photo|logo|banner/)
                 ) ? (
                   /* Light Theme ChatGPT-style DALL-E Image Generation Skeleton Card */
@@ -418,9 +507,9 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                       <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                     
-                    {brain.status && (
+                    {(brain.status || subAgent.status) && (
                       <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
-                        {brain.status}
+                        {brain.status || subAgent.status}
                       </span>
                     )}
                   </div>

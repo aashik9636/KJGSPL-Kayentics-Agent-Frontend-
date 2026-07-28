@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 
 const AGENTS = [
-  { id: 'brain', name: 'Brain Agent', role: 'General-purpose assistant', img: '/brain_avatar.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
-  { id: 'content', name: 'Content Creator', role: 'Briefs and channel plans', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
-  { id: 'social', name: 'Social Media', role: 'Social strategy and posts', img: '/agent2.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
-  { id: 'recruiter', name: 'Recruiter', role: 'Sourcing and outreach', img: '/agent3.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
-  { id: 'sales', name: 'Sales Rep', role: 'Lead generation', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
-  { id: 'support', name: 'Customer Support', role: 'Ticketing and FAQs', img: '/customer_support_avatar.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
-  { id: 'analyst', name: 'Data Analyst', role: 'Reporting and insights', img: '/data_analyst_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: true, objectPos: 'center 15%' },
+  { id: 'brain', name: 'Brain Agent', role: 'Meta-orchestrator & multi-agent planner', img: '/brain_avatar.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
+  { id: 'stock-market', name: 'Stock Market', role: 'Real-time financial & market data', img: '/data_analyst_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'research', name: 'Universal Research', role: 'Deep web scraping and research', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'market', name: 'Competitor Intelligence', role: 'Market & competitor analysis', img: '/agent2.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'lead-generation', name: 'Lead Generation', role: 'B2B lead discovery & prospecting', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'recruitment', name: 'Recruitment Agent', role: 'Talent sourcing and outreach', img: '/agent3.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'social-trends', name: 'Social Trends', role: 'Social media trend discovery', img: '/customer_support_avatar.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
 ];
 
 export default function AgentsDirectory() {

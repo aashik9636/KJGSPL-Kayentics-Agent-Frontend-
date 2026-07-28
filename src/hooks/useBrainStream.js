@@ -6,8 +6,8 @@ import { useWorkspaceStore } from '../store/workspaceStore';
  * WebSocket streaming hook for the Main Brain Agent.
  *
  * Connects to the Node.js proxy at `/conversations/brain/stream` which
- * forwards to Python's `/api/brain/stream`. Streams token-by-token progress
- * for real-time UX instead of waiting for the full REST response.
+ * forwards to Python's `/api/brain/stream`. Streams token-by-token progress,
+ * live metrics snapshots, step status, and artifacts for real-time UX.
  */
 export const useBrainStream = () => {
   const [streamingText, setStreamingText] = useState('');
@@ -16,11 +16,15 @@ export const useBrainStream = () => {
   const [isPendingBackground, setIsPendingBackground] = useState(false);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
+  const [metrics, setMetrics] = useState(null);
+  const [artifacts, setArtifacts] = useState([]);
+  const [steps, setSteps] = useState([]);
 
   const wsRef = useRef(null);
   const pollIntervalRef = useRef(null);
+  const currentJobIdRef = useRef(null);
 
-  const startBackgroundExecution = useCallback(async (sessionId, userQuery) => {
+  const startBackgroundExecution = useCallback(async (sessionId, userQuery, jobId) => {
     setIsStreaming(false);
     setIsPendingBackground(true);
     setStatus('Processing in background...');
@@ -33,6 +37,8 @@ export const useBrainStream = () => {
       await apiClient.post('/api/brain/run', {
         sessionId,
         userQuery,
+        jobId: jobId || undefined,
+        job_id: jobId || undefined,
         companyId: workspaceId || undefined,
         organizationId: organizationId || undefined,
       });
@@ -65,7 +71,7 @@ export const useBrainStream = () => {
     }
   }, []);
 
-  const send = useCallback((sessionId, userQuery) => {
+  const send = useCallback((sessionId, userQuery, options = {}) => {
     const accessToken = useAuthStore.getState().accessToken;
     if (!accessToken) {
       setError('Not authenticated');
@@ -73,6 +79,8 @@ export const useBrainStream = () => {
     }
 
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const jobId = options.jobId || options.job_id || `job_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    currentJobIdRef.current = jobId;
 
     setIsStreaming(true);
     setIsPendingBackground(false);
@@ -80,11 +88,14 @@ export const useBrainStream = () => {
     setError(null);
     setStreamingText('');
     setMetadata(null);
+    setMetrics(null);
+    setArtifacts([]);
+    setSteps([]);
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     const defaultWsUrl = apiBaseUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
     const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || defaultWsUrl;
-    const socketUrl = `${wsBaseUrl}/conversations/brain/stream?token=${accessToken}&bypass-tunnel-reminder=true&ngrok-skip-browser-warning=true`;
+    const socketUrl = `${wsBaseUrl}/conversations/brain/stream?token=${accessToken}&job_id=${encodeURIComponent(jobId)}&bypass-tunnel-reminder=true&ngrok-skip-browser-warning=true`;
     
     try {
       const socket = new WebSocket(socketUrl);
@@ -95,6 +106,8 @@ export const useBrainStream = () => {
         socket.send(JSON.stringify({
           user_query: userQuery,
           session_id: sessionId,
+          job_id: jobId,
+          task_id: jobId,
           company_id: workspaceId || undefined,
           organization_id: organizationId || undefined,
         }));
@@ -107,6 +120,26 @@ export const useBrainStream = () => {
           switch (chunk.type) {
             case 'status':
               setStatus(chunk.content);
+              if (chunk.metadata) {
+                if (chunk.metadata.artifact) {
+                  setArtifacts(prev => [...prev, chunk.metadata.artifact]);
+                }
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: chunk.metadata.step || Date.now(),
+                    label: chunk.metadata.agent_label || 'Brain Agent',
+                    summary: chunk.metadata.summary || chunk.content,
+                    preview: chunk.metadata.preview || null,
+                  },
+                ]);
+              }
+              break;
+
+            case 'metrics':
+              if (chunk.metadata) {
+                setMetrics(prev => ({ ...(prev || {}), ...chunk.metadata }));
+              }
               break;
 
             case 'token':
@@ -117,6 +150,9 @@ export const useBrainStream = () => {
             case 'done':
               setIsStreaming(false);
               setStatus('');
+              if (chunk.metadata?.artifacts && Array.isArray(chunk.metadata.artifacts)) {
+                setArtifacts(chunk.metadata.artifacts);
+              }
               setMetadata(chunk.metadata || null);
               socket.close();
               break;
@@ -141,7 +177,7 @@ export const useBrainStream = () => {
         setError('Connection error — falling back to background processing.');
         setIsStreaming(false);
         setStatus('');
-        startBackgroundExecution(sessionId, userQuery);
+        startBackgroundExecution(sessionId, userQuery, jobId);
       };
 
       socket.onclose = () => {
@@ -149,7 +185,7 @@ export const useBrainStream = () => {
       };
     } catch (wsErr) {
       console.error('Failed to initialize WebSocket:', wsErr);
-      startBackgroundExecution(sessionId, userQuery);
+      startBackgroundExecution(sessionId, userQuery, jobId);
     }
   }, [startBackgroundExecution]);
 
@@ -172,6 +208,9 @@ export const useBrainStream = () => {
     setStatus('');
     setError(null);
     setMetadata(null);
+    setMetrics(null);
+    setArtifacts([]);
+    setSteps([]);
   }, [disconnect]);
 
   return {
@@ -181,6 +220,9 @@ export const useBrainStream = () => {
     isPendingBackground,
     error,
     metadata,
+    metrics,
+    artifacts,
+    steps,
     send,
     disconnect,
     reset,
