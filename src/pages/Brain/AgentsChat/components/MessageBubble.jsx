@@ -27,6 +27,110 @@ function CopyButton({ text, light = false }) {
   );
 }
 
+// ─── Image with Skeleton Loader ───────────────────────────────────────────────
+function ImageWithSkeleton({ src, alt }) {
+  const [loaded, setLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const fullUrl = getAssetUrl(src);
+
+  return (
+    <div className="my-4 overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-md max-w-[420px] w-full transition-all group">
+      <div className="relative w-full aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
+        {!loaded && !hasError && (
+          <div className="absolute inset-0 z-10 flex flex-col justify-between p-5 bg-slate-50">
+            {/* Top Label */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] font-semibold text-slate-800 tracking-tight">Loading visual asset</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#6c48ff] animate-ping" />
+              </div>
+              <span className="text-[10px] font-bold tracking-wider uppercase text-[#6c48ff] bg-purple-100/80 px-2 py-0.5 rounded-full">
+                Rendering
+              </span>
+            </div>
+
+            {/* Center Dot Matrix Wave */}
+            <div className="relative flex-1 my-2 flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer pointer-events-none z-10" />
+              <div className="grid grid-cols-12 gap-2.5 justify-items-center items-center opacity-80">
+                {Array.from({ length: 12 }).map((_, row) =>
+                  Array.from({ length: 12 }).map((_, col) => {
+                    const distance = Math.sqrt(Math.pow(row - 5.5, 2) + Math.pow(col - 5.5, 2));
+                    const delay = distance * 120;
+                    return (
+                      <div
+                        key={`${row}-${col}`}
+                        className="w-1.5 h-1.5 rounded-full bg-purple-500/60 animate-dot-wave"
+                        style={{ animationDelay: `${delay}ms` }}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Status */}
+            <div className="flex items-center justify-between text-xs text-slate-400 border-t border-slate-200/60 pt-2.5">
+              <span>Fetching image bytes...</span>
+              <span className="font-bold text-[#6c48ff]">100%</span>
+            </div>
+          </div>
+        )}
+
+        {hasError && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-slate-900 text-slate-400 text-xs text-center">
+            <svg className="w-8 h-8 text-rose-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Failed to render visual asset</span>
+          </div>
+        )}
+
+        <img
+          src={fullUrl}
+          alt={alt || "Generated Visual Asset"}
+          onLoad={() => setLoaded(true)}
+          onError={() => { setLoaded(true); setHasError(true); }}
+          className={`w-full h-full object-cover transition-opacity duration-700 ${loaded && !hasError ? 'opacity-100' : 'opacity-0'}`}
+        />
+      </div>
+
+      <div className="px-4 py-3 bg-white border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500">
+        <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+          <svg className="w-3.5 h-3.5 text-[#6c48ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {alt || "AI Visual Asset"}
+        </span>
+
+        <div className="flex items-center gap-3">
+          <a
+            href={fullUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+            className="text-gray-500 hover:text-[#6c48ff] transition-colors flex items-center gap-1 text-[11px]"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download
+          </a>
+
+          <a
+            href={fullUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#6c48ff] hover:text-purple-800 transition-colors flex items-center gap-1 text-[11px] font-bold"
+          >
+            Full View ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Markdown components ──────────────────────────────────────────────────────
 function makeMarkdownComponents(isUser) {
   const textColor = isUser ? 'text-white' : 'text-gray-800';
@@ -36,7 +140,7 @@ function makeMarkdownComponents(isUser) {
       const codeString = String(children).replace(/\n$/, '');
       if (!inline && match) {
         return (
-          <div className="rounded-xl overflow-hidden my-3 shadow-sm">
+          <div className="rounded-xl overflow-hidden my-3 shadow-sm border border-gray-800">
             <div className="flex items-center justify-between px-4 py-2.5 bg-[#1e1e2e]">
               <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">{match[1]}</span>
               <CopyButton text={codeString} light />
@@ -97,35 +201,7 @@ function makeMarkdownComponents(isUser) {
     th: ({ children }) => <th className="px-4 py-2.5 font-semibold text-gray-700 text-left border-b border-gray-200">{children}</th>,
     tr: ({ children }) => <tr className="border-b border-gray-100 last:border-0">{children}</tr>,
     td: ({ children }) => <td className="px-4 py-2.5 text-gray-600">{children}</td>,
-    img: ({ src, alt, ...props }) => {
-      const fullUrl = getAssetUrl(src);
-      
-      return (
-        <div className="my-3 overflow-hidden rounded-[18px] border border-gray-200/80 bg-gray-50 shadow-sm max-w-[400px]">
-          <img
-            {...props}
-            src={fullUrl}
-            className="w-full h-auto object-cover hover:opacity-95 transition-opacity"
-            alt={alt || "Generated Visual Asset"}
-            loading="lazy"
-          />
-          <div className="px-3 py-2.5 bg-white border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-400">
-            <span className="flex items-center gap-1.5 uppercase tracking-wider">
-              <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              Generated Asset
-            </span>
-            <a
-              href={fullUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-violet-600 hover:text-violet-800 transition-colors flex items-center gap-1"
-            >
-              View Full <span className="text-[14px]">↗</span>
-            </a>
-          </div>
-        </div>
-      );
-    },
+    img: ({ src, alt }) => <ImageWithSkeleton src={src} alt={alt} />,
   };
 }
 
@@ -305,30 +381,7 @@ export default function MessageBubble({ message, isStreaming }) {
                   
                 // Only render if it exists AND wasn't already rendered as an image by Markdown (Method A)
                 if (imageUrl && !isRenderedAsImage) {
-                  return (
-                    <div className="my-3 overflow-hidden rounded-[18px] border border-gray-200/80 bg-gray-50 shadow-sm max-w-[400px]">
-                      <img
-                        src={imageUrl}
-                        className="w-full h-auto object-cover hover:opacity-95 transition-opacity"
-                        alt="Generated Visual Asset"
-                        loading="lazy"
-                      />
-                      <div className="px-3 py-2.5 bg-white border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-400">
-                        <span className="flex items-center gap-1.5 uppercase tracking-wider">
-                          <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                          Generated Asset
-                        </span>
-                        <a
-                          href={imageUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-violet-600 hover:text-violet-800 transition-colors flex items-center gap-1"
-                        >
-                          View Full <span className="text-[14px]">↗</span>
-                        </a>
-                      </div>
-                    </div>
-                  );
+                  return <ImageWithSkeleton src={imageUrl} alt="Generated Visual Asset" />;
                 }
                 return null;
               })()}

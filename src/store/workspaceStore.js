@@ -48,17 +48,22 @@ export const useWorkspaceStore = create(
        */
       hasPermission: (permissionKey) => {
         const { permissions } = get();
-        return permissions.some((p) => p.permissionKey === permissionKey);
+        if (!permissions || !Array.isArray(permissions)) return false;
+        return permissions.some((p) => {
+          if (typeof p === 'string') return p === permissionKey;
+          return p.permissionKey === permissionKey || p.key === permissionKey || p.permission === permissionKey;
+        });
       },
     }),
     {
       name: 'workspace-storage',
-      // Only persist IDs and active objects — lists are re-fetched on login/switch
+      // Persist active IDs, active objects, and permissions to survive page refreshes
       partialize: (state) => ({
         organizationId: state.organizationId,
         workspaceId: state.workspaceId,
         activeOrganization: state.activeOrganization,
         activeWorkspace: state.activeWorkspace,
+        permissions: state.permissions,
       }),
     }
   )

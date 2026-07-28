@@ -23,9 +23,6 @@ export default defineConfig(({ mode }) => {
       host: true,
       port: port,
       allowedHosts: true,
-      hmr: {
-        clientPort: 443,
-      },
     },
     preview: {
       host: true,

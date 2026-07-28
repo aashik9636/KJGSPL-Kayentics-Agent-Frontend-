@@ -8,13 +8,6 @@ import { useWorkspaceStore } from '../store/workspaceStore';
  * Connects to the Node.js proxy at `/conversations/brain/stream` which
  * forwards to Python's `/api/brain/stream`. Streams token-by-token progress
  * for real-time UX instead of waiting for the full REST response.
- *
- * Stream protocol (from Python → Node proxy → frontend):
- *   { type: "status",  content: "Analyzing query intent..." }
- *   { type: "token",   content: "partial " }
- *   { type: "token",   content: "answer text" }
- *   { type: "done",    metadata: { in_scope, target_orchestrators } }
- *   { type: "error",   content: "error message" }
  */
 export const useBrainStream = () => {
   const [streamingText, setStreamingText] = useState('');
@@ -89,69 +82,75 @@ export const useBrainStream = () => {
     setMetadata(null);
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-    const defaultWsUrl = apiBaseUrl.replace(/^http/, 'ws');
+    const defaultWsUrl = apiBaseUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
     const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || defaultWsUrl;
     const socketUrl = `${wsBaseUrl}/conversations/brain/stream?token=${accessToken}&bypass-tunnel-reminder=true&ngrok-skip-browser-warning=true`;
-    const socket = new WebSocket(socketUrl);
-    wsRef.current = socket;
+    
+    try {
+      const socket = new WebSocket(socketUrl);
+      wsRef.current = socket;
 
-    socket.onopen = () => {
-      setStatus('Analyzing query intent...');
-      socket.send(JSON.stringify({
-        user_query: userQuery,
-        session_id: sessionId,
-        company_id: workspaceId || undefined,
-        organization_id: organizationId || undefined,
-      }));
-    };
+      socket.onopen = () => {
+        setStatus('Analyzing query intent...');
+        socket.send(JSON.stringify({
+          user_query: userQuery,
+          session_id: sessionId,
+          company_id: workspaceId || undefined,
+          organization_id: organizationId || undefined,
+        }));
+      };
 
-    socket.onmessage = (event) => {
-      try {
-        const chunk = JSON.parse(event.data);
+      socket.onmessage = (event) => {
+        try {
+          const chunk = JSON.parse(event.data);
 
-        switch (chunk.type) {
-          case 'status':
-            setStatus(chunk.content);
-            break;
+          switch (chunk.type) {
+            case 'status':
+              setStatus(chunk.content);
+              break;
 
-          case 'token':
-            setStatus('');
-            setStreamingText(prev => prev + chunk.content);
-            break;
+            case 'token':
+              setStatus('');
+              setStreamingText(prev => prev + chunk.content);
+              break;
 
-          case 'done':
-            setIsStreaming(false);
-            setStatus('');
-            setMetadata(chunk.metadata || null);
-            socket.close();
-            break;
+            case 'done':
+              setIsStreaming(false);
+              setStatus('');
+              setMetadata(chunk.metadata || null);
+              socket.close();
+              break;
 
-          case 'error':
-            setError(chunk.content || 'An error occurred during generation.');
-            setIsStreaming(false);
-            setStatus('');
-            socket.close();
-            break;
+            case 'error':
+              setError(chunk.content || 'An error occurred during generation.');
+              setIsStreaming(false);
+              setStatus('');
+              socket.close();
+              break;
 
-          default:
-            console.warn('Unknown Brain Stream chunk type:', chunk.type);
+            default:
+              console.warn('Unknown Brain Stream chunk type:', chunk.type);
+          }
+        } catch (err) {
+          console.error('Failed to parse Brain Stream message', err);
         }
-      } catch (err) {
-        console.error('Failed to parse Brain Stream message', err);
-      }
-    };
+      };
 
-    socket.onerror = () => {
-      // Fallback to Background Async Mode if socket fails
-      setError('Connection error — falling back to background processing.');
-      setIsStreaming(false);
-      setStatus('');
+      socket.onerror = () => {
+        // Fallback to Background Async Mode if socket fails
+        setError('Connection error — falling back to background processing.');
+        setIsStreaming(false);
+        setStatus('');
+        startBackgroundExecution(sessionId, userQuery);
+      };
+
+      socket.onclose = () => {
+        setIsStreaming(false);
+      };
+    } catch (wsErr) {
+      console.error('Failed to initialize WebSocket:', wsErr);
       startBackgroundExecution(sessionId, userQuery);
-    };
-
-    socket.onclose = () => {
-      setIsStreaming(false);
-    };
+    }
   }, [startBackgroundExecution]);
 
   const disconnect = useCallback(() => {

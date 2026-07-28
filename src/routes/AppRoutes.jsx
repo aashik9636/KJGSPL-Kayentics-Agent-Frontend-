@@ -13,6 +13,7 @@ import Agents from '../pages/Agents';
 import PricingPlans from '../pages/PricingPlans';
 import SubscriptionUsageDashboard from '../pages/SubscriptionUsageDashboard';
 import AuditLogs from '../pages/SuperAdmin/AuditLogs';
+import Unauthorized from '../pages/Unauthorized';
 
 export const AppRoutes = (
   <Route element={<AppLayout />}>
@@ -29,6 +30,7 @@ export const AppRoutes = (
     <Route path="/pricing" element={<PricingPlans />} />
     <Route path="/subscription" element={<SubscriptionUsageDashboard />} />
     <Route path="/audit-logs" element={<AuditLogs />} />
+    <Route path="/unauthorized" element={<Unauthorized />} />
   </Route>
 );
 

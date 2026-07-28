@@ -46,6 +46,11 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register');
 
+    // Handle 403 Forbidden gracefully
+    if (error.response?.status === 403) {
+      toast.error("Access Denied: You do not have permission to perform this action.");
+    }
+
     // Check if error is 401, not a retry, not the refresh endpoint itself, and not an auth request
     if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh' && !isAuthEndpoint) {
       originalRequest._retry = true;

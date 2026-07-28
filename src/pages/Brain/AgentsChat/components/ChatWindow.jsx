@@ -341,7 +341,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
 
             {/* Thinking indicator — show only when sending but no streaming text yet */}
             {isSending && !brain.streamingText && (
-              <div className="flex items-start gap-3.5 py-4 w-full">
+              <div className="flex items-start gap-3.5 py-4 w-full animate-fade-in">
                 {/* Premium AI Avatar (matching MessageBubble) */}
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1 overflow-hidden">
                   <video
@@ -355,22 +355,76 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                   />
                 </div>
                 
-                {/* Premium Chat Bubble Shape */}
-                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)]">
-                  {/* Bouncing dots */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                {Boolean(
+                  brain.status?.toLowerCase().match(/image|visual|generating|design|picture|photo|drawing|logo|art|synthesize/) ||
+                  input?.toLowerCase().match(/image|generate|draw|design|picture|photo|logo|banner/)
+                ) ? (
+                  /* Light Theme ChatGPT-style DALL-E Image Generation Skeleton Card */
+                  <div className="relative w-full aspect-square max-w-[420px] bg-slate-50/90 border border-slate-200/90 rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col justify-between select-none">
+                    {/* Top Header Label - matching ChatGPT "Creating image" */}
+                    <div className="flex items-center justify-between z-10">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[15px] font-semibold text-slate-800 tracking-tight">Creating image</span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#6c48ff] animate-ping" />
+                        </span>
+                      </div>
+
+                      <span className="text-[11px] font-bold tracking-wider uppercase text-[#6c48ff] bg-purple-100/80 px-2 py-0.5 rounded-full">
+                        DALL-E 3
+                      </span>
+                    </div>
+
+                    {/* Center Animated Dot Matrix Wave (matching ChatGPT exact dot grid animation) */}
+                    <div className="relative flex-1 my-3 flex items-center justify-center overflow-hidden">
+                      {/* Soft Shimmer Sweep Overlay */}
+                      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer pointer-events-none z-10" />
+
+                      {/* 12x12 Dot Matrix Pattern */}
+                      <div className="grid grid-cols-12 gap-2.5 justify-items-center items-center opacity-80">
+                        {Array.from({ length: 12 }).map((_, row) =>
+                          Array.from({ length: 12 }).map((_, col) => {
+                            const distance = Math.sqrt(Math.pow(row - 5.5, 2) + Math.pow(col - 5.5, 2));
+                            const delay = distance * 120;
+
+                            return (
+                              <div
+                                key={`${row}-${col}`}
+                                className="w-1.5 h-1.5 rounded-full bg-purple-500/60 animate-dot-wave"
+                                style={{ animationDelay: `${delay}ms` }}
+                              />
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bottom Status Text */}
+                    <div className="z-10 flex items-center justify-between text-xs text-slate-500 border-t border-slate-200/60 pt-3">
+                      <span className="font-medium truncate max-w-[280px]">
+                        {brain.status || "Synthesizing visual asset..."}
+                      </span>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-[#6c48ff]">
+                        <span className="animate-pulse">Rendering</span>...
+                      </div>
+                    </div>
                   </div>
-                  
-                  {/* Dynamic Status Text inside the bubble */}
-                  {brain.status && (
-                    <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
-                      {brain.status}
-                    </span>
-                  )}
-                </div>
+                ) : (
+                  /* Standard Chat Bubble */
+                  <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    
+                    {brain.status && (
+                      <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
+                        {brain.status}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -468,7 +522,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
           <form
             ref={inputFormRef}
             onSubmit={onFormSubmit}
-            className="w-full flex items-end gap-3 bg-white/80 backdrop-blur-2xl rounded-xl border border-white shadow-[0_8px_32px_rgba(108,72,255,0.08)] px-5 py-4 transition-all focus-within:bg-white focus-within:border-indigo-50 focus-within:shadow-[0_12px_48px_rgba(108,72,255,0.15)] relative overflow-hidden"
+            className="w-full flex items-center gap-3 bg-white/85 backdrop-blur-2xl rounded-xl border border-white shadow-[0_4px_24px_rgba(108,72,255,0.06)] px-4.5 py-2.5 sm:py-3 transition-all focus-within:bg-white focus-within:border-indigo-50 focus-within:shadow-[0_8px_32px_rgba(108,72,255,0.12)] relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/30 to-purple-50/30 pointer-events-none opacity-0 focus-within:opacity-100 transition-opacity duration-500"></div>
             <textarea
@@ -483,14 +537,14 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               onKeyDown={onKeyDown}
               disabled={isInputDisabled}
               placeholder={placeholder}
-              className="flex-1 resize-none bg-transparent text-[15px] text-gray-900 placeholder:text-gray-400 outline-none leading-relaxed py-1.5 font-medium disabled:opacity-40 min-h-[32px] z-10"
+              className="flex-1 resize-none bg-transparent text-[14px] sm:text-[15px] text-gray-900 placeholder:text-gray-400 outline-none leading-normal py-0.5 font-medium disabled:opacity-40 min-h-[24px] z-10"
               style={{ overflow: 'hidden' }}
             />
 
             <button
               type="submit"
               disabled={isInputDisabled || !input.trim()}
-              className="flex-shrink-0 w-11 h-11 rounded-[16px] flex items-center justify-center transition-all duration-300 disabled:opacity-50 z-10 hover:shadow-lg hover:-translate-y-0.5"
+              className="flex-shrink-0 w-9.5 h-9.5 rounded-xl flex items-center justify-center transition-all duration-300 disabled:opacity-50 z-10 hover:shadow-lg hover:-translate-y-0.5"
               style={{
                 background: (isInputDisabled || !input.trim())
                   ? '#f3f4f6'
