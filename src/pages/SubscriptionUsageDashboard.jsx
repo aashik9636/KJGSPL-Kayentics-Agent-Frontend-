@@ -145,6 +145,7 @@ export default function SubscriptionUsageDashboard() {
   const plan = subscription?.plan;
 
   const meterData = [
+    { label: 'LLM Tokens', used: (usageMeter?.totalTokensUsed || usageMeter?.tokensUsed || 0).toLocaleString(), total: 'Plan Limit', unit: '', icon: <Sparkles className="w-3.5 h-3.5 text-[#4F46E5]" />, color: 'bg-[#4F46E5]', bg: 'bg-indigo-50' },
     { label: 'Tasks', used: usageMeter?.tasksUsed || 0, total: usageMeter?.tasksLimit || 1000, unit: '', icon: <Zap className="w-3.5 h-3.5 text-indigo-600" />, color: 'bg-indigo-600', bg: 'bg-indigo-50' },
     { label: 'Images', used: usageMeter?.imagesUsed || 0, total: usageMeter?.imagesLimit || 75, unit: '', icon: <ImageIcon className="w-3.5 h-3.5 text-sky-500" />, color: 'bg-sky-500', bg: 'bg-sky-50' },
     { label: 'Research runs', used: usageMeter?.researchUsed || 0, total: usageMeter?.researchLimit || 100, unit: '', icon: <Search className="w-3.5 h-3.5 text-emerald-600" />, color: 'bg-emerald-600', bg: 'bg-emerald-50' },
