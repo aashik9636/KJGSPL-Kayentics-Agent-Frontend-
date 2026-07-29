@@ -140,6 +140,26 @@ export const chatService = {
     return response.data;
   },
 
+  generateContentSimple: async (data) => {
+    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const response = await apiClient.post('/api/generate/simple', {
+      ...data,
+      organizationId,
+      workspaceId
+    });
+    return response.data;
+  },
+
+  generateImageFromQuery: async (data) => {
+    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const response = await apiClient.post('/api/image-query/generate', {
+      ...data,
+      organizationId,
+      workspaceId
+    });
+    return response.data;
+  },
+
   orchestratorAnswer: async (data) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
     const response = await apiClient.post('/api/orchestrator/answer', {
