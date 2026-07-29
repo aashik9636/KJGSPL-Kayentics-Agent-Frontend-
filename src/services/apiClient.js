@@ -6,7 +6,10 @@ import { toast } from 'react-toastify';
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+    'X-Tunnel-Skip-Anti-Spam-Page': 'true',
+    'bypass-tunnel-reminder': 'true',
   }
 });
 
@@ -14,6 +17,10 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
   const { organizationId, workspaceId } = useWorkspaceStore.getState();
+
+  config.headers['ngrok-skip-browser-warning'] = 'true';
+  config.headers['X-Tunnel-Skip-Anti-Spam-Page'] = 'true';
+  config.headers['bypass-tunnel-reminder'] = 'true';
 
   if (accessToken) {
     config.headers['Authorization'] = `Bearer ${accessToken}`;
