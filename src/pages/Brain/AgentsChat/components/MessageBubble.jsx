@@ -285,15 +285,28 @@ export default function MessageBubble({ message, isStreaming }) {
       {/* AI avatar */}
       {!isUser && (
         <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1 overflow-hidden">
-          <video
-            src="/brain_avatar.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover scale-100"
-            style={{ objectPosition: 'center 60%' }}
-          />
+          {(() => {
+            const m = (message.model || message.agentSlug || '').toLowerCase();
+            const avatarSrc =
+              m === 'stock-market' ? '/stock_market_avatar.mp4' :
+              m === 'research' ? '/research_avatar.mp4' :
+              m === 'market' ? '/market_avatar.mp4' :
+              m === 'lead-generation' ? '/lead_gen_avatar.mp4' :
+              m === 'recruitment' ? '/recruitment_avatar.mp4' :
+              m === 'social-trends' ? '/social_trends_avatar.mp4' :
+              '/brain_avatar.mp4';
+            return (
+              <video
+                src={avatarSrc}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover scale-100"
+                style={{ objectPosition: m === 'brain' || !m ? 'center 60%' : 'center 15%' }}
+              />
+            );
+          })()}
         </div>
       )}
 

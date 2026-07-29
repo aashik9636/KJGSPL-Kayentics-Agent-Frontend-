@@ -5,12 +5,12 @@ import { agentService } from '../../services/agentService';
 
 const STATIC_FALLBACK_AGENTS = [
   { id: 'brain', name: 'Brain Agent', role: 'Meta-orchestrator & multi-agent planner', img: '/brain_avatar.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
-  { id: 'stock-market', name: 'Stock Market', role: 'Real-time financial & market data', img: '/data_analyst_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'research', name: 'Universal Research', role: 'Deep web scraping and research', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'market', name: 'Competitor Intelligence', role: 'Market & competitor analysis', img: '/agent2.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'lead-generation', name: 'Lead Generation', role: 'B2B lead discovery & prospecting', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'recruitment', name: 'Recruitment Agent', role: 'Talent sourcing and outreach', img: '/agent3.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'social-trends', name: 'Social Trends', role: 'Social media trend discovery', img: '/customer_support_avatar.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'stock-market', name: 'Stock Market Agent', role: 'Real-time financial & market data', img: '/stock_market_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'research', name: 'Universal Research Agent', role: 'Deep web scraping and research', img: '/research_avatar.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'market', name: 'Competitor Intelligence Agent', role: 'Market & competitor analysis', img: '/market_avatar.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'lead-generation', name: 'Lead Generation Agent', role: 'B2B lead discovery & prospecting', img: '/lead_gen_avatar.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'recruitment', name: 'Recruitment Agent', role: 'Talent sourcing and outreach', img: '/recruitment_avatar.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'social-trends', name: 'Social Trends Agent', role: 'Social media trend discovery', img: '/social_trends_avatar.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
 ];
 
 export default function AgentsDirectory() {

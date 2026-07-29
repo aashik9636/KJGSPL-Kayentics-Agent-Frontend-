@@ -428,11 +428,12 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1 overflow-hidden">
                   <video
                     src={
-                      selectedAgent === 'content' ? '/agent 1.mp4' :
-                      selectedAgent === 'social' || selectedAgent === 'market' ? '/agent2.mp4' :
-                      selectedAgent === 'recruitment' ? '/agent3.mp4' :
-                      selectedAgent === 'social-trends' ? '/customer_support_avatar.mp4' :
-                      selectedAgent === 'stock-market' ? '/data_analyst_avatar.mp4' :
+                      selectedAgent === 'stock-market' ? '/stock_market_avatar.mp4' :
+                      selectedAgent === 'research' ? '/research_avatar.mp4' :
+                      selectedAgent === 'market' ? '/market_avatar.mp4' :
+                      selectedAgent === 'lead-generation' ? '/lead_gen_avatar.mp4' :
+                      selectedAgent === 'recruitment' ? '/recruitment_avatar.mp4' :
+                      selectedAgent === 'social-trends' ? '/social_trends_avatar.mp4' :
                       '/brain_avatar.mp4'
                     }
                     autoPlay
@@ -539,11 +540,12 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-b from-purple-50/70 via-indigo-50/20 to-white flex items-center justify-center relative">
                 <video 
                   src={
-                    selectedAgent === 'content' ? '/agent 1.mp4' :
-                    selectedAgent === 'social' ? '/agent2.mp4' :
-                    selectedAgent === 'recruiter' ? '/agent3.mp4' :
-                    selectedAgent === 'support' ? '/customer_support_avatar.mp4' :
-                    selectedAgent === 'analyst' ? '/data_analyst_avatar.mp4' :
+                    selectedAgent === 'stock-market' ? '/stock_market_avatar.mp4' :
+                    selectedAgent === 'research' ? '/research_avatar.mp4' :
+                    selectedAgent === 'market' ? '/market_avatar.mp4' :
+                    selectedAgent === 'lead-generation' ? '/lead_gen_avatar.mp4' :
+                    selectedAgent === 'recruitment' ? '/recruitment_avatar.mp4' :
+                    selectedAgent === 'social-trends' ? '/social_trends_avatar.mp4' :
                     '/brain_avatar.mp4'
                   }
                   autoPlay
@@ -563,11 +565,12 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-20 translate-y-1 group-hover:translate-y-0">
               <div className="bg-gray-900 text-white text-[11px] font-semibold px-3 py-1 rounded-full whitespace-nowrap shadow-lg">
                 {
-                  selectedAgent === 'content' ? 'Content Creator' :
-                  selectedAgent === 'social' ? 'Social Media Agent' :
-                  selectedAgent === 'recruiter' ? 'Recruiter Agent' :
-                  selectedAgent === 'support' ? 'Customer Support' :
-                  selectedAgent === 'analyst' ? 'Data Analyst' :
+                  selectedAgent === 'stock-market' ? 'Stock Market Agent' :
+                  selectedAgent === 'research' ? 'Universal Research Agent' :
+                  selectedAgent === 'market' ? 'Competitor Intelligence Agent' :
+                  selectedAgent === 'lead-generation' ? 'Lead Generation Agent' :
+                  selectedAgent === 'recruitment' ? 'Recruitment Agent' :
+                  selectedAgent === 'social-trends' ? 'Social Trends Agent' :
                   'Brain Agent'
                 }
               </div>

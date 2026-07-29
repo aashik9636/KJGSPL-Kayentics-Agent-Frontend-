@@ -159,12 +159,12 @@ export default function RightSidebar({
               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pb-4 pr-1">
                 {[
                   { id: 'brain', image: '/brain_avatar.mp4', isVideo: true, name: 'Brain Agent', desc: 'Meta-orchestrator & multi-agent planner', comingSoon: false },
-                  { id: 'stock-market', image: '/data_analyst_avatar.mp4', isVideo: true, name: 'Stock Market', desc: 'Real-time financial & market data', comingSoon: false },
-                  { id: 'research', image: '/agent 1.mp4', isVideo: true, name: 'Universal Research', desc: 'Deep web scraping and research', comingSoon: false },
-                  { id: 'market', image: '/agent2.mp4', isVideo: true, name: 'Competitor Intelligence', desc: 'Market & competitor analysis', comingSoon: false },
-                  { id: 'lead-generation', image: '/agent 1.mp4', isVideo: true, name: 'Lead Generation', desc: 'B2B lead discovery & prospecting', comingSoon: false },
-                  { id: 'recruitment', image: '/agent3.mp4', isVideo: true, name: 'Recruitment Agent', desc: 'Talent sourcing and outreach', comingSoon: false },
-                  { id: 'social-trends', image: '/customer_support_avatar.mp4', isVideo: true, name: 'Social Trends', desc: 'Social media trend discovery', comingSoon: false },
+                  { id: 'stock-market', image: '/stock_market_avatar.mp4', isVideo: true, name: 'Stock Market Agent', desc: 'Real-time financial & market data', comingSoon: false },
+                  { id: 'research', image: '/research_avatar.mp4', isVideo: true, name: 'Universal Research Agent', desc: 'Deep web research & scraping', comingSoon: false },
+                  { id: 'market', image: '/market_avatar.mp4', isVideo: true, name: 'Competitor Intelligence', desc: 'Market & competitor analysis', comingSoon: false },
+                  { id: 'lead-generation', image: '/lead_gen_avatar.mp4', isVideo: true, name: 'Lead Generation Agent', desc: 'B2B lead discovery & prospecting', comingSoon: false },
+                  { id: 'recruitment', image: '/recruitment_avatar.mp4', isVideo: true, name: 'Recruitment Agent', desc: 'Talent sourcing and outreach', comingSoon: false },
+                  { id: 'social-trends', image: '/social_trends_avatar.mp4', isVideo: true, name: 'Social Trends Agent', desc: 'Social media trend discovery', comingSoon: false },
                 ].map((agent, i) => {
                   const isActive = selectedAgent === agent.id;
                   const isLocked = agent.comingSoon;
