@@ -11,6 +11,9 @@ const STATIC_FALLBACK_AGENTS = [
   { id: 'lead-generation', name: 'Lead Generation Agent', role: 'B2B lead discovery & prospecting', img: '/lead_gen_avatar.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
   { id: 'recruitment', name: 'Recruitment Agent', role: 'Talent sourcing and outreach', img: '/recruitment_avatar.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
   { id: 'social-trends', name: 'Social Trends Agent', role: 'Social media trend discovery', img: '/social_trends_avatar.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'image-generation', name: 'Image Generation Agent', role: 'AI visual generation & brand asset design', img: '/market_avatar.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'campaign-planner', name: 'Campaign Planner Agent', role: 'Multi-channel marketing campaign strategy', img: '/research_avatar.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'post-scheduler', name: 'Post Scheduler Agent', role: 'Social media calendar & posting automation', img: '/stock_market_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
 ];
 
 export default function AgentsDirectory() {
