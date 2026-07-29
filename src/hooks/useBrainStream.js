@@ -164,8 +164,93 @@ export const useBrainStream = () => {
               socket.close();
               break;
 
+            case 'image_result':
+              if (chunk.metadata) {
+                if (chunk.metadata.image_url) {
+                  setArtifacts(prev => [...prev, { type: 'image', url: chunk.metadata.image_url, ...chunk.metadata }]);
+                }
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: Date.now(),
+                    label: 'Image Generator',
+                    summary: chunk.metadata.status === 'ready' ? 'Generated visual asset' : 'Generating image...',
+                    preview: chunk.metadata.image_url || null,
+                  },
+                ]);
+              }
+              break;
+
+            case 'campaign_section':
+              if (chunk.metadata) {
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: Date.now(),
+                    label: 'Campaign Planner',
+                    summary: `Generated section: ${chunk.metadata.section || 'Campaign Strategy'}`,
+                    data: chunk.metadata.data,
+                  },
+                ]);
+              }
+              break;
+
+            case 'post_scheduled':
+              if (chunk.metadata) {
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: Date.now(),
+                    label: 'Post Scheduler',
+                    summary: `Scheduled ${chunk.metadata.platform || 'Social'} post: ${chunk.metadata.topic || ''}`,
+                    preview: chunk.metadata.image_url || null,
+                  },
+                ]);
+              }
+              break;
+
+            case 'trend_result':
+              if (chunk.metadata) {
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: Date.now(),
+                    label: 'Trend Scout',
+                    summary: `Found trend: ${chunk.metadata.trend_name || 'Market Insight'}`,
+                    preview: chunk.metadata.why_trending || null,
+                  },
+                ]);
+              }
+              break;
+
+            case 'business_profile_result':
+            case 'content_result':
+            case 'creative_result':
+              if (chunk.metadata) {
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: Date.now(),
+                    label: chunk.type.replace('_result', '').replace(/_/g, ' ').toUpperCase(),
+                    summary: chunk.metadata.status || 'Completed stage',
+                    data: chunk.metadata.distilled_company_info || chunk.metadata.final_content || chunk.metadata.data,
+                  },
+                ]);
+              }
+              break;
+
             default:
-              console.warn('Unknown Brain Stream chunk type:', chunk.type);
+              if (chunk.metadata || chunk.content) {
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: Date.now(),
+                    label: chunk.type ? chunk.type.toUpperCase() : 'AGENT EVENT',
+                    summary: chunk.content || (typeof chunk.metadata === 'string' ? chunk.metadata : 'Processing stage'),
+                  },
+                ]);
+              }
+              break;
           }
         } catch (err) {
           console.error('Failed to parse Brain Stream message', err);

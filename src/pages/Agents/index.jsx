@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
+import { agentService } from '../../services/agentService';
 
-const AGENTS = [
+const STATIC_FALLBACK_AGENTS = [
   { id: 'brain', name: 'Brain Agent', role: 'Meta-orchestrator & multi-agent planner', img: '/brain_avatar.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
   { id: 'stock-market', name: 'Stock Market', role: 'Real-time financial & market data', img: '/data_analyst_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
   { id: 'research', name: 'Universal Research', role: 'Deep web scraping and research', img: '/agent 1.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
@@ -14,16 +15,48 @@ const AGENTS = [
 
 export default function AgentsDirectory() {
   const navigate = useNavigate();
-  const containerRef = React.useRef(null);
+  const containerRef = useRef(null);
+  const [agents, setAgents] = useState(STATIC_FALLBACK_AGENTS);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    let isMounted = true;
+    agentService.getAgents()
+      .then((res) => {
+        const dataList = Array.isArray(res) ? res : res?.data;
+        if (isMounted && Array.isArray(dataList) && dataList.length > 0) {
+          const mapped = dataList.map((item) => {
+            const slug = item.slug || item.id;
+            const fallbackItem = STATIC_FALLBACK_AGENTS.find(s => s.id === slug) || {};
+            const imgUrl = item.avatar_url || fallbackItem.img || '/agent 1.mp4';
+            return {
+              id: slug,
+              name: item.name || fallbackItem.name,
+              role: item.role || item.description || fallbackItem.role,
+              img: imgUrl,
+              isVideo: imgUrl.endsWith('.mp4'),
+              bg: fallbackItem.bg || 'from-[#e0d4ff] to-[#f4f7fe]',
+              comingSoon: item.is_coming_soon ?? false,
+              objectPos: fallbackItem.objectPos || 'center 15%',
+            };
+          });
+          setAgents(mapped);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not fetch DB agents, using fallback:', err);
+      });
+
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
     if (containerRef.current) {
       gsap.fromTo(containerRef.current.querySelectorAll('.agent-card'),
         { opacity: 0, y: 30, scale: 0.95 },
         { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.08, ease: 'power3.out' }
       );
     }
-  }, []);
+  }, [agents]);
 
   const handleChat = (agent) => {
     if (agent.comingSoon) return;
@@ -44,7 +77,7 @@ export default function AgentsDirectory() {
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {AGENTS.map((agent) => {
+          {agents.map((agent) => {
             const isLocked = agent.comingSoon;
             return (
               <div 
