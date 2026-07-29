@@ -46,4 +46,29 @@ export const aiUsageService = {
     const response = await apiClient.get('/ai-usage/reports/cost', { params });
     return response.data;
   },
+
+  /**
+   * Get cumulative token usage for current authenticated user
+   */
+  async getMyTokenUsage() {
+    const response = await apiClient.get('/ai-usage/user-tokens/me');
+    return response.data;
+  },
+
+  /**
+   * Get cumulative token usage list for company/organization members
+   */
+  async getUserTokenUsages(organizationId, workspaceId, filters = {}) {
+    const params = cleanParams({ organizationId, workspaceId, ...filters });
+    const response = await apiClient.get('/ai-usage/user-tokens', { params });
+    return response.data;
+  },
+
+  /**
+   * Get cumulative token usage for a specific user ID
+   */
+  async getUserTokenUsage(userId) {
+    const response = await apiClient.get(`/ai-usage/user-tokens/${userId}`);
+    return response.data;
+  },
 };

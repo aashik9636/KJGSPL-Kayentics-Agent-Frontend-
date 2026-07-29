@@ -26,6 +26,7 @@ export default function SubscriptionUsageDashboard() {
   const [aiSummary, setAiSummary] = useState(null);
   const [aiDailyLogs, setAiDailyLogs] = useState([]);
   const [aiCostReport, setAiCostReport] = useState(null);
+  const [userTokenUsages, setUserTokenUsages] = useState([]);
   const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
@@ -55,15 +56,17 @@ export default function SubscriptionUsageDashboard() {
   const fetchAiUsage = async () => {
     setLoadingAi(true);
     try {
-      const [summaryRes, dailyRes, costRes] = await Promise.allSettled([
+      const [summaryRes, dailyRes, costRes, userTokensRes] = await Promise.allSettled([
         aiUsageService.getDashboardSummary(organizationId, workspaceId),
         aiUsageService.getDailyUsage(organizationId, workspaceId),
         aiUsageService.getCostReport(organizationId, workspaceId),
+        aiUsageService.getUserTokenUsages(organizationId, workspaceId),
       ]);
 
       if (summaryRes.status === 'fulfilled') setAiSummary(summaryRes.value);
       if (dailyRes.status === 'fulfilled') setAiDailyLogs(dailyRes.value || []);
       if (costRes.status === 'fulfilled') setAiCostReport(costRes.value);
+      if (userTokensRes.status === 'fulfilled') setUserTokenUsages(userTokensRes.value || []);
     } catch (err) {
       console.error('Failed to load AI usage analytics:', err);
     } finally {
@@ -343,6 +346,50 @@ export default function SubscriptionUsageDashboard() {
               </div>
               <p className="text-[11px] text-gray-500 mt-1">Tracked across active AI agents</p>
             </div>
+          </div>
+
+          {/* Member Token Usage Table */}
+          <div className="bg-white border border-gray-200/80 rounded-xl p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 font-['Space_Grotesk']">Team Member Token Consumption</h4>
+                <p className="text-[11.5px] text-gray-500">Cumulative LLM tokens recorded in user_token_usages table</p>
+              </div>
+              <Users className="w-4 h-4 text-[#4F46E5]" />
+            </div>
+
+            {userTokenUsages.length === 0 ? (
+              <div className="py-6 text-center text-xs text-gray-400 font-medium">
+                No member token records found yet for this period.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-gray-400 font-bold uppercase tracking-wider text-[10.5px]">
+                      <th className="pb-2.5">Member / Email</th>
+                      <th className="pb-2.5">User ID</th>
+                      <th className="pb-2.5 text-right">Tokens Consumed</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {userTokenUsages.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-2.5 font-semibold text-gray-800">
+                          {item.email || item.userId}
+                        </td>
+                        <td className="py-2.5 font-mono text-[11px] text-gray-400 truncate max-w-[140px]">
+                          {item.userId}
+                        </td>
+                        <td className="py-2.5 text-right font-bold text-[#4F46E5] font-['Space_Grotesk']">
+                          {(item.totalTokens || item.total_tokens || 0).toLocaleString()} tokens
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
