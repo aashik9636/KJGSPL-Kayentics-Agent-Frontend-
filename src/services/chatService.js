@@ -42,8 +42,10 @@ export const chatService = {
   },
 
   setBrainModelPreference: async (preference) => {
-    const response = await apiClient.put('/api/brain/model-preference', preference);
-    return response.data;
+    // Note: PUT /api/brain/model-preference is disabled (410 Gone).
+    // Per-user model selection is controlled by super-admin category defaults and agent policies.
+    console.warn('Per-user model preference setting is disabled (read-only/super-admin managed).');
+    return { success: false, message: 'Model preferences are managed globally by administrators.' };
   },
 
   runOrchestrator: async (data) => {

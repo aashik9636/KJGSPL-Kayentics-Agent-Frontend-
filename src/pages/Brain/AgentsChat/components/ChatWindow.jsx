@@ -234,7 +234,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       await new Promise(resolve => {
         const check = setInterval(() => {
           const currentSub = subAgentRef.current;
-          if (!currentSub.isStreaming) {
+          if (!currentSub.isStreaming && !currentSub.isPendingBackground) {
             if (currentSub.streamingText || currentSub.error || currentSub.metadata) {
               clearInterval(check);
               resolve();
@@ -247,24 +247,23 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       });
 
       const finalAnswer = subAgentRef.current.streamingText;
+      const sources = subAgentRef.current.sources || subAgentRef.current.metadata?.sources || [];
+      const artifacts = subAgentRef.current.artifacts || subAgentRef.current.metadata?.artifacts || [];
+      const metrics = subAgentRef.current.metrics || subAgentRef.current.metadata?.metrics || null;
+      const tokensUsed = subAgentRef.current.metadata?.tokens_used || null;
+
       if (!finalAnswer) {
-        // If non-streaming REST fallback is needed (e.g. social-trends)
-        const res = await chatService.runSubAgentChat(selectedAgent, { message: userQuery, sessionId });
-        const answer = res?.response || res?.finalAnswer || 'Task completed.';
-        setMessages(prev => [...prev, {
-          role: 'ASSISTANT',
-          content: answer,
-          model: selectedAgent,
-          sources: res?.sources || [],
-        }]);
-        return;
+        throw new Error('No response generated.');
       }
 
       setMessages(prev => [...prev, {
         role: 'ASSISTANT',
         content: finalAnswer,
         model: selectedAgent,
-        sources: subAgentRef.current.sources || [],
+        sources,
+        artifacts,
+        metrics,
+        tokensUsed,
       }]);
     } catch (err) {
       console.error(`${selectedAgent} request failed`, err);

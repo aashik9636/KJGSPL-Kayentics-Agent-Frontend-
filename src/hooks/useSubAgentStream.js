@@ -13,11 +13,50 @@ export const useSubAgentStream = () => {
   const [streamingText, setStreamingText] = useState('');
   const [status, setStatus] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isPendingBackground, setIsPendingBackground] = useState(false);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
+  const [metrics, setMetrics] = useState(null);
+  const [artifacts, setArtifacts] = useState([]);
+  const [steps, setSteps] = useState([]);
   const [sources, setSources] = useState([]);
 
   const wsRef = useRef(null);
+  const pollIntervalRef = useRef(null);
+
+  const startBackgroundExecution = useCallback(async (agentSlug, sessionId, message, jobId) => {
+    setIsStreaming(false);
+    setIsPendingBackground(true);
+    setStatus(`Processing ${agentSlug} query...`);
+
+    try {
+      const { organizationId, workspaceId } = useWorkspaceStore.getState();
+      const apiClient = (await import('../services/apiClient')).default;
+      
+      // Dispatch REST fallback run
+      const res = await apiClient.post(`/api/chat/${agentSlug}`, {
+        message,
+        userQuery: message,
+        sessionId,
+        jobId: jobId || undefined,
+        organizationId,
+        workspaceId,
+      });
+
+      const data = res.data;
+      setIsPendingBackground(false);
+      setStatus('');
+      const answer = data?.response || data?.finalAnswer || data?.content || 'Task completed.';
+      setStreamingText(answer);
+      setSources(data?.sources || []);
+      setMetadata(data?.metadata || data || null);
+    } catch (err) {
+      console.error(`Failed background execution for ${agentSlug}:`, err);
+      setIsPendingBackground(false);
+      setStatus('');
+      setError('Failed to complete request.');
+    }
+  }, []);
 
   const send = useCallback((agentSlug, sessionId, message, options = {}) => {
     const accessToken = useAuthStore.getState().accessToken;
@@ -34,10 +73,14 @@ export const useSubAgentStream = () => {
     const jobId = options.jobId || options.job_id || `job_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
 
     setIsStreaming(true);
+    setIsPendingBackground(false);
     setStatus(`Connecting to ${agentSlug} agent...`);
     setError(null);
     setStreamingText('');
     setMetadata(null);
+    setMetrics(null);
+    setArtifacts([]);
+    setSteps([]);
     setSources([]);
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -53,6 +96,7 @@ export const useSubAgentStream = () => {
         setStatus(`Running ${agentSlug} query...`);
         socket.send(JSON.stringify({
           message: message,
+          user_query: message,
           session_id: sessionId,
           job_id: jobId,
           company_id: workspaceId || undefined,
@@ -67,6 +111,26 @@ export const useSubAgentStream = () => {
           switch (chunk.type) {
             case 'status':
               setStatus(chunk.content);
+              if (chunk.metadata) {
+                if (chunk.metadata.artifact) {
+                  setArtifacts(prev => [...prev, chunk.metadata.artifact]);
+                }
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: chunk.metadata.step || Date.now(),
+                    label: chunk.metadata.agent_label || `${agentSlug} agent`,
+                    summary: chunk.metadata.summary || chunk.content,
+                    preview: chunk.metadata.preview || null,
+                  },
+                ]);
+              }
+              break;
+
+            case 'metrics':
+              if (chunk.metadata) {
+                setMetrics(prev => ({ ...(prev || {}), ...chunk.metadata }));
+              }
               break;
 
             case 'token':
@@ -80,6 +144,9 @@ export const useSubAgentStream = () => {
               if (chunk.metadata?.sources) {
                 setSources(chunk.metadata.sources);
               }
+              if (chunk.metadata?.artifacts && Array.isArray(chunk.metadata.artifacts)) {
+                setArtifacts(chunk.metadata.artifacts);
+              }
               setMetadata(chunk.metadata || null);
               socket.close();
               break;
@@ -92,7 +159,16 @@ export const useSubAgentStream = () => {
               break;
 
             default:
-              console.warn(`Unknown ${agentSlug} stream chunk type:`, chunk.type);
+              if (chunk.metadata || chunk.content) {
+                setSteps(prev => [
+                  ...prev,
+                  {
+                    id: Date.now(),
+                    label: chunk.type ? chunk.type.toUpperCase() : 'AGENT EVENT',
+                    summary: chunk.content || 'Processing stage',
+                  },
+                ]);
+              }
           }
         } catch (err) {
           console.error(`Failed to parse ${agentSlug} WebSocket message`, err);
@@ -100,28 +176,29 @@ export const useSubAgentStream = () => {
       };
 
       socket.onerror = (event) => {
-        console.error(`${agentSlug} WebSocket Error`, event);
-        setError('Connection error occurred.');
-        setIsStreaming(false);
-        setStatus('');
+        console.warn(`${agentSlug} WebSocket Error, triggering background execution fallback`, event);
+        startBackgroundExecution(agentSlug, sessionId, message, jobId);
       };
 
       socket.onclose = () => {
         setIsStreaming(false);
       };
     } catch (wsErr) {
-      console.error(`Failed to initialize ${agentSlug} WebSocket:`, wsErr);
-      setIsStreaming(false);
-      setError('Failed to establish WebSocket connection.');
+      console.warn(`Failed to initialize ${agentSlug} WebSocket, running background fallback:`, wsErr);
+      startBackgroundExecution(agentSlug, sessionId, message, jobId);
     }
-  }, []);
+  }, [startBackgroundExecution]);
 
   const disconnect = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
     }
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
     setIsStreaming(false);
+    setIsPendingBackground(false);
   }, []);
 
   const reset = useCallback(() => {
@@ -130,6 +207,9 @@ export const useSubAgentStream = () => {
     setStatus('');
     setError(null);
     setMetadata(null);
+    setMetrics(null);
+    setArtifacts([]);
+    setSteps([]);
     setSources([]);
   }, [disconnect]);
 
@@ -137,8 +217,12 @@ export const useSubAgentStream = () => {
     streamingText,
     status,
     isStreaming,
+    isPendingBackground,
     error,
     metadata,
+    metrics,
+    artifacts,
+    steps,
     sources,
     send,
     disconnect,
