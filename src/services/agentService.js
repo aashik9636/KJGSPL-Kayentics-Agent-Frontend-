@@ -3,12 +3,7 @@ import { useWorkspaceStore } from '../store/workspaceStore';
 
 export const agentService = {
   getAgents: async () => {
-    const response = await apiClient.get('/api/subagents/catalog');
-    return response.data;
-  },
-
-  getCatalog: async () => {
-    const response = await apiClient.get('/api/subagents/catalog');
+    const response = await apiClient.get('/agents');
     return response.data;
   },
 
