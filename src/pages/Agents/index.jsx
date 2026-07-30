@@ -30,10 +30,7 @@ export default function AgentsDirectory() {
           const mapped = dataList.map((item) => {
             const slug = item.slug || item.id;
             const fallbackItem = STATIC_FALLBACK_AGENTS.find(s => s.id === slug) || {};
-            const rawUrl = item.avatar_url;
-            const imgUrl = (rawUrl && !rawUrl.includes('agent 1') && !rawUrl.includes('agent2') && !rawUrl.includes('agent3')) 
-              ? (rawUrl === '/data_analyst_avatar.mp4' ? '/stock_market_avatar.mp4' : rawUrl)
-              : fallbackItem.img || '/brain_avatar.mp4';
+            const imgUrl = item.avatar_url || fallbackItem.img || '/agent 1.mp4';
             return {
               id: slug,
               name: item.name || fallbackItem.name,
