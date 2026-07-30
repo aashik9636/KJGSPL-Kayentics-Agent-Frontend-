@@ -115,15 +115,38 @@ export const useSubAgentStream = () => {
                 if (chunk.metadata.artifact) {
                   setArtifacts(prev => [...prev, chunk.metadata.artifact]);
                 }
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: chunk.metadata.step || Date.now(),
-                    label: chunk.metadata.agent_label || `${agentSlug} agent`,
-                    summary: chunk.metadata.summary || chunk.content,
-                    preview: chunk.metadata.preview || null,
-                  },
-                ]);
+                const stepId = chunk.metadata.step_id || chunk.metadata.step || `step_${Date.now()}_${Math.random()}`;
+                const stepLabel = chunk.metadata.label || chunk.metadata.agent_label || `${agentSlug} agent`;
+                const stepSummary = chunk.metadata.summary || chunk.content;
+                const stepState = chunk.metadata.state || 'running';
+                const stepKind = chunk.metadata.kind || 'step';
+
+                setSteps(prev => {
+                  const idx = prev.findIndex(s => s.id === stepId);
+                  if (idx >= 0) {
+                    const updated = [...prev];
+                    updated[idx] = {
+                      ...updated[idx],
+                      state: stepState,
+                      summary: stepSummary,
+                      label: stepLabel,
+                      preview: chunk.metadata.preview || updated[idx].preview,
+                    };
+                    return updated;
+                  }
+                  return [
+                    ...prev,
+                    {
+                      id: stepId,
+                      parent: chunk.metadata.parent || null,
+                      kind: stepKind,
+                      state: stepState,
+                      label: stepLabel,
+                      summary: stepSummary,
+                      preview: chunk.metadata.preview || null,
+                    },
+                  ];
+                });
               }
               break;
 

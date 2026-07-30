@@ -3,6 +3,7 @@ import { chatService } from '../../../../services/chatService';
 import { useBrainStream } from '../../../../hooks/useBrainStream';
 import { useSubAgentStream } from '../../../../hooks/useSubAgentStream';
 import MessageBubble from './MessageBubble';
+import StepTree from './StepTree';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '../../../../store/authStore';
 import gsap from 'gsap';
@@ -428,7 +429,9 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                 message={{
                   role: 'ASSISTANT',
                   content: brain.streamingText || subAgent.streamingText,
-                  status: brain.status || subAgent.status
+                  status: brain.status || subAgent.status,
+                  steps: (brain.steps.length > 0 ? brain.steps : subAgent.steps),
+                  confidence: (brain.metadata?.confidence ?? subAgent.metadata?.confidence ?? null),
                 }} 
                 isStreaming={true} 
               />
@@ -514,18 +517,27 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                   </div>
                 ) : (
                   /* Standard Chat Bubble */
-                  <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)]">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="flex flex-col gap-2 bg-white/80 backdrop-blur-xl border border-white rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)] w-full max-w-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      
+                      {(brain.status || subAgent.status) && (
+                        <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
+                          {brain.status || subAgent.status}
+                        </span>
+                      )}
                     </div>
-                    
-                    {(brain.status || subAgent.status) && (
-                      <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
-                        {brain.status || subAgent.status}
-                      </span>
-                    )}
+
+                    <StepTree 
+                      steps={brain.steps.length > 0 ? brain.steps : subAgent.steps} 
+                      confidence={brain.metadata?.confidence ?? subAgent.metadata?.confidence ?? null} 
+                      statusText={brain.status || subAgent.status} 
+                      isStreaming={true} 
+                    />
                   </div>
                 )}
               </div>
