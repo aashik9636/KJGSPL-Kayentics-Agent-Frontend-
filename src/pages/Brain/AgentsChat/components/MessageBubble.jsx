@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getAssetUrl } from '../../../../utils/assetUrl';
+import StepTree from './StepTree';
 
 // ─── Copy button ──────────────────────────────────────────────────────────────
 function CopyButton({ text, light = false }) {
@@ -347,6 +348,16 @@ export default function MessageBubble({ message, isStreaming }) {
             <p className="text-[15px] leading-[1.6] font-medium whitespace-pre-wrap">{message.content}</p>
           ) : (
             <div className="text-[15px] leading-[1.7] text-gray-800 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 font-normal">
+              {/* Execution Step Tree */}
+              <StepTree 
+                steps={message.steps || []} 
+                nodes={message.nodes || {}}
+                rootOrder={message.rootOrder || []}
+                confidence={message.confidence} 
+                statusText={message.status} 
+                isStreaming={isStreaming} 
+                metrics={message.metrics}
+              />
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={makeMarkdownComponents(false)}

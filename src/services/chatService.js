@@ -105,6 +105,20 @@ export const chatService = {
   runRecruitmentAgent: async (data) => chatService.runSubAgentChat('recruitment', data),
   runSocialTrendsAgent: async (data) => chatService.runSubAgentChat('social-trends', data),
 
+  getBrainReplay: async (sessionId, jobId = '') => {
+    const response = await apiClient.get(`/api/brain/replay/${sessionId}`, {
+      params: { job_id: jobId || undefined }
+    });
+    return response.data;
+  },
+
+  getReplay: async (sessionId, jobId = '') => {
+    const response = await apiClient.get(`/chat/replay/${sessionId}`, {
+      params: { job_id: jobId || undefined }
+    });
+    return response.data;
+  },
+
   searchTrends: async (data) => {
     const response = await apiClient.post('/api/trends/search', data);
     return response.data;

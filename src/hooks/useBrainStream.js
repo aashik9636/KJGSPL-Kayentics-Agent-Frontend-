@@ -1,39 +1,33 @@
 import { useState, useRef, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
+import { initStreamState, applyChunk } from '../utils/streamReducer';
 
 /**
  * WebSocket streaming hook for the Main Brain Agent.
  *
- * Connects to the Node.js proxy at `/conversations/brain/stream` which
- * forwards to Python's `/api/brain/stream`. Streams token-by-token progress,
- * live metrics snapshots, step status, and artifacts for real-time UX.
+ * Connects to `/conversations/brain/stream` (or `/api/brain/stream`).
+ * Uses streamReducer for in-place Step Tree merging, cumulative metrics,
+ * artifact de-duplication, and live Markdown token accumulation.
  */
 export const useBrainStream = () => {
-  const [streamingText, setStreamingText] = useState('');
-  const [status, setStatus] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [isPendingBackground, setIsPendingBackground] = useState(false);
-  const [error, setError] = useState(null);
-  const [metadata, setMetadata] = useState(null);
-  const [metrics, setMetrics] = useState(null);
-  const [artifacts, setArtifacts] = useState([]);
-  const [steps, setSteps] = useState([]);
-
+  const [streamState, setStreamState] = useState(initStreamState());
   const wsRef = useRef(null);
   const pollIntervalRef = useRef(null);
   const currentJobIdRef = useRef(null);
 
   const startBackgroundExecution = useCallback(async (sessionId, userQuery, jobId) => {
-    setIsStreaming(false);
-    setIsPendingBackground(true);
-    setStatus('Processing in background...');
+    setStreamState(prev => ({
+      ...prev,
+      isStreaming: false,
+      isPendingBackground: true,
+      statusText: 'Processing in background...',
+    }));
 
     try {
       const { organizationId, workspaceId } = useWorkspaceStore.getState();
-      
-      // Dispatch REST background run
       const apiClient = (await import('../services/apiClient')).default;
+      
       await apiClient.post('/api/brain/run', {
         sessionId,
         userQuery,
@@ -43,20 +37,21 @@ export const useBrainStream = () => {
         organizationId: organizationId || undefined,
       });
 
-      // Poll for completion every 3 seconds
       pollIntervalRef.current = setInterval(async () => {
         try {
           const historyRes = await apiClient.get(`/conversations/${sessionId}/messages`);
           const messages = historyRes.data || [];
           const lastMsg = messages[messages.length - 1];
 
-          // When ASSISTANT reply appears in DB, background task is finished!
           if (lastMsg && (lastMsg.role === 'ASSISTANT' || lastMsg.role === 'assistant')) {
             clearInterval(pollIntervalRef.current);
-            setIsPendingBackground(false);
-            setStatus('');
-            setStreamingText(lastMsg.content || lastMsg.text || '');
-            setMetadata(lastMsg.metadata || null);
+            setStreamState(prev => ({
+              ...prev,
+              isPendingBackground: false,
+              statusText: '',
+              answer: lastMsg.content || lastMsg.text || '',
+              metadata: lastMsg.metadata || null,
+            }));
           }
         } catch (pollErr) {
           console.error('Polling error:', pollErr);
@@ -65,16 +60,19 @@ export const useBrainStream = () => {
 
     } catch (err) {
       console.error('Failed to start background execution:', err);
-      setIsPendingBackground(false);
-      setStatus('');
-      setError('Failed to start background task.');
+      setStreamState(prev => ({
+        ...prev,
+        isPendingBackground: false,
+        statusText: '',
+        error: 'Failed to start background task.',
+      }));
     }
   }, []);
 
   const send = useCallback((sessionId, userQuery, options = {}) => {
     const accessToken = useAuthStore.getState().accessToken;
     if (!accessToken) {
-      setError('Not authenticated');
+      setStreamState(prev => ({ ...prev, error: 'Not authenticated' }));
       return;
     }
 
@@ -82,32 +80,31 @@ export const useBrainStream = () => {
     const jobId = options.jobId || options.job_id || `job_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     currentJobIdRef.current = jobId;
 
-    setIsStreaming(true);
-    setIsPendingBackground(false);
-    setStatus('Connecting to Brain Agent...');
-    setError(null);
-    setStreamingText('');
-    setMetadata(null);
-    setMetrics(null);
-    setArtifacts([]);
-    setSteps([]);
+    // Reset stream state and set connecting
+    setStreamState({
+      ...initStreamState(),
+      isStreaming: true,
+      statusText: 'Connecting to Brain Agent...',
+    });
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     const defaultWsUrl = apiBaseUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
     const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || defaultWsUrl;
-    const socketUrl = `${wsBaseUrl}/conversations/brain/stream?token=${accessToken}&job_id=${encodeURIComponent(jobId)}&bypass-tunnel-reminder=true&ngrok-skip-browser-warning=true`;
+    const socketUrl = `${wsBaseUrl}/conversations/brain/stream?token=${accessToken}&session_id=${sessionId}&job_id=${encodeURIComponent(jobId)}&bypass-tunnel-reminder=true&ngrok-skip-browser-warning=true`;
     
     try {
       const socket = new WebSocket(socketUrl);
       wsRef.current = socket;
 
       socket.onopen = () => {
-        setStatus('Analyzing query intent...');
+        setStreamState(prev => ({ ...prev, statusText: 'Analyzing query intent...' }));
         socket.send(JSON.stringify({
           user_query: userQuery,
+          message: userQuery,
           session_id: sessionId,
           job_id: jobId,
           task_id: jobId,
+          token: accessToken,
           company_id: workspaceId || undefined,
           organization_id: organizationId || undefined,
         }));
@@ -116,157 +113,23 @@ export const useBrainStream = () => {
       socket.onmessage = (event) => {
         try {
           const chunk = JSON.parse(event.data);
-
-          switch (chunk.type) {
-            case 'status':
-              setStatus(chunk.content);
-              if (chunk.metadata) {
-                if (chunk.metadata.artifact) {
-                  setArtifacts(prev => [...prev, chunk.metadata.artifact]);
-                }
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: chunk.metadata.step || Date.now(),
-                    label: chunk.metadata.agent_label || 'Brain Agent',
-                    summary: chunk.metadata.summary || chunk.content,
-                    preview: chunk.metadata.preview || null,
-                  },
-                ]);
-              }
-              break;
-
-            case 'metrics':
-              if (chunk.metadata) {
-                setMetrics(prev => ({ ...(prev || {}), ...chunk.metadata }));
-              }
-              break;
-
-            case 'token':
-              setStatus('');
-              setStreamingText(prev => prev + chunk.content);
-              break;
-
-            case 'done':
-              setIsStreaming(false);
-              setStatus('');
-              if (chunk.metadata?.artifacts && Array.isArray(chunk.metadata.artifacts)) {
-                setArtifacts(chunk.metadata.artifacts);
-              }
-              setMetadata(chunk.metadata || null);
-              socket.close();
-              break;
-
-            case 'error':
-              setError(chunk.content || 'An error occurred during generation.');
-              setIsStreaming(false);
-              setStatus('');
-              socket.close();
-              break;
-
-            case 'image_result':
-              if (chunk.metadata) {
-                if (chunk.metadata.image_url) {
-                  setArtifacts(prev => [...prev, { type: 'image', url: chunk.metadata.image_url, ...chunk.metadata }]);
-                }
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: Date.now(),
-                    label: 'Image Generator',
-                    summary: chunk.metadata.status === 'ready' ? 'Generated visual asset' : 'Generating image...',
-                    preview: chunk.metadata.image_url || null,
-                  },
-                ]);
-              }
-              break;
-
-            case 'campaign_section':
-              if (chunk.metadata) {
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: Date.now(),
-                    label: 'Campaign Planner',
-                    summary: `Generated section: ${chunk.metadata.section || 'Campaign Strategy'}`,
-                    data: chunk.metadata.data,
-                  },
-                ]);
-              }
-              break;
-
-            case 'post_scheduled':
-              if (chunk.metadata) {
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: Date.now(),
-                    label: 'Post Scheduler',
-                    summary: `Scheduled ${chunk.metadata.platform || 'Social'} post: ${chunk.metadata.topic || ''}`,
-                    preview: chunk.metadata.image_url || null,
-                  },
-                ]);
-              }
-              break;
-
-            case 'trend_result':
-              if (chunk.metadata) {
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: Date.now(),
-                    label: 'Trend Scout',
-                    summary: `Found trend: ${chunk.metadata.trend_name || 'Market Insight'}`,
-                    preview: chunk.metadata.why_trending || null,
-                  },
-                ]);
-              }
-              break;
-
-            case 'business_profile_result':
-            case 'content_result':
-            case 'creative_result':
-              if (chunk.metadata) {
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: Date.now(),
-                    label: chunk.type.replace('_result', '').replace(/_/g, ' ').toUpperCase(),
-                    summary: chunk.metadata.status || 'Completed stage',
-                    data: chunk.metadata.distilled_company_info || chunk.metadata.final_content || chunk.metadata.data,
-                  },
-                ]);
-              }
-              break;
-
-            default:
-              if (chunk.metadata || chunk.content) {
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: Date.now(),
-                    label: chunk.type ? chunk.type.toUpperCase() : 'AGENT EVENT',
-                    summary: chunk.content || (typeof chunk.metadata === 'string' ? chunk.metadata : 'Processing stage'),
-                  },
-                ]);
-              }
-              break;
-          }
+          setStreamState(prev => applyChunk(prev, chunk));
         } catch (err) {
           console.error('Failed to parse Brain Stream message', err);
         }
       };
 
       socket.onerror = () => {
-        // Fallback to Background Async Mode if socket fails
-        setError('Connection error — falling back to background processing.');
-        setIsStreaming(false);
-        setStatus('');
+        setStreamState(prev => ({
+          ...prev,
+          error: 'Connection error — falling back to background processing.',
+          isStreaming: false,
+        }));
         startBackgroundExecution(sessionId, userQuery, jobId);
       };
 
       socket.onclose = () => {
-        setIsStreaming(false);
+        setStreamState(prev => ({ ...prev, isStreaming: false }));
       };
     } catch (wsErr) {
       console.error('Failed to initialize WebSocket:', wsErr);
@@ -283,31 +146,33 @@ export const useBrainStream = () => {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
-    setIsStreaming(false);
-    setIsPendingBackground(false);
+    setStreamState(prev => ({ ...prev, isStreaming: false, isPendingBackground: false }));
   }, []);
 
   const reset = useCallback(() => {
     disconnect();
-    setStreamingText('');
-    setStatus('');
-    setError(null);
-    setMetadata(null);
-    setMetrics(null);
-    setArtifacts([]);
-    setSteps([]);
+    setStreamState(initStreamState());
   }, [disconnect]);
 
+  // Derived compatibility fields for existing UI
+  const stepsList = Object.values(streamState.nodes).length > 0
+    ? Object.values(streamState.nodes)
+    : [];
+
   return {
-    streamingText,
-    status,
-    isStreaming,
-    isPendingBackground,
-    error,
-    metadata,
-    metrics,
-    artifacts,
-    steps,
+    streamState,
+    streamingText: streamState.answer,
+    status: streamState.statusText,
+    isStreaming: streamState.isStreaming,
+    isPendingBackground: streamState.isPendingBackground,
+    error: streamState.error,
+    metadata: streamState.metadata,
+    metrics: streamState.metrics,
+    artifacts: streamState.artifacts,
+    steps: stepsList,
+    nodes: streamState.nodes,
+    rootOrder: streamState.rootOrder,
+    confidence: streamState.confidence,
     send,
     disconnect,
     reset,

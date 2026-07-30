@@ -3,6 +3,7 @@ import { chatService } from '../../../../services/chatService';
 import { useBrainStream } from '../../../../hooks/useBrainStream';
 import { useSubAgentStream } from '../../../../hooks/useSubAgentStream';
 import MessageBubble from './MessageBubble';
+import StepTree from './StepTree';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '../../../../store/authStore';
 import gsap from 'gsap';
@@ -213,6 +214,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         model,
         artifacts,
         metrics,
+        steps: brainRef.current.steps || [],
+        confidence: brainRef.current.metadata?.confidence ?? null,
       }]);
 
       // Check for clarification from execution results
@@ -286,6 +289,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         artifacts,
         metrics,
         tokensUsed,
+        steps: subAgentRef.current.steps || [],
+        confidence: subAgentRef.current.metadata?.confidence ?? null,
       }]);
     } catch (err) {
       console.error(`${selectedAgent} request failed`, err);
@@ -428,7 +433,12 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                 message={{
                   role: 'ASSISTANT',
                   content: brain.streamingText || subAgent.streamingText,
-                  status: brain.status || subAgent.status
+                  status: brain.status || subAgent.status,
+                  nodes: Object.keys(brain.nodes).length > 0 ? brain.nodes : subAgent.nodes,
+                  rootOrder: brain.rootOrder.length > 0 ? brain.rootOrder : subAgent.rootOrder,
+                  steps: (brain.steps.length > 0 ? brain.steps : subAgent.steps),
+                  confidence: (brain.metadata?.confidence ?? subAgent.metadata?.confidence ?? null),
+                  metrics: brain.metrics || subAgent.metrics,
                 }} 
                 isStreaming={true} 
               />
@@ -454,10 +464,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                     muted
                     playsInline
                     className="w-full h-full object-cover scale-100"
-                    style={{ 
-                      objectPosition: selectedAgent === 'brain' ? 'center 60%' : 'center 15%',
-                      filter: selectedAgent === 'stock-market' ? 'contrast(1.15) brightness(1.06)' : 'none'
-                    }}
+                    style={{ objectPosition: selectedAgent === 'brain' ? 'center 60%' : 'center 15%' }}
                   />
                 </div>
                 
@@ -517,18 +524,30 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                   </div>
                 ) : (
                   /* Standard Chat Bubble */
-                  <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)]">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="flex flex-col gap-2 bg-white/80 backdrop-blur-xl border border-white rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)] w-full max-w-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      
+                      {(brain.status || subAgent.status) && (
+                        <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
+                          {brain.status || subAgent.status}
+                        </span>
+                      )}
                     </div>
-                    
-                    {(brain.status || subAgent.status) && (
-                      <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
-                        {brain.status || subAgent.status}
-                      </span>
-                    )}
+
+                    <StepTree 
+                      nodes={Object.keys(brain.nodes).length > 0 ? brain.nodes : subAgent.nodes} 
+                      rootOrder={brain.rootOrder.length > 0 ? brain.rootOrder : subAgent.rootOrder} 
+                      steps={brain.steps.length > 0 ? brain.steps : subAgent.steps} 
+                      confidence={brain.metadata?.confidence ?? subAgent.metadata?.confidence ?? null} 
+                      statusText={brain.status || subAgent.status} 
+                      isStreaming={true} 
+                      metrics={brain.metrics || subAgent.metrics} 
+                    />
                   </div>
                 )}
               </div>
@@ -573,10 +592,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                       ? 'scale-100'
                       : 'object-top'
                   }`} 
-                  style={{
-                    objectPosition: (!selectedAgent || selectedAgent === 'brain') ? 'center 60%' : 'center 15%',
-                    filter: selectedAgent === 'stock-market' ? 'contrast(1.15) brightness(1.06)' : 'none'
-                  }}
+                  style={(!selectedAgent || selectedAgent === 'brain') ? { objectPosition: 'center 60%' } : {}}
                 />
               </div>
             </div>
