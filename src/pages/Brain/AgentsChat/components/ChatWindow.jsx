@@ -214,6 +214,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         model,
         artifacts,
         metrics,
+        steps: brainRef.current.steps || [],
+        confidence: brainRef.current.metadata?.confidence ?? null,
       }]);
 
       // Check for clarification from execution results
@@ -287,6 +289,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         artifacts,
         metrics,
         tokensUsed,
+        steps: subAgentRef.current.steps || [],
+        confidence: subAgentRef.current.metadata?.confidence ?? null,
       }]);
     } catch (err) {
       console.error(`${selectedAgent} request failed`, err);
