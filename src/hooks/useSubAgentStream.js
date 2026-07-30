@@ -1,24 +1,23 @@
 import { useState, useRef, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
+import { initStreamState, applyChunk } from '../services/streamReducer';
 
 /**
  * WebSocket streaming hook for direct Specialized Domain Sub-Agents.
  *
- * Connects to the Node.js proxy at `/conversations/:agentSlug/stream` which
- * forwards to Python's `/chat/:agentSlug/stream`. Handles streaming chunks
- * (status, token, done, error) in real-time.
+ * Implements the exact Claude-style streaming specification:
+ * - Uses streamReducer's initStreamState() and applyChunk(state, chunk)
+ * - Map<step_id, StepNode> step tree in-place merging
+ * - Absolute cumulative metrics merging
+ * - Mid-run & terminal artifact de-duplication by url
  */
 export const useSubAgentStream = () => {
-  const [streamingText, setStreamingText] = useState('');
-  const [status, setStatus] = useState('');
+  const [streamState, setStreamState] = useState(initStreamState());
+  const [statusText, setStatusText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isPendingBackground, setIsPendingBackground] = useState(false);
   const [error, setError] = useState(null);
-  const [metadata, setMetadata] = useState(null);
-  const [metrics, setMetrics] = useState(null);
-  const [artifacts, setArtifacts] = useState([]);
-  const [steps, setSteps] = useState([]);
   const [sources, setSources] = useState([]);
 
   const wsRef = useRef(null);
@@ -27,13 +26,12 @@ export const useSubAgentStream = () => {
   const startBackgroundExecution = useCallback(async (agentSlug, sessionId, message, jobId) => {
     setIsStreaming(false);
     setIsPendingBackground(true);
-    setStatus(`Processing ${agentSlug} query...`);
+    setStatusText(`Processing ${agentSlug} query...`);
 
     try {
       const { organizationId, workspaceId } = useWorkspaceStore.getState();
       const apiClient = (await import('../services/apiClient')).default;
       
-      // Dispatch REST fallback run
       const res = await apiClient.post(`/api/chat/${agentSlug}`, {
         message,
         userQuery: message,
@@ -45,15 +43,19 @@ export const useSubAgentStream = () => {
 
       const data = res.data;
       setIsPendingBackground(false);
-      setStatus('');
+      setStatusText('');
       const answer = data?.response || data?.finalAnswer || data?.content || 'Task completed.';
-      setStreamingText(answer);
+      
       setSources(data?.sources || []);
-      setMetadata(data?.metadata || data || null);
+      setStreamState(prev => ({
+        ...prev,
+        answer,
+        done: true,
+      }));
     } catch (err) {
       console.error(`Failed background execution for ${agentSlug}:`, err);
       setIsPendingBackground(false);
-      setStatus('');
+      setStatusText('');
       setError('Failed to complete request.');
     }
   }, []);
@@ -74,14 +76,10 @@ export const useSubAgentStream = () => {
 
     setIsStreaming(true);
     setIsPendingBackground(false);
-    setStatus(`Connecting to ${agentSlug} agent...`);
+    setStatusText(`Connecting to ${agentSlug} agent...`);
     setError(null);
-    setStreamingText('');
-    setMetadata(null);
-    setMetrics(null);
-    setArtifacts([]);
-    setSteps([]);
     setSources([]);
+    setStreamState(initStreamState());
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     const defaultWsUrl = apiBaseUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
@@ -93,7 +91,7 @@ export const useSubAgentStream = () => {
       wsRef.current = socket;
 
       socket.onopen = () => {
-        setStatus(`Running ${agentSlug} query...`);
+        setStatusText(`Running ${agentSlug} query...`);
         socket.send(JSON.stringify({
           message: message,
           user_query: message,
@@ -108,90 +106,27 @@ export const useSubAgentStream = () => {
         try {
           const chunk = JSON.parse(event.data);
 
-          switch (chunk.type) {
-            case 'status':
-              setStatus(chunk.content);
-              if (chunk.metadata) {
-                if (chunk.metadata.artifact) {
-                  setArtifacts(prev => [...prev, chunk.metadata.artifact]);
-                }
-                const stepId = chunk.metadata.step_id || chunk.metadata.step || `step_${Date.now()}_${Math.random()}`;
-                const stepLabel = chunk.metadata.label || chunk.metadata.agent_label || `${agentSlug} agent`;
-                const stepSummary = chunk.metadata.summary || chunk.content;
-                const stepState = chunk.metadata.state || 'running';
-                const stepKind = chunk.metadata.kind || 'step';
+          if (chunk.type === 'status' && chunk.content) {
+            setStatusText(chunk.content);
+          } else if (chunk.type === 'token') {
+            setStatusText('');
+          }
 
-                setSteps(prev => {
-                  const idx = prev.findIndex(s => s.id === stepId);
-                  if (idx >= 0) {
-                    const updated = [...prev];
-                    updated[idx] = {
-                      ...updated[idx],
-                      state: stepState,
-                      summary: stepSummary,
-                      label: stepLabel,
-                      preview: chunk.metadata.preview || updated[idx].preview,
-                    };
-                    return updated;
-                  }
-                  return [
-                    ...prev,
-                    {
-                      id: stepId,
-                      parent: chunk.metadata.parent || null,
-                      kind: stepKind,
-                      state: stepState,
-                      label: stepLabel,
-                      summary: stepSummary,
-                      preview: chunk.metadata.preview || null,
-                    },
-                  ];
-                });
-              }
-              break;
+          if (chunk.type === 'done' && chunk.metadata?.sources) {
+            setSources(chunk.metadata.sources);
+          }
 
-            case 'metrics':
-              if (chunk.metadata) {
-                setMetrics(prev => ({ ...(prev || {}), ...chunk.metadata }));
-              }
-              break;
+          setStreamState(prev => applyChunk(prev, chunk));
 
-            case 'token':
-              setStatus('');
-              setStreamingText(prev => prev + chunk.content);
-              break;
-
-            case 'done':
-              setIsStreaming(false);
-              setStatus('');
-              if (chunk.metadata?.sources) {
-                setSources(chunk.metadata.sources);
-              }
-              if (chunk.metadata?.artifacts && Array.isArray(chunk.metadata.artifacts)) {
-                setArtifacts(chunk.metadata.artifacts);
-              }
-              setMetadata(chunk.metadata || null);
-              socket.close();
-              break;
-
-            case 'error':
-              setError(chunk.content || 'An error occurred during generation.');
-              setIsStreaming(false);
-              setStatus('');
-              socket.close();
-              break;
-
-            default:
-              if (chunk.metadata || chunk.content) {
-                setSteps(prev => [
-                  ...prev,
-                  {
-                    id: Date.now(),
-                    label: chunk.type ? chunk.type.toUpperCase() : 'AGENT EVENT',
-                    summary: chunk.content || 'Processing stage',
-                  },
-                ]);
-              }
+          if (chunk.type === 'done') {
+            setIsStreaming(false);
+            setStatusText('');
+            socket.close();
+          } else if (chunk.type === 'error') {
+            setError(chunk.content || 'An error occurred');
+            setIsStreaming(false);
+            setStatusText('');
+            socket.close();
           }
         } catch (err) {
           console.error(`Failed to parse ${agentSlug} WebSocket message`, err);
@@ -226,26 +161,27 @@ export const useSubAgentStream = () => {
 
   const reset = useCallback(() => {
     disconnect();
-    setStreamingText('');
-    setStatus('');
+    setStreamState(initStreamState());
+    setStatusText('');
     setError(null);
-    setMetadata(null);
-    setMetrics(null);
-    setArtifacts([]);
-    setSteps([]);
     setSources([]);
   }, [disconnect]);
 
   return {
-    streamingText,
-    status,
+    streamState,
+    streamingText: streamState.answer,
+    status: statusText,
     isStreaming,
     isPendingBackground,
     error,
-    metadata,
-    metrics,
-    artifacts,
-    steps,
+    metadata: {
+      confidence: streamState.confidence,
+    },
+    metrics: streamState.metrics,
+    artifacts: streamState.artifacts,
+    nodes: streamState.nodes,
+    rootOrder: streamState.rootOrder,
+    steps: Object.values(streamState.nodes),
     sources,
     send,
     disconnect,

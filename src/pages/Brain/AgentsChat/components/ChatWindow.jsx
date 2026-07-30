@@ -434,8 +434,11 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                   role: 'ASSISTANT',
                   content: brain.streamingText || subAgent.streamingText,
                   status: brain.status || subAgent.status,
+                  nodes: Object.keys(brain.nodes).length > 0 ? brain.nodes : subAgent.nodes,
+                  rootOrder: brain.rootOrder.length > 0 ? brain.rootOrder : subAgent.rootOrder,
                   steps: (brain.steps.length > 0 ? brain.steps : subAgent.steps),
                   confidence: (brain.metadata?.confidence ?? subAgent.metadata?.confidence ?? null),
+                  metrics: brain.metrics || subAgent.metrics,
                 }} 
                 isStreaming={true} 
               />
@@ -537,10 +540,13 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                     </div>
 
                     <StepTree 
+                      nodes={Object.keys(brain.nodes).length > 0 ? brain.nodes : subAgent.nodes} 
+                      rootOrder={brain.rootOrder.length > 0 ? brain.rootOrder : subAgent.rootOrder} 
                       steps={brain.steps.length > 0 ? brain.steps : subAgent.steps} 
                       confidence={brain.metadata?.confidence ?? subAgent.metadata?.confidence ?? null} 
                       statusText={brain.status || subAgent.status} 
                       isStreaming={true} 
+                      metrics={brain.metrics || subAgent.metrics} 
                     />
                   </div>
                 )}

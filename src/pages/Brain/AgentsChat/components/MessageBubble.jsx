@@ -347,10 +347,13 @@ export default function MessageBubble({ message, isStreaming }) {
             <div className="text-[15px] leading-[1.7] text-gray-800 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 font-normal">
               {/* Execution Step Tree */}
               <StepTree 
+                nodes={message.nodes || {}} 
+                rootOrder={message.rootOrder || []} 
                 steps={message.steps || []} 
                 confidence={message.confidence} 
                 statusText={message.status} 
                 isStreaming={isStreaming} 
+                metrics={message.metrics} 
               />
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
