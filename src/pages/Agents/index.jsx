@@ -26,23 +26,28 @@ export default function AgentsDirectory() {
     agentService.getAgents()
       .then((res) => {
         const dataList = Array.isArray(res) ? res : res?.data;
-        if (isMounted && Array.isArray(dataList) && dataList.length > 0) {
+        if (isMounted && Array.isArray(dataList)) {
+          const dbSlugs = new Set();
           const mapped = dataList.map((item) => {
             const slug = item.slug || item.id;
+            dbSlugs.add(slug);
             const fallbackItem = STATIC_FALLBACK_AGENTS.find(s => s.id === slug) || {};
-            const imgUrl = item.avatar_url || fallbackItem.img || '/agent 1.mp4';
+            const imgUrl = item.avatar_url || item.image || fallbackItem.img || '/agent 1.mp4';
             return {
               id: slug,
-              name: item.name || fallbackItem.name,
-              role: item.role || item.description || fallbackItem.role,
+              name: item.name || fallbackItem.name || slug,
+              role: item.role || item.description || fallbackItem.role || '',
               img: imgUrl,
               isVideo: imgUrl.endsWith('.mp4'),
               bg: fallbackItem.bg || 'from-[#e0ebff] to-[#f4f7fe]',
-              comingSoon: item.is_coming_soon ?? false,
+              comingSoon: item.is_coming_soon ?? fallbackItem.comingSoon ?? false,
               objectPos: fallbackItem.objectPos || 'center 15%',
             };
           });
-          setAgents(mapped);
+
+          // Include any static fallback agents not present in DB to guarantee full coverage
+          const missingFallbacks = STATIC_FALLBACK_AGENTS.filter(s => !dbSlugs.has(s.id));
+          setAgents([...mapped, ...missingFallbacks]);
         }
       })
       .catch((err) => {

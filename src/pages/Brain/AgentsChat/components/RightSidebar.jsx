@@ -166,6 +166,8 @@ export default function RightSidebar({
                   { id: 'recruitment', image: '/recruitment_avatar.mp4', isVideo: true, name: 'Recruitment Agent', desc: 'Talent sourcing and outreach', comingSoon: false },
                   { id: 'social-trends', image: '/social_trends_avatar.mp4', isVideo: true, name: 'Social Trends Agent', desc: 'Social media trend discovery', comingSoon: false },
                   { id: 'image-generation', image: '/market_avatar.mp4', isVideo: true, name: 'Image Generation Agent', desc: 'AI visual generation & brand asset design', comingSoon: false },
+                  { id: 'campaign-planner', image: '/research_avatar.mp4', isVideo: true, name: 'Campaign Planner Agent', desc: 'Multi-channel marketing campaign strategy', comingSoon: false },
+                  { id: 'post-scheduler', image: '/stock_market_avatar.mp4', isVideo: true, name: 'Post Scheduler Agent', desc: 'Social media calendar & posting automation', comingSoon: false },
                 ].map((agent) => {
                   const isActive = selectedAgent === agent.id;
                   const isLocked = agent.comingSoon;
