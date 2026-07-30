@@ -26,6 +26,18 @@ export const chatService = {
     return response.data;
   },
 
+  replayOrchestratorStream: async (sessionId, jobId) => {
+    const query = jobId ? `?job_id=${encodeURIComponent(jobId)}` : '';
+    const response = await apiClient.get(`/chat/orchestrator/replay/${sessionId}${query}`);
+    return response.data;
+  },
+
+  replaySubAgentStream: async (sessionId, jobId) => {
+    const query = jobId ? `?job_id=${encodeURIComponent(jobId)}` : '';
+    const response = await apiClient.get(`/chat/replay/${sessionId}${query}`);
+    return response.data;
+  },
+
   stopBrainSession: async (sessionId) => {
     const response = await apiClient.post(`/api/brain/stop/${sessionId}`);
     return response.data;
