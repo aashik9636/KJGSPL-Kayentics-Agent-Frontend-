@@ -440,7 +440,10 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                     muted
                     playsInline
                     className="w-full h-full object-cover scale-100"
-                    style={{ objectPosition: selectedAgent === 'brain' ? 'center 60%' : 'center 15%' }}
+                    style={{ 
+                      objectPosition: selectedAgent === 'brain' ? 'center 60%' : 'center 15%',
+                      filter: selectedAgent === 'stock-market' ? 'contrast(1.15) brightness(1.06)' : 'none'
+                    }}
                   />
                 </div>
                 
@@ -556,7 +559,10 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                       ? 'scale-100'
                       : 'object-top'
                   }`} 
-                  style={(!selectedAgent || selectedAgent === 'brain') ? { objectPosition: 'center 60%' } : {}}
+                  style={{
+                    objectPosition: (!selectedAgent || selectedAgent === 'brain') ? 'center 60%' : 'center 15%',
+                    filter: selectedAgent === 'stock-market' ? 'contrast(1.15) brightness(1.06)' : 'none'
+                  }}
                 />
               </div>
             </div>

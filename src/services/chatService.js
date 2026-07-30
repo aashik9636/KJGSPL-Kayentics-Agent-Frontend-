@@ -70,8 +70,16 @@ export const chatService = {
 
   runSubAgentChat: async (agentSlug, data) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const payload = typeof data === 'string' ? { userQuery: data } : (data || {});
+    const query = payload.userQuery || payload.message || payload.query || '';
+    const sid = payload.sessionId || payload.session_id;
+
     const response = await apiClient.post(`/api/chat/${agentSlug}`, {
-      ...data,
+      userQuery: query,
+      message: query,
+      sessionId: sid,
+      session_id: sid,
+      ...payload,
       organizationId,
       workspaceId
     });

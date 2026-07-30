@@ -303,7 +303,10 @@ export default function MessageBubble({ message, isStreaming }) {
                 muted
                 playsInline
                 className="w-full h-full object-cover scale-100"
-                style={{ objectPosition: m === 'brain' || !m ? 'center 60%' : 'center 15%' }}
+                style={{ 
+                  objectPosition: m === 'brain' || !m ? 'center 60%' : 'center 15%',
+                  filter: m === 'stock-market' ? 'contrast(1.15) brightness(1.06)' : 'none'
+                }}
               />
             );
           })()}

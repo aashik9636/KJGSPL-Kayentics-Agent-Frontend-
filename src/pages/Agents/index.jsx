@@ -5,7 +5,7 @@ import { agentService } from '../../services/agentService';
 
 const STATIC_FALLBACK_AGENTS = [
   { id: 'brain', name: 'Brain Agent', role: 'Meta-orchestrator & multi-agent planner', img: '/brain_avatar.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
-  { id: 'stock-market', name: 'Stock Market Agent', role: 'Real-time financial & market data', img: '/stock_market_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'stock-market', name: 'Stock Market Agent', role: 'Real-time financial & market data', img: '/stock_market_avatar.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
   { id: 'research', name: 'Universal Research Agent', role: 'Deep web scraping and research', img: '/research_avatar.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
   { id: 'market', name: 'Competitor Intelligence Agent', role: 'Market & competitor analysis', img: '/market_avatar.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
   { id: 'lead-generation', name: 'Lead Generation Agent', role: 'B2B lead discovery & prospecting', img: '/lead_gen_avatar.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
@@ -13,7 +13,7 @@ const STATIC_FALLBACK_AGENTS = [
   { id: 'social-trends', name: 'Social Trends Agent', role: 'Social media trend discovery', img: '/social_trends_avatar.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
   { id: 'image-generation', name: 'Image Generation Agent', role: 'AI visual generation & brand asset design', img: '/market_avatar.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
   { id: 'campaign-planner', name: 'Campaign Planner Agent', role: 'Multi-channel marketing campaign strategy', img: '/research_avatar.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'post-scheduler', name: 'Post Scheduler Agent', role: 'Social media calendar & posting automation', img: '/stock_market_avatar.mp4', isVideo: true, bg: 'from-[#fff5e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'post-scheduler', name: 'Post Scheduler Agent', role: 'Social media calendar & posting automation', img: '/stock_market_avatar.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
 ];
 
 export default function AgentsDirectory() {
@@ -30,14 +30,17 @@ export default function AgentsDirectory() {
           const mapped = dataList.map((item) => {
             const slug = item.slug || item.id;
             const fallbackItem = STATIC_FALLBACK_AGENTS.find(s => s.id === slug) || {};
-            const imgUrl = item.avatar_url || fallbackItem.img || '/agent 1.mp4';
+            const rawUrl = item.avatar_url;
+            const imgUrl = (rawUrl && !rawUrl.includes('agent 1') && !rawUrl.includes('agent2') && !rawUrl.includes('agent3')) 
+              ? (rawUrl === '/data_analyst_avatar.mp4' ? '/stock_market_avatar.mp4' : rawUrl)
+              : fallbackItem.img || '/brain_avatar.mp4';
             return {
               id: slug,
               name: item.name || fallbackItem.name,
               role: item.role || item.description || fallbackItem.role,
               img: imgUrl,
               isVideo: imgUrl.endsWith('.mp4'),
-              bg: fallbackItem.bg || 'from-[#e0d4ff] to-[#f4f7fe]',
+              bg: fallbackItem.bg || 'from-[#e0ebff] to-[#f4f7fe]',
               comingSoon: item.is_coming_soon ?? false,
               objectPos: fallbackItem.objectPos || 'center 15%',
             };
@@ -95,13 +98,9 @@ export default function AgentsDirectory() {
                 <div className={`h-52 w-full bg-gradient-to-b ${agent.bg} relative flex items-center justify-center overflow-hidden`}>
                   
                   {/* Badge */}
-                  {isLocked ? (
+                  {isLocked && (
                     <div className="absolute top-4 right-4 z-20 bg-[#6c48ff] text-white px-2.5 py-1 rounded-full text-[9px] font-black tracking-wider uppercase shadow-md border border-purple-300">
                       Coming Soon
-                    </div>
-                  ) : (
-                    <div className="absolute top-4 right-4 z-20 bg-white/70 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold text-gray-700 shadow-sm border border-white/50">
-                      v1.0
                     </div>
                   )}
 
@@ -126,7 +125,8 @@ export default function AgentsDirectory() {
                       className={`w-full h-full object-cover transition-transform duration-500 ${isLocked ? '' : 'group-hover:scale-105'}`}
                       style={{
                         objectPosition: agent.objectPos || 'center 15%',
-                        mixBlendMode: agent.id === 'brain' ? 'normal' : 'multiply'
+                        mixBlendMode: agent.id === 'brain' ? 'normal' : 'multiply',
+                        filter: (agent.img?.includes('stock_market') || agent.img?.includes('data_analyst')) ? 'contrast(1.15) brightness(1.06)' : 'none'
                       }}
                     />
                   ) : (

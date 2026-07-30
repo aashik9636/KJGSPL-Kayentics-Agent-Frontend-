@@ -161,11 +161,12 @@ export default function RightSidebar({
                   { id: 'brain', image: '/brain_avatar.mp4', isVideo: true, name: 'Brain Agent', desc: 'Meta-orchestrator & multi-agent planner', comingSoon: false },
                   { id: 'stock-market', image: '/stock_market_avatar.mp4', isVideo: true, name: 'Stock Market Agent', desc: 'Real-time financial & market data', comingSoon: false },
                   { id: 'research', image: '/research_avatar.mp4', isVideo: true, name: 'Universal Research Agent', desc: 'Deep web research & scraping', comingSoon: false },
-                  { id: 'market', image: '/market_avatar.mp4', isVideo: true, name: 'Competitor Intelligence', desc: 'Market & competitor analysis', comingSoon: false },
+                  { id: 'market', image: '/market_avatar.mp4', isVideo: true, name: 'Competitor Intelligence Agent', desc: 'Market & competitor analysis', comingSoon: false },
                   { id: 'lead-generation', image: '/lead_gen_avatar.mp4', isVideo: true, name: 'Lead Generation Agent', desc: 'B2B lead discovery & prospecting', comingSoon: false },
                   { id: 'recruitment', image: '/recruitment_avatar.mp4', isVideo: true, name: 'Recruitment Agent', desc: 'Talent sourcing and outreach', comingSoon: false },
                   { id: 'social-trends', image: '/social_trends_avatar.mp4', isVideo: true, name: 'Social Trends Agent', desc: 'Social media trend discovery', comingSoon: false },
-                ].map((agent, i) => {
+                  { id: 'image-generation', image: '/market_avatar.mp4', isVideo: true, name: 'Image Generation Agent', desc: 'AI visual generation & brand asset design', comingSoon: false },
+                ].map((agent) => {
                   const isActive = selectedAgent === agent.id;
                   const isLocked = agent.comingSoon;
                   return (
@@ -192,7 +193,8 @@ export default function RightSidebar({
                               className="w-full h-full object-cover" 
                               style={{
                                 objectPosition: agent.id === 'brain' ? 'center 60%' : 'center 15%',
-                                mixBlendMode: agent.id === 'brain' ? 'normal' : 'multiply'
+                                mixBlendMode: agent.id === 'brain' ? 'normal' : 'multiply',
+                                filter: (agent.image?.includes('stock_market') || agent.image?.includes('data_analyst')) ? 'contrast(1.15) brightness(1.06)' : 'none'
                               }}
                             />
                           ) : (
