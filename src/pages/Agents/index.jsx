@@ -28,8 +28,10 @@ export default function AgentsDirectory() {
         const dataList = Array.isArray(res) ? res : res?.data;
         if (isMounted && Array.isArray(dataList) && dataList.length > 0) {
           const mapped = dataList.map((item) => {
-            const slug = item.slug || item.id;
-            const fallbackItem = STATIC_FALLBACK_AGENTS.find(s => s.id === slug) || {};
+            const rawSlug = item.slug || item.config?.slug;
+            const derivedSlug = rawSlug || (item.name ? item.name.toLowerCase().replace(/agent/g, '').trim().replace(/\s+/g, '-') : null);
+            const fallbackItem = STATIC_FALLBACK_AGENTS.find(s => s.id === derivedSlug || s.id === item.id) || {};
+            const slug = derivedSlug || fallbackItem.id || 'brain';
             const imgUrl = item.avatar_url || fallbackItem.img || '/agent 1.mp4';
             return {
               id: slug,

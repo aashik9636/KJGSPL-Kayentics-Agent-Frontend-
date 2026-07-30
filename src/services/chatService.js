@@ -140,9 +140,9 @@ export const chatService = {
     return response.data;
   },
 
-  generateContentSimple: async (data) => {
+  generateImageFromQuery: async (data) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.post('/api/generate/simple', {
+    const response = await apiClient.post('/api/image-query/generate', {
       ...data,
       organizationId,
       workspaceId
@@ -150,9 +150,9 @@ export const chatService = {
     return response.data;
   },
 
-  generateImageFromQuery: async (data) => {
+  generateContentSimple: async (data) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.post('/api/image-query/generate', {
+    const response = await apiClient.post('/api/generate/simple', {
       ...data,
       organizationId,
       workspaceId

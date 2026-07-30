@@ -31,6 +31,28 @@ function formatAnswers(questions, answers) {
     .join(', ');
 }
 
+const AGENT_TITLE_MAP = {
+  'brain': 'Brain Agent',
+  'stock-market': 'Stock Market Agent',
+  'research': 'Universal Research Agent',
+  'market': 'Competitor Intelligence Agent',
+  'lead-generation': 'Lead Generation Agent',
+  'recruitment': 'Recruitment Agent',
+  'social-trends': 'Social Trends Agent',
+  'image-generation': 'Image Generation Agent',
+  'post-scheduler': 'Post Scheduler Agent',
+  'campaign-planner': 'Campaign Planner Agent',
+  'campaign-manager': 'Campaign Planner Agent',
+  'business-intelligence': 'Business Intelligence Agent',
+  'content-writer': 'Content Writer Agent',
+};
+
+const getAgentTitle = (slug) => {
+  if (!slug || slug === 'brain') return 'Brain Agent';
+  if (AGENT_TITLE_MAP[slug]) return AGENT_TITLE_MAP[slug];
+  return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Agent';
+};
+
 export default function ChatWindow({ activeConversationId, creatingSession, onNewChat, onMessageSent, onMessagesLoaded, selectedAgent }) {
   const [input, setInput]         = useState('');
   const [messages, setMessages]   = useState([]);
@@ -374,15 +396,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v1m6 11h2m-6 0h-8m0 0H4m4 0h4m-4-8h8m-4 0v8" />
             </svg>
           </div>
-          {
-            selectedAgent === 'stock-market' ? 'Stock Market Agent' :
-            selectedAgent === 'research' ? 'Universal Research Agent' :
-            selectedAgent === 'market' ? 'Competitor Intelligence' :
-            selectedAgent === 'lead-generation' ? 'Lead Generation Agent' :
-            selectedAgent === 'recruitment' ? 'Recruitment Agent' :
-            selectedAgent === 'social-trends' ? 'Social Trends Agent' :
-            'Brain Agent'
-          }
+          {getAgentTitle(selectedAgent)}
           <svg className="w-4 h-4 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
           </svg>
@@ -563,15 +577,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             {/* Tooltip */}
             <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-20 translate-y-1 group-hover:translate-y-0">
               <div className="bg-gray-900 text-white text-[11px] font-semibold px-3 py-1 rounded-full whitespace-nowrap shadow-lg">
-                {
-                  selectedAgent === 'stock-market' ? 'Stock Market Agent' :
-                  selectedAgent === 'research' ? 'Universal Research Agent' :
-                  selectedAgent === 'market' ? 'Competitor Intelligence Agent' :
-                  selectedAgent === 'lead-generation' ? 'Lead Generation Agent' :
-                  selectedAgent === 'recruitment' ? 'Recruitment Agent' :
-                  selectedAgent === 'social-trends' ? 'Social Trends Agent' :
-                  'Brain Agent'
-                }
+                {getAgentTitle(selectedAgent)}
               </div>
             </div>
           </div>
