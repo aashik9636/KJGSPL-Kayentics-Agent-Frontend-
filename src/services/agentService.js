@@ -2,11 +2,13 @@ import apiClient from './apiClient';
 import { useWorkspaceStore } from '../store/workspaceStore';
 
 export const agentService = {
-  getAgents: async (params = {}) => {
-    const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.get('/agents', {
-      params: { organizationId, workspaceId, ...params }
-    });
+  getAgents: async () => {
+    const response = await apiClient.get('/api/subagents/catalog');
+    return response.data;
+  },
+
+  getCatalog: async () => {
+    const response = await apiClient.get('/api/subagents/catalog');
     return response.data;
   },
 
