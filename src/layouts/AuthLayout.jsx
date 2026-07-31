@@ -33,17 +33,21 @@ export default function AuthLayout() {
       {/* Left Side: Blue Brand Panel */}
       <div 
         ref={leftPanelRef}
-        className="hidden lg:flex lg:w-1/2 bg-[#1967d2] flex-col justify-center px-16 xl:px-24 py-12 relative"
+        className="hidden lg:flex lg:w-1/2 bg-[#1967d2] dark:bg-[#08080c] flex-col justify-center px-16 xl:px-24 py-12 relative overflow-hidden transition-colors duration-300"
       >
-        {/* Subtle background pattern or gradient can go here if needed */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/10 pointer-events-none"></div>
+        {/* Dark mode mesh gradient glows */}
+        <div className="hidden dark:block absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-600/20 blur-[120px] pointer-events-none"></div>
+        <div className="hidden dark:block absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-purple-600/15 blur-[120px] pointer-events-none"></div>
+
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/10 pointer-events-none z-0"></div>
 
         <div className="relative z-10 max-w-lg mx-auto w-full">
           
           {/* Logo block */}
           <div className="stagger-left-item mb-10 flex justify-center lg:justify-start">
-             <div className="bg-white px-6 py-3.5 rounded-2xl shadow-xl shadow-black/10 flex items-center justify-center">
-                <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-10 sm:h-12 w-auto object-contain" />
+             <div className="bg-white dark:bg-white/5 dark:backdrop-blur-xl dark:border dark:border-white/10 px-6 py-3.5 rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 flex items-center justify-center transition-colors">
+                <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-10 sm:h-12 w-auto object-contain dark:hidden" />
+                <img src="/kaynetics-logo-dark-bg.svg" alt="Kaynetics" className="h-10 sm:h-12 w-auto object-contain hidden dark:block" />
              </div>
           </div>
 
@@ -112,11 +116,12 @@ export default function AuthLayout() {
       </div>
 
       {/* Right Side: Form Panel */}
-      <div className="w-full lg:w-1/2 bg-white dark:bg-[#000000] flex flex-col justify-center items-center p-6 sm:p-12 relative transition-colors duration-300">
+      <div className="w-full lg:w-1/2 bg-white dark:bg-[#111111] flex flex-col justify-center items-center p-6 sm:p-12 relative transition-colors duration-300">
         <div ref={rightPanelRef} className="w-full max-w-md mx-auto relative z-10">
           {/* Logo for mobile only */}
           <div className="lg:hidden flex justify-center mb-8">
-            <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-12 w-auto object-contain" />
+            <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-12 w-auto object-contain dark:hidden" />
+            <img src="/kaynetics-logo-dark-bg.svg" alt="Kaynetics" className="h-12 w-auto object-contain hidden dark:block" />
           </div>
           
           <Outlet />

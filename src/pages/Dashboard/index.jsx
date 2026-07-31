@@ -62,16 +62,7 @@ export default function Dashboard() {
     }
   }, [loading]);
 
-  if (loading) {
-    return (
-      <div className="w-full h-[65vh] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#6c48ff] border-t-transparent"></div>
-          <span className="text-xs font-semibold text-neutral-500">Loading live analytics...</span>
-        </div>
-      </div>
-    );
-  }
+
 
   const counts = metrics?.counts || {};
   const credits = metrics?.credits || {};
@@ -130,8 +121,24 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── Top Stat Cards Grid ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+      {loading ? (
+        <div className="space-y-6 animate-pulse w-full mt-2">
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+             {[1, 2, 3, 4].map(i => <div key={i} className="h-[120px] bg-white dark:bg-[#111111] rounded-2xl border border-neutral-100 dark:border-[#262626]"></div>)}
+           </div>
+           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+             <div className="lg:col-span-2 h-[350px] bg-white dark:bg-[#111111] rounded-2xl border border-neutral-100 dark:border-[#262626]"></div>
+             <div className="h-[350px] bg-white dark:bg-[#111111] rounded-2xl border border-neutral-100 dark:border-[#262626]"></div>
+           </div>
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+             <div className="h-[300px] bg-white dark:bg-[#111111] rounded-2xl border border-neutral-100 dark:border-[#262626]"></div>
+             <div className="h-[300px] bg-white dark:bg-[#111111] rounded-2xl border border-neutral-100 dark:border-[#262626]"></div>
+           </div>
+        </div>
+      ) : (
+        <>
+          {/* ── Top Stat Cards Grid ───────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
         
         {/* Active Agents */}
         <div className="stagger-card bg-white dark:bg-[#111111] rounded-2xl p-5 border border-neutral-100 dark:border-[#262626] shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[120px]">
@@ -369,6 +376,8 @@ export default function Dashboard() {
         </div>
 
       </div>
+        </>
+      )}
     </div>
   );
 }

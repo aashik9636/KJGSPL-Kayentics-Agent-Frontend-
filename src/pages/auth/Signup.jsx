@@ -55,7 +55,7 @@ export default function Signup() {
 
       {/* Social Logins */}
       <div className="space-y-3 mb-8">
-        <button type="button" className="w-full flex items-center justify-center space-x-3 border border-neutral-200 dark:border-[#333333] bg-white dark:bg-[#1a1a1a] hover:bg-neutral-50 dark:hover:bg-[#262626] rounded-xl py-3 px-4 transition-colors">
+        <button type="button" className="w-full flex items-center justify-center space-x-3 border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-neutral-50 dark:hover:bg-white/10 rounded-xl py-3 px-4 shadow-sm dark:shadow-none transition-all duration-200">
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -64,7 +64,7 @@ export default function Signup() {
           </svg>
           <span className="text-[14px] font-medium text-[#111827] dark:text-neutral-200">Sign up with Google</span>
         </button>
-        <button type="button" className="w-full flex items-center justify-center space-x-3 border border-neutral-200 dark:border-[#333333] bg-white dark:bg-[#1a1a1a] hover:bg-neutral-50 dark:hover:bg-[#262626] rounded-xl py-3 px-4 transition-colors">
+        <button type="button" className="w-full flex items-center justify-center space-x-3 border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-neutral-50 dark:hover:bg-white/10 rounded-xl py-3 px-4 shadow-sm dark:shadow-none transition-all duration-200">
           <svg className="w-5 h-5 text-[#0077b5]" fill="currentColor" viewBox="0 0 24 24">
             <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
           </svg>
@@ -76,7 +76,7 @@ export default function Signup() {
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-neutral-100 dark:border-[#333333]"></div>
         </div>
-        <span className="relative bg-white dark:bg-[#000000] px-4 text-[12px] uppercase font-bold tracking-widest text-[#9ca3af] dark:text-neutral-500">
+        <span className="relative bg-white dark:bg-[#111111] px-4 text-[12px] uppercase font-bold tracking-widest text-[#9ca3af] dark:text-neutral-500">
           OR USE EMAIL
         </span>
       </div>
@@ -92,7 +92,7 @@ export default function Signup() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
-              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-[#f9fafb] dark:bg-[#1a1a1a]/50 focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] dark:focus:ring-indigo-500/20 dark:focus:border-indigo-500"
             />
           </div>
           <div>
@@ -103,7 +103,7 @@ export default function Signup() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
-              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-[#f9fafb] dark:bg-[#1a1a1a]/50 focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] dark:focus:ring-indigo-500/20 dark:focus:border-indigo-500"
             />
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function Signup() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+            className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-[#f9fafb] dark:bg-[#1a1a1a]/50 focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] dark:focus:ring-indigo-500/20 dark:focus:border-indigo-500"
           />
         </div>
         
@@ -136,7 +136,7 @@ export default function Signup() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-[#f9fafb] dark:bg-[#1a1a1a]/50 focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] dark:focus:ring-indigo-500/20 dark:focus:border-indigo-500"
             />
             <button 
               type="button" 
@@ -172,7 +172,7 @@ export default function Signup() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]"
+              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-[#f9fafb] dark:bg-[#1a1a1a]/50 focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[14px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] dark:focus:ring-indigo-500/20 dark:focus:border-indigo-500"
             />
             <button 
               type="button" 
@@ -200,7 +200,7 @@ export default function Signup() {
           </label>
         </div>
 
-        <button type="submit" disabled={loading} className="w-full bg-[#1967d2] hover:bg-[#1557b0] disabled:bg-blue-300 text-white font-medium py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all focus:outline-none mt-8 text-[15px]">
+        <button type="submit" disabled={loading} className="w-full bg-[#1967d2] dark:bg-gradient-to-r dark:from-indigo-600 dark:to-purple-600 hover:bg-[#1557b0] dark:hover:from-indigo-500 dark:hover:to-purple-500 disabled:opacity-50 text-white font-medium py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all focus:outline-none mt-8 text-[15px]">
           {loading ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
