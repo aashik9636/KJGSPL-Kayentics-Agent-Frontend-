@@ -70,26 +70,26 @@ export default function UserManagement() {
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           <Users className="w-6 h-6 text-amber-400" /> Global User Directory & RBAC
         </h2>
-        <p className="text-sm text-gray-400">Search, manage account access, and promote accounts to platform Superadmin privileges.</p>
+        <p className="text-sm text-neutral-400">Search, manage account access, and promote accounts to platform Superadmin privileges.</p>
       </div>
 
       {/* Filter Bar */}
-      <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 bg-gray-900/90 p-4 rounded-2xl border border-gray-800">
+      <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 bg-neutral-900/90 p-4 rounded-2xl border border-neutral-800">
         <div className="flex-1 relative">
-          <Search className="w-5 h-5 absolute left-3.5 top-3 text-gray-500" />
+          <Search className="w-5 h-5 absolute left-3.5 top-3 text-neutral-500" />
           <input
             type="text"
             placeholder="Search by user name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-800/80 border border-gray-700/60 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-400"
+            className="w-full pl-10 pr-4 py-2.5 bg-neutral-800/80 border border-neutral-700/60 rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-amber-400"
           />
         </div>
 
         <select
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-          className="bg-gray-800/80 border border-gray-700/60 rounded-xl px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-amber-400"
+          className="bg-neutral-800/80 border border-neutral-700/60 rounded-xl px-3 py-2.5 text-sm text-neutral-200 focus:outline-none focus:border-amber-400"
         >
           <option value="">All System Roles</option>
           <option value="USER">USER</option>
@@ -100,7 +100,7 @@ export default function UserManagement() {
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="bg-gray-800/80 border border-gray-700/60 rounded-xl px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-amber-400"
+          className="bg-neutral-800/80 border border-neutral-700/60 rounded-xl px-3 py-2.5 text-sm text-neutral-200 focus:outline-none focus:border-amber-400"
         >
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
@@ -108,23 +108,23 @@ export default function UserManagement() {
           <option value="INACTIVE">Inactive</option>
         </select>
 
-        <button type="submit" className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold rounded-xl text-sm transition-all">
+        <button type="submit" className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-xl text-sm transition-all">
           Search
         </button>
       </form>
 
       {/* Users Table */}
-      <div className="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-neutral-900/90 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl">
         {loading ? (
           <div className="flex items-center justify-center p-12">
             <RefreshCw className="w-6 h-6 text-amber-400 animate-spin" />
           </div>
         ) : users.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">No users found.</div>
+          <div className="p-12 text-center text-neutral-500">No users found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-300">
-              <thead className="bg-gray-800/60 text-xs uppercase text-gray-400 font-semibold border-b border-gray-800">
+            <table className="w-full text-left text-sm text-neutral-300">
+              <thead className="bg-neutral-800/60 text-xs uppercase text-neutral-400 font-semibold border-b border-neutral-800">
                 <tr>
                   <th className="px-6 py-4">User</th>
                   <th className="px-6 py-4">Email</th>
@@ -134,22 +134,22 @@ export default function UserManagement() {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/60">
+              <tbody className="divide-y divide-neutral-800/60">
                 {users.map((u) => {
                   const isSuperAdmin = u.role === 'SUPER_ADMIN';
                   const isActive = u.status === 'ACTIVE';
                   return (
-                    <tr key={u.id} className="hover:bg-gray-800/40 transition-colors">
+                    <tr key={u.id} className="hover:bg-neutral-800/40 transition-colors">
                       <td className="px-6 py-4 font-semibold text-white">
                         {u.firstName} {u.lastName}
                       </td>
-                      <td className="px-6 py-4 text-gray-300">{u.email}</td>
+                      <td className="px-6 py-4 text-neutral-300">{u.email}</td>
                       <td className="px-6 py-4">
                         <select
                           value={u.role}
                           onChange={(e) => handlePromoteRole(u.id, e.target.value)}
-                          className={`text-xs font-bold rounded-lg px-2.5 py-1 border bg-gray-800 ${
-                            isSuperAdmin ? 'text-amber-400 border-amber-500/40' : 'text-gray-300 border-gray-700'
+                          className={`text-xs font-bold rounded-lg px-2.5 py-1 border bg-neutral-800 ${
+                            isSuperAdmin ? 'text-amber-400 border-amber-500/40' : 'text-neutral-300 border-neutral-700'
                           }`}
                         >
                           <option value="USER">USER</option>
@@ -165,7 +165,7 @@ export default function UserManagement() {
                           {u.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-400">
+                      <td className="px-6 py-4 text-xs text-neutral-400">
                         {new Date(u.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">

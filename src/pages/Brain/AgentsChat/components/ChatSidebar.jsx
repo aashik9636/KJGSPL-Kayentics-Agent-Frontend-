@@ -37,7 +37,7 @@ export default function ChatSidebar({ conversations, activeId, onSelect, onNewCh
                 });
               }
             }}
-            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-0.5 rounded-md hover:bg-red-50"
+            className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-500 transition-opacity p-0.5 rounded-md hover:bg-red-50"
             title="Delete chat"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,10 +54,10 @@ export default function ChatSidebar({ conversations, activeId, onSelect, onNewCh
       
       {/* Header */}
       <div className="flex items-center justify-between mb-[18px]">
-        <h2 className="text-[14px] font-semibold m-0 text-gray-900 tracking-[0.01em]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Chat history</h2>
+        <h2 className="text-[14px] font-semibold m-0 text-neutral-900 tracking-[0.01em]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Chat history</h2>
         <button 
           onClick={onNewChat}
-          className="flex items-center gap-1.5 bg-gray-900 text-white border-none py-1.5 px-3 rounded-[8px] font-semibold text-[11.5px] cursor-pointer hover:bg-black transition-colors"
+          className="flex items-center gap-1.5 bg-neutral-900 text-white border-none py-1.5 px-3 rounded-[8px] font-semibold text-[11.5px] cursor-pointer hover:bg-black transition-colors"
         >
           <span>＋</span> New
         </button>
@@ -71,26 +71,26 @@ export default function ChatSidebar({ conversations, activeId, onSelect, onNewCh
           placeholder="Search conversations…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="bg-transparent border-none outline-none w-full text-gray-900 placeholder:text-[#9C9CA9]"
+          className="bg-transparent border-none outline-none w-full text-neutral-900 placeholder:text-[#9C9CA9]"
         />
       </div>
 
       {/* Filter Tabs */}
       <div className="flex gap-1.5 mb-4">
         <div className="text-[11px] font-semibold px-2.5 py-1 rounded-md cursor-pointer bg-[#EEEDFE] text-[#3730B8]">All</div>
-        <div className="text-[11px] font-semibold px-2.5 py-1 rounded-md cursor-pointer text-[#6D6D7C] hover:bg-gray-50">Pinned</div>
-        <div className="text-[11px] font-semibold px-2.5 py-1 rounded-md cursor-pointer text-[#6D6D7C] hover:bg-gray-50">Shared</div>
+        <div className="text-[11px] font-semibold px-2.5 py-1 rounded-md cursor-pointer text-[#6D6D7C] hover:bg-neutral-50">Pinned</div>
+        <div className="text-[11px] font-semibold px-2.5 py-1 rounded-md cursor-pointer text-[#6D6D7C] hover:bg-neutral-50">Shared</div>
       </div>
 
       {/* History List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar group">
         {loading ? (
           <div className="space-y-2">
-            {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded-lg animate-pulse" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-8 bg-neutral-100 rounded-lg animate-pulse" />)}
           </div>
         ) : (
           <div>
-            <div className="text-[11px] font-bold text-gray-400 tracking-[0.05em] mt-4 mx-[4px] mb-2.5 uppercase font-sans">Recent</div>
+            <div className="text-[11px] font-bold text-neutral-400 tracking-[0.05em] mt-4 mx-[4px] mb-2.5 uppercase font-sans">Recent</div>
             <div className="space-y-[2px]">
               {displayedConversations.map(c => <HistoryItem key={c.id} conv={c} />)}
             </div>

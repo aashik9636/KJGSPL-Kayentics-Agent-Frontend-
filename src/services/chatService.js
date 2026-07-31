@@ -104,6 +104,21 @@ export const chatService = {
   runLeadGenAgent: async (data) => chatService.runSubAgentChat('lead-generation', data),
   runRecruitmentAgent: async (data) => chatService.runSubAgentChat('recruitment', data),
   runSocialTrendsAgent: async (data) => chatService.runSubAgentChat('social-trends', data),
+  runContentWriterAgent: async (data) => chatService.runSubAgentChat('content-writer', data),
+  runImageQueryAgent: async (data) => chatService.runSubAgentChat('image-query', data),
+  runCampaignPlannerAgent: async (data) => chatService.runSubAgentChat('campaign-planner', data),
+  runPostSchedulerAgent: async (data) => chatService.runSubAgentChat('post-scheduler', data),
+  runImageGenerationAgent: async (data) => {
+    const { organizationId, workspaceId } = useWorkspaceStore.getState();
+    const payload = typeof data === 'string' ? { prompt_text: data } : (data || {});
+    const response = await apiClient.post('/api/chat/image-generation', {
+      prompt_text: payload.prompt_text || payload.prompt || payload.userQuery || payload.message || '',
+      platform: payload.platform || 'instagram',
+      companyId: workspaceId || payload.companyId || undefined,
+      organizationId: organizationId || payload.organizationId || undefined,
+    });
+    return response.data;
+  },
 
   getBrainReplay: async (sessionId, jobId = '') => {
     const response = await apiClient.get(`/api/brain/replay/${sessionId}`, {

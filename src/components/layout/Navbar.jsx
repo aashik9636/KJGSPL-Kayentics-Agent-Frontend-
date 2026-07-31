@@ -3,6 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { useAuthStore } from '../../store/authStore';
+import { useThemeStore } from '../../store/themeStore';
 import { workspaceService } from '../../services/workspaceService';
 import { rbacService } from '../../services/rbacService';
 import { toast } from 'react-toastify';
@@ -18,6 +19,12 @@ export default function Navbar() {
   const [wsOpen, setWsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
+
+  const { theme, toggleTheme, initTheme } = useThemeStore();
+
+  useEffect(() => {
+    initTheme();
+  }, []);
 
   const {
     organizations,
@@ -114,7 +121,7 @@ export default function Navbar() {
 
       {/* Page Title */}
       <div className="navbar-title">
-        <h2 className="text-[22px] font-bold text-[#111827] tracking-tight">
+        <h2 className="text-[22px] font-bold text-[#111827] dark:text-white tracking-tight">
           {(() => {
             const p = location.pathname;
             if (p === '/') return 'Dashboard';
@@ -146,7 +153,7 @@ export default function Navbar() {
             <button
               onClick={() => { setOrgOpen((v) => !v); setWsOpen(false); }}
               disabled={switching}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-all text-[13px] font-medium text-[#374151] shadow-sm min-w-0 max-w-[160px]"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-200 dark:border-[#333333] bg-white dark:bg-[#1a1a1a] hover:bg-neutral-50 dark:hover:bg-[#232738] transition-all text-[13px] font-medium text-[#374151] dark:text-neutral-200 shadow-sm min-w-0 max-w-[160px]"
             >
               <div className="w-5 h-5 rounded-md bg-[#1967d2]/10 flex items-center justify-center shrink-0">
                 <svg className="w-3 h-3 text-[#1967d2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,21 +161,21 @@ export default function Navbar() {
                 </svg>
               </div>
               <span className="truncate">{activeOrganization?.name || 'Organization'}</span>
-              <svg className={`w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform ${orgOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-transform ${orgOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
             {orgOpen && (
-              <div className="absolute top-full mt-2 right-0 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
-                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">Organizations</p>
+              <div className="absolute top-full mt-2 right-0 w-52 bg-white dark:bg-[#1a1a1a] rounded-xl border border-neutral-100 dark:border-[#333333] shadow-lg py-1 z-50">
+                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Organizations</p>
                 {organizations.map((org) => (
                   <button
                     key={org.id}
                     onClick={() => handleOrgSwitch(org)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] hover:bg-gray-50 transition-colors ${org.id === activeOrganization?.id ? 'text-[#1967d2] font-semibold' : 'text-[#374151]'}`}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] hover:bg-neutral-50 dark:hover:bg-[#232738] transition-colors ${org.id === activeOrganization?.id ? 'text-[#1967d2] font-semibold' : 'text-[#374151] dark:text-neutral-200'}`}
                   >
-                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${org.id === activeOrganization?.id ? 'bg-[#1967d2]' : 'bg-gray-300'}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${org.id === activeOrganization?.id ? 'bg-[#1967d2]' : 'bg-neutral-300'}`} />
                     <span className="truncate">{org.name}</span>
                     {org.id === activeOrganization?.id && (
                       <svg className="w-3.5 h-3.5 text-[#1967d2] ml-auto shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -188,36 +195,36 @@ export default function Navbar() {
             <button
               onClick={() => { setWsOpen((v) => !v); setOrgOpen(false); }}
               disabled={switching}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-all text-[13px] font-medium text-[#374151] shadow-sm min-w-0 max-w-[160px]"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-200 dark:border-[#333333] bg-white dark:bg-[#1a1a1a] hover:bg-neutral-50 dark:hover:bg-[#232738] transition-all text-[13px] font-medium text-[#374151] dark:text-neutral-200 shadow-sm min-w-0 max-w-[160px]"
             >
-              <div className="w-5 h-5 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
+              <div className="w-5 h-5 rounded-md bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center shrink-0">
                 <svg className="w-3 h-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
               </div>
               <span className="truncate">{activeWorkspace?.name || 'Workspace'}</span>
               {switching ? (
-                <svg className="animate-spin w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin w-3.5 h-3.5 text-neutral-400 shrink-0" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
               ) : (
-                <svg className={`w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform ${wsOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-transform ${wsOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               )}
             </button>
 
             {wsOpen && (
-              <div className="absolute top-full mt-2 right-0 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
-                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">Workspaces</p>
+              <div className="absolute top-full mt-2 right-0 w-52 bg-white dark:bg-[#1a1a1a] rounded-xl border border-neutral-100 dark:border-[#333333] shadow-lg py-1 z-50">
+                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Workspaces</p>
                 {workspaces.map((ws) => (
                   <button
                     key={ws.id}
                     onClick={() => handleWorkspaceSwitch(ws)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] hover:bg-gray-50 transition-colors ${ws.id === activeWorkspace?.id ? 'text-purple-600 font-semibold' : 'text-[#374151]'}`}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] hover:bg-neutral-50 dark:hover:bg-[#232738] transition-colors ${ws.id === activeWorkspace?.id ? 'text-purple-600 font-semibold' : 'text-[#374151] dark:text-neutral-200'}`}
                   >
-                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${ws.id === activeWorkspace?.id ? 'bg-purple-500' : 'bg-gray-300'}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${ws.id === activeWorkspace?.id ? 'bg-purple-500' : 'bg-neutral-300'}`} />
                     <span className="truncate">{ws.name}</span>
                     {ws.id === activeWorkspace?.id && (
                       <svg className="w-3.5 h-3.5 text-purple-500 ml-auto shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -235,15 +242,32 @@ export default function Navbar() {
         <div className="hidden sm:flex items-center">
           <div className="relative w-60 lg:w-80">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
             <input
               type="text"
               placeholder="Search"
-              className="w-full bg-white text-gray-900 rounded-full py-2.5 pl-10 pr-4 text-[14px] font-medium outline-none shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-transparent focus:border-gray-200 transition-all placeholder-gray-400"
+              className="w-full bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white rounded-full py-2.5 pl-10 pr-4 text-[14px] font-medium outline-none shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-transparent dark:border-[#333333] focus:border-neutral-200 dark:focus:border-purple-500/50 transition-all placeholder-neutral-400 dark:placeholder-neutral-500"
             />
           </div>
         </div>
+
+        {/* Dark/Light Mode Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-white hover:bg-neutral-100 dark:bg-[#1c1f2b] dark:hover:bg-[#282c3c] border border-neutral-200/80 dark:border-[#2e3346] text-neutral-600 dark:text-amber-400 shadow-sm focus:outline-none ml-1 group shrink-0"
+        >
+          {theme === 'dark' ? (
+            <svg className="w-5 h-5 transition-transform group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 transition-transform group-hover:-rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+        </button>
 
         {/* User Profile Dropdown */}
         <div className="relative ml-2" ref={profileDropdownRef}>
@@ -255,15 +279,15 @@ export default function Navbar() {
           </button>
           
           {profileOpen && (
-            <div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-xl border border-gray-100 shadow-lg py-2 z-50">
-              <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                <p className="text-sm font-semibold text-gray-900 truncate">{useAuthStore.getState().user?.name || 'User'}</p>
-                <p className="text-xs text-gray-500 truncate">{useAuthStore.getState().user?.email}</p>
+            <div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-xl border border-neutral-100 shadow-lg py-2 z-50">
+              <div className="px-4 py-2 border-b border-neutral-100 mb-1">
+                <p className="text-sm font-semibold text-neutral-900 truncate">{useAuthStore.getState().user?.name || 'User'}</p>
+                <p className="text-xs text-neutral-500 truncate">{useAuthStore.getState().user?.email}</p>
               </div>
               <Link 
                 to="/profile" 
                 onClick={() => setProfileOpen(false)} 
-                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
               >
                 My Profile
               </Link>

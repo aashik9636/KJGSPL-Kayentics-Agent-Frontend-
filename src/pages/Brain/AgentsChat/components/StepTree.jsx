@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useThemeStore } from '../../../../store/themeStore';
 import {
   ChevronDown,
   Check,
@@ -13,25 +14,45 @@ import {
 /* ---------------------------------------------------------------------
    DESIGN TOKENS — exact reference from agent-console-chat.jsx
 --------------------------------------------------------------------- */
-const T = {
-  paper: '#FAFAFA',
-  paperEdge: '#EAEAEA',
-  ink: '#1A1A1A',
-  inkSoft: '#767676',
-  console: '#FFFFFF',
-  consoleEdge: '#EAEAEA',
-  consoleEdgeSoft: '#F4F4F4',
-  consoleText: '#1A1A1A',
-  consoleTextSoft: '#8A8A8A',
-  running: '#D97706',
-  runningSoft: '#FEF3E2',
-  ok: '#1F9D5A',
-  okSoft: '#E8F7EE',
-  error: '#DC4C3E',
-  errorSoft: '#FDECEA',
-  signal: '#5B57D6',
-  signalSoft: '#EFEEFC',
-};
+function getTokens(isDark) {
+  return isDark ? {
+    paper: '#1A1D27',
+    paperEdge: '#333333',
+    ink: '#F9FAFB',
+    inkSoft: '#9CA3AF',
+    console: '#111111',
+    consoleEdge: '#333333',
+    consoleEdgeSoft: '#1F2332',
+    consoleText: '#F3F4F6',
+    consoleTextSoft: '#9CA3AF',
+    running: '#F59E0B',
+    runningSoft: '#45260A',
+    ok: '#10B981',
+    okSoft: '#064E3B',
+    error: '#EF4444',
+    errorSoft: '#7F1D1D',
+    signal: '#8B5CF6',
+    signalSoft: '#2E1065',
+  } : {
+    paper: '#FAFAFA',
+    paperEdge: '#EAEAEA',
+    ink: '#1A1A1A',
+    inkSoft: '#767676',
+    console: '#FFFFFF',
+    consoleEdge: '#EAEAEA',
+    consoleEdgeSoft: '#F4F4F4',
+    consoleText: '#1A1A1A',
+    consoleTextSoft: '#8A8A8A',
+    running: '#D97706',
+    runningSoft: '#FEF3E2',
+    ok: '#1F9D5A',
+    okSoft: '#E8F7EE',
+    error: '#DC4C3E',
+    errorSoft: '#FDECEA',
+    signal: '#5B57D6',
+    signalSoft: '#EFEEFC',
+  };
+}
 
 const fontStack = {
   display: "'Space Grotesk', 'Inter', system-ui, sans-serif",
@@ -39,30 +60,30 @@ const fontStack = {
   mono: "'IBM Plex Mono', 'SF Mono', ui-monospace, monospace",
 };
 
-function stateVisual(state) {
+function stateVisual(state, T) {
   const s = (state || 'running').toLowerCase();
   if (s === 'ok' || s === 'completed') return { color: T.ok, bg: T.okSoft, Icon: Check };
   if (s === 'error' || s === 'failed') return { color: T.error, bg: T.errorSoft, Icon: X };
   return { color: T.running, bg: T.runningSoft, Icon: Loader2 };
 }
 
-function PulseDots() {
+function PulseDots({ T }) {
   return (
     <span className="inline-flex items-center gap-1">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="w-1.5 h-1.5 rounded-full bg-[#D97706] animate-pulse"
-          style={{ animationDelay: `${i * 0.15}s` }}
+          className="w-1.5 h-1.5 rounded-full animate-pulse"
+          style={{ animationDelay: `${i * 0.15}s`, backgroundColor: T.running }}
         />
       ))}
     </span>
   );
 }
 
-function StepRow({ step, depth, isLast, childMap }) {
+function StepRow({ step, depth, isLast, childMap, T }) {
   const [open, setOpen] = useState(false);
-  const { color, bg, Icon } = stateVisual(step.state);
+  const { color, bg, Icon } = stateVisual(step.state, T);
   const hasDetail = (step.args && Object.keys(step.args).length > 0) || (step.preview && step.preview.length > 0);
   const ToolIcon = step.tool === 'web_search' || step.tool === 'search' ? Search : step.tool ? Globe : Terminal;
 
@@ -94,9 +115,12 @@ function StepRow({ step, depth, isLast, childMap }) {
       {/* Row Item */}
       <div
         onClick={() => hasDetail && setOpen((o) => !o)}
+        style={hasDetail && open ? { backgroundColor: T.consoleEdgeSoft } : {}}
         className={`flex items-start gap-2.5 p-2 rounded-lg transition-colors duration-120 ${
-          hasDetail ? 'cursor-pointer hover:bg-[#F4F4F4]' : 'cursor-default'
+          hasDetail ? 'cursor-pointer hover:bg-opacity-50' : 'cursor-default'
         }`}
+        onMouseEnter={(e) => hasDetail && (e.currentTarget.style.backgroundColor = T.consoleEdgeSoft)}
+        onMouseLeave={(e) => hasDetail && !open && (e.currentTarget.style.backgroundColor = 'transparent')}
       >
         {/* Status Circle */}
         <span
@@ -208,6 +232,7 @@ function StepRow({ step, depth, isLast, childMap }) {
               depth={depth + 1}
               isLast={i === children.length - 1}
               childMap={childMap}
+              T={T}
             />
           ))}
         </div>
@@ -218,6 +243,8 @@ function StepRow({ step, depth, isLast, childMap }) {
 
 export default function StepTree({ steps = [], nodes = {}, confidence = null, statusText = '', isStreaming = false, metrics = null }) {
   const [expanded, setExpanded] = useState(isStreaming);
+  const theme = useThemeStore(state => state.theme);
+  const T = getTokens(theme === 'dark');
 
   useEffect(() => {
     setExpanded(isStreaming);
@@ -344,13 +371,14 @@ export default function StepTree({ steps = [], nodes = {}, confidence = null, st
                 depth={0}
                 isLast={i === rootIds.length - 1 && (!statusText || !isStreaming || nodeEntries.some(n => n.state === 'running'))}
                 childMap={childMap}
+                T={T}
               />
             ))}
 
             {/* Active Live Message Banner at the BOTTOM of the steps list (Claude-style) */}
             {statusText && isStreaming && !nodeEntries.some(n => n.state === 'running') && (
               <div className="flex items-center gap-2 px-2 py-1.5 mt-1 rounded-lg">
-                <PulseDots />
+                <PulseDots T={T} />
                 <span style={{ fontFamily: fontStack.body, fontSize: 12.5, color: T.consoleTextSoft }}>
                   {statusText}
                 </span>

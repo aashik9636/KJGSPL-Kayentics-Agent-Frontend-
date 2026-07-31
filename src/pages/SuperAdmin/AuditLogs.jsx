@@ -83,15 +83,15 @@ export default function AuditLogs() {
   return (
     <div className="w-full max-w-[1600px] mx-auto px-4 md:px-8 pb-8 pt-2 space-y-6 font-sans">
       {/* Header Banner - Clean White Aesthetic */}
-      <div className="bg-white border border-gray-200/90 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-[#6c48ff] text-xs font-semibold border border-purple-100">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 text-xs font-semibold border border-purple-100 dark:border-purple-900/40">
             <FileText className="w-4 h-4" /> Audit Trail & System Security Logs
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
             {isSuperAdminPath ? 'Platform Audit Trail & Security Logs' : 'Company Audit Trail & Team Activity'}
           </h1>
-          <p className="text-gray-500 text-xs sm:text-sm max-w-2xl leading-relaxed">
+          <p className="text-neutral-500 dark:text-neutral-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
             {isSuperAdminPath
               ? 'Complete, tamper-evident audit history across all tenant organizations and system modules.'
               : 'Track actions, logins, role changes, and data mutations performed by users in your company.'}
@@ -101,24 +101,24 @@ export default function AuditLogs() {
         <button
           type="button"
           onClick={fetchLogs}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-xs transition shadow-xs shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] hover:bg-neutral-50 dark:hover:bg-[#262626] text-neutral-700 dark:text-neutral-200 font-bold rounded-xl text-xs transition shadow-xs shrink-0"
         >
-          <RefreshCw className={`w-4 h-4 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 text-neutral-500 dark:text-neutral-400 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh Logs</span>
         </button>
       </div>
 
       {/* Sensible Search & Filter Bar */}
-      <div className="bg-white border border-gray-200/90 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center gap-3">
+      <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center gap-3">
         {/* Search Input */}
         <div className="relative flex-1 w-full">
-          <UserIcon className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <UserIcon className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by user email, actor name, IP, or resource..."
             value={userSearch}
             onChange={(e) => setUserSearch(e.target.value)}
-            className="w-full bg-gray-50/80 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+            className="w-full bg-neutral-50/80 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl pl-10 pr-4 py-2.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#6c48ff] transition"
           />
         </div>
 
@@ -127,7 +127,7 @@ export default function AuditLogs() {
           <select
             value={moduleFilter}
             onChange={(e) => { setModuleFilter(e.target.value); setPage(1); }}
-            className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+            className="w-full bg-neutral-50/80 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-800 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
           >
             <option value="">All System Modules</option>
             <option value="ROLE">RBAC & Roles</option>
@@ -146,7 +146,7 @@ export default function AuditLogs() {
           <select
             value={actionFilter}
             onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-            className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+            className="w-full bg-neutral-50/80 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-800 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
           >
             <option value="">All Action Types</option>
             <option value="CREATE">CREATE / ADD</option>
@@ -162,33 +162,41 @@ export default function AuditLogs() {
           <button
             type="button"
             onClick={handleResetFilters}
-            className="w-full md:w-auto px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition shrink-0"
+            className="w-full md:w-auto px-4 py-2.5 bg-neutral-100 dark:bg-[#1a1a1a] hover:bg-neutral-200 dark:hover:bg-[#262626] text-neutral-700 dark:text-neutral-200 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition shrink-0"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
+            <RotateCcw className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
             <span>Reset</span>
           </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-xs">
+      <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-2xl overflow-hidden shadow-xs">
         {loading ? (
-          <div className="flex flex-col items-center justify-center p-16 text-gray-400">
-            <RefreshCw className="w-7 h-7 text-[#6c48ff] animate-spin mb-3" />
-            <p className="text-xs font-semibold">Loading Audit Trail Dataset...</p>
+          <div className="w-full">
+            <div className="h-12 bg-neutral-50 dark:bg-[#171717] border-b border-neutral-100 dark:border-[#262626]"></div>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="flex items-center p-4 border-b border-neutral-100 dark:border-[#262626] animate-pulse">
+                <div className="w-[15%] px-4"><div className="h-4 bg-neutral-200 dark:bg-[#222222] rounded w-24"></div></div>
+                <div className="w-[15%] px-4"><div className="h-4 bg-neutral-100 dark:bg-[#1a1a1a] rounded w-20"></div></div>
+                <div className="w-[15%] px-4"><div className="h-6 bg-neutral-200 dark:bg-[#222222] rounded-full w-16"></div></div>
+                <div className="w-[40%] px-4"><div className="h-4 bg-neutral-100 dark:bg-[#1a1a1a] rounded w-3/4"></div></div>
+                <div className="w-[15%] px-4"><div className="h-4 bg-neutral-100 dark:bg-[#1a1a1a] rounded w-24"></div></div>
+              </div>
+            ))}
           </div>
         ) : filteredLogs.length === 0 ? (
-          <div className="p-16 text-center text-gray-400 space-y-3">
-            <ShieldAlert className="w-10 h-10 text-gray-300 mx-auto" />
-            <p className="text-sm font-bold text-gray-700">No audit log records found</p>
-            <p className="text-xs text-gray-400 max-w-sm mx-auto mb-3">
+          <div className="p-16 text-center text-neutral-400 dark:text-neutral-500 space-y-3">
+            <ShieldAlert className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto" />
+            <p className="text-sm font-bold text-neutral-700 dark:text-neutral-300">No audit log records found</p>
+            <p className="text-xs text-neutral-400 dark:text-neutral-500 max-w-sm mx-auto mb-3">
               No activity logs matched your current search query or module dropdown filters.
             </p>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="px-4 py-2 bg-purple-50 text-[#6c48ff] hover:bg-purple-100 font-bold text-xs rounded-xl transition"
+                className="px-4 py-2 bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 hover:bg-purple-100 font-bold text-xs rounded-xl transition"
               >
                 Reset All Filters
               </button>
@@ -196,9 +204,9 @@ export default function AuditLogs() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-700 border-collapse">
+            <table className="w-full text-left text-sm text-neutral-700 dark:text-neutral-300 border-collapse">
               <thead>
-                <tr className="bg-gray-50/90 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <tr className="bg-neutral-50/90 dark:bg-[#171717] border-b border-neutral-200 dark:border-[#262626] text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                   <th className="px-6 py-4">Timestamp</th>
                   <th className="px-6 py-4">Actor / User</th>
                   <th className="px-6 py-4">Module</th>
@@ -207,12 +215,12 @@ export default function AuditLogs() {
                   <th className="px-6 py-4 text-right">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-neutral-100">
                 {filteredLogs.map((log) => {
                   const actorEmail = log.user?.email || (log.user?.firstName ? `${log.user.firstName} ${log.user.lastName || ''}`.trim() : null) || 'System / Service';
                   return (
                     <tr key={log.id || log.createdAt} className="hover:bg-purple-50/20 transition-colors">
-                      <td className="px-6 py-4 text-xs font-mono text-gray-400">
+                      <td className="px-6 py-4 text-xs font-mono text-neutral-400">
                         {new Date(log.createdAt).toLocaleString()}
                       </td>
                       <td className="px-6 py-4">
@@ -221,8 +229,8 @@ export default function AuditLogs() {
                             {actorEmail[0].toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-bold text-xs text-gray-900">{actorEmail}</div>
-                            {log.user?.id && <div className="text-[10px] text-gray-400 font-mono">ID: {log.user.id.substring(0, 8)}...</div>}
+                            <div className="font-bold text-xs text-neutral-900">{actorEmail}</div>
+                            {log.user?.id && <div className="text-[10px] text-neutral-400 font-mono">ID: {log.user.id.substring(0, 8)}...</div>}
                           </div>
                         </div>
                       </td>
@@ -231,10 +239,10 @@ export default function AuditLogs() {
                           {log.module}
                         </span>
                       </td>
-                      <td className="px-6 py-4 font-semibold text-gray-900 text-xs uppercase">{log.action}</td>
-                      <td className="px-6 py-4 text-xs font-mono text-gray-500">
+                      <td className="px-6 py-4 font-semibold text-neutral-900 text-xs uppercase">{log.action}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-neutral-500">
                         <div className="flex items-center gap-1.5">
-                          <Globe className="w-3.5 h-3.5 text-gray-400" />
+                          <Globe className="w-3.5 h-3.5 text-neutral-400" />
                           <span>{log.ipAddress || '127.0.0.1'}</span>
                         </div>
                       </td>
@@ -259,51 +267,51 @@ export default function AuditLogs() {
 
       {/* Audit Entry Details Drawer Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 animate-fade-in">
-          <div className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-fade-in">
+          <div className="bg-white border border-neutral-100 rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-purple-50 text-[#6c48ff] rounded-2xl border border-purple-100">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Audit Entry Details</h3>
-                  <span className="text-xs text-gray-400 font-mono">ID: {selectedLog.id}</span>
+                  <h3 className="text-lg font-bold text-neutral-900">Audit Entry Details</h3>
+                  <span className="text-xs text-neutral-400 font-mono">ID: {selectedLog.id}</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="p-2 text-gray-400 hover:text-gray-700 rounded-xl bg-gray-100 hover:bg-gray-200 transition"
+                className="p-2 text-neutral-400 hover:text-neutral-700 rounded-xl bg-neutral-100 hover:bg-neutral-200 transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-xs">
-              <div className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100">
-                <span className="text-gray-400 font-semibold block mb-1">Actor Email</span>
-                <span className="text-gray-900 font-bold">{selectedLog.user?.email || 'System'}</span>
+              <div className="bg-neutral-50/80 p-3.5 rounded-2xl border border-neutral-100">
+                <span className="text-neutral-400 font-semibold block mb-1">Actor Email</span>
+                <span className="text-neutral-900 font-bold">{selectedLog.user?.email || 'System'}</span>
               </div>
-              <div className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100">
-                <span className="text-gray-400 font-semibold block mb-1">IP Address</span>
-                <span className="text-gray-900 font-mono">{selectedLog.ipAddress || '127.0.0.1'}</span>
+              <div className="bg-neutral-50/80 p-3.5 rounded-2xl border border-neutral-100">
+                <span className="text-neutral-400 font-semibold block mb-1">IP Address</span>
+                <span className="text-neutral-900 font-mono">{selectedLog.ipAddress || '127.0.0.1'}</span>
               </div>
-              <div className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100">
-                <span className="text-gray-400 font-semibold block mb-1">Module</span>
+              <div className="bg-neutral-50/80 p-3.5 rounded-2xl border border-neutral-100">
+                <span className="text-neutral-400 font-semibold block mb-1">Module</span>
                 <span className="text-[#6c48ff] font-mono font-bold uppercase">{selectedLog.module}</span>
               </div>
-              <div className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100">
-                <span className="text-gray-400 font-semibold block mb-1">Action</span>
-                <span className="text-gray-900 font-bold uppercase">{selectedLog.action}</span>
+              <div className="bg-neutral-50/80 p-3.5 rounded-2xl border border-neutral-100">
+                <span className="text-neutral-400 font-semibold block mb-1">Action</span>
+                <span className="text-neutral-900 font-bold uppercase">{selectedLog.action}</span>
               </div>
             </div>
 
             {/* Old vs New State Diff */}
             {(selectedLog.oldValue || selectedLog.newValue) && (
               <div className="space-y-3 pt-2">
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">State Mutation Payload</h4>
+                <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider">State Mutation Payload</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {selectedLog.oldValue && (
                     <div>

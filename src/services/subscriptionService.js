@@ -99,5 +99,35 @@ export const subscriptionService = {
       quantity
     });
     return response.data;
-  }
+  },
+
+  /**
+   * Create Razorpay order for dynamic per-unit top-up
+   * (tasks, images, and/or research runs — any quantity)
+   */
+  async createDynamicTopUpOrder(organizationId, taskUnits = 0, imageUnits = 0, researchUnits = 0, region = 'INDIA_INR') {
+    const response = await apiClient.post('/subscriptions/topup/razorpay/create-order', {
+      organizationId,
+      taskUnits,
+      imageUnits,
+      researchUnits,
+      region,
+    });
+    return response.data;
+  },
+
+  /**
+   * Verify dynamic per-unit top-up payment and grant credits
+   */
+  async verifyDynamicTopUpPayment({ razorpayOrderId, razorpayPaymentId, razorpaySignature, taskUnits = 0, imageUnits = 0, researchUnits = 0 }) {
+    const response = await apiClient.post('/subscriptions/topup/razorpay/verify', {
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+      taskUnits,
+      imageUnits,
+      researchUnits,
+    });
+    return response.data;
+  },
 };

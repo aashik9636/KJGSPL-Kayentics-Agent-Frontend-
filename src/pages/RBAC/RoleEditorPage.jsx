@@ -274,7 +274,7 @@ export default function RoleEditorPage() {
 
   if (loading) {
     return (
-      <div className="py-24 text-center text-gray-400">
+      <div className="py-24 text-center text-neutral-400">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent mx-auto mb-3" />
         <p className="text-sm font-medium">Loading Role Editor...</p>
       </div>
@@ -284,27 +284,27 @@ export default function RoleEditorPage() {
   return (
     <div className="w-full max-w-[1600px] mx-auto px-6 md:px-10 py-8 space-y-8 font-sans">
       {/* Top Header Navigation */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200/80 pb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-neutral-200/80 dark:border-[#262626] pb-6">
         <div className="flex items-center gap-4">
           <Link
             to="/roles"
-            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-2xl transition shadow-xs"
+            className="p-2.5 bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] hover:bg-neutral-50 dark:hover:bg-[#262626] text-neutral-700 dark:text-neutral-200 rounded-2xl transition shadow-xs"
             title="Back to Role Master"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-50 text-[#6c48ff] border border-purple-200">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 border border-purple-200 dark:border-purple-900/40">
                 {isEditing ? 'Edit Role' : 'Create Role'}
               </span>
               {roleForm.isSystemRole && (
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40">
                   System Protected
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
               {isEditing ? `Configure Role: ${roleForm.name}` : 'Create New Custom Role'}
             </h1>
           </div>
@@ -314,7 +314,7 @@ export default function RoleEditorPage() {
           <button
             type="button"
             onClick={() => navigate('/roles')}
-            className="flex-1 sm:flex-initial px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition"
+            className="flex-1 sm:flex-initial px-5 py-2.5 bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] hover:bg-neutral-50 dark:hover:bg-[#262626] text-neutral-700 dark:text-neutral-200 font-bold rounded-xl text-sm transition"
           >
             Cancel
           </button>
@@ -333,20 +333,20 @@ export default function RoleEditorPage() {
       {/* Main Page Layout Grid */}
       <form onSubmit={handleSaveRole} className="space-y-8">
         {/* SECTION 1: ROLE METADATA CARD */}
-        <div className="bg-white border border-gray-200/90 rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
-          <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-            <div className="p-3 bg-purple-50 text-[#6c48ff] rounded-2xl border border-purple-100">
+        <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
+          <div className="flex items-center gap-3 border-b border-neutral-100 dark:border-[#262626] pb-4">
+            <div className="p-3 bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 rounded-2xl border border-purple-100 dark:border-purple-900/40">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 tracking-tight">Role Details & Status</h3>
-              <p className="text-xs text-gray-500">Specify the role display name, operational status, and scope description.</p>
+              <h3 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">Role Details & Status</h3>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">Specify the role display name, operational status, and scope description.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                 Role Name *
               </label>
               <input
@@ -355,18 +355,18 @@ export default function RoleEditorPage() {
                 placeholder="e.g. Senior Content Manager"
                 value={roleForm.name}
                 onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+                className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                 Status
               </label>
               <select
                 value={roleForm.status}
                 onChange={(e) => setRoleForm({ ...roleForm, status: e.target.value })}
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+                className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
               >
                 <option value="ACTIVE">ACTIVE</option>
                 <option value="INACTIVE">INACTIVE</option>
@@ -374,7 +374,7 @@ export default function RoleEditorPage() {
             </div>
 
             <div className="md:col-span-3">
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                 Role Description
               </label>
               <textarea
@@ -382,22 +382,22 @@ export default function RoleEditorPage() {
                 placeholder="Describe responsibilities and permissions granted to this role..."
                 value={roleForm.description}
                 onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
-                className="w-full bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+                className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl p-4 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
               />
             </div>
           </div>
         </div>
 
         {/* SECTION 2: PERMISSION MATRIX CARD */}
-        <div className="bg-white border border-gray-200/90 rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+        <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-[#262626] pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-50 text-[#6c48ff] rounded-2xl border border-purple-100">
+              <div className="p-3 bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 rounded-2xl border border-purple-100 dark:border-purple-900/40">
                 <Layers className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900 tracking-tight">Granular Module Permission Matrix</h3>
-                <p className="text-xs text-gray-500">Configure read, create, update, delete, and manage permissions per system module.</p>
+                <h3 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">Granular Module Permission Matrix</h3>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">Configure read, create, update, delete, and manage permissions per system module.</p>
               </div>
             </div>
 
@@ -406,21 +406,21 @@ export default function RoleEditorPage() {
               <button
                 type="button"
                 onClick={handleSelectAllRead}
-                className="px-3.5 py-2 bg-gray-100 hover:bg-purple-50 hover:text-[#6c48ff] text-gray-700 text-xs font-bold rounded-xl transition"
+                className="px-3.5 py-2 bg-neutral-100 dark:bg-[#1a1a1a] hover:bg-purple-50 dark:hover:bg-purple-950/60 hover:text-[#6c48ff] dark:hover:text-purple-300 text-neutral-700 dark:text-neutral-300 text-xs font-bold rounded-xl transition"
               >
                 Select All View
               </button>
               <button
                 type="button"
                 onClick={handleGrantFullAdmin}
-                className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-[#6c48ff] text-xs font-bold rounded-xl transition"
+                className="px-3.5 py-2 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-[#6c48ff] dark:text-purple-300 text-xs font-bold rounded-xl transition"
               >
                 Grant Full Access
               </button>
               <button
                 type="button"
                 onClick={handleClearAll}
-                className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl transition"
+                className="px-3.5 py-2 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition"
               >
                 Clear All
               </button>
@@ -429,40 +429,40 @@ export default function RoleEditorPage() {
 
           {/* Module Filter Input */}
           <div className="relative w-full max-w-sm">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3.5" />
             <input
               type="text"
               placeholder="Search taxonomy modules..."
               value={matrixSearch}
               onChange={(e) => setMatrixSearch(e.target.value)}
-              className="w-full bg-gray-50/80 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-800 focus:outline-none focus:border-[#6c48ff] transition"
+              className="w-full bg-neutral-50/80 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl pl-10 pr-4 py-2.5 text-xs text-neutral-800 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#6c48ff] transition"
             />
           </div>
 
           {/* Full Page Permission Matrix Table */}
-          <div className="border border-gray-200/90 rounded-2xl overflow-hidden shadow-xs">
+          <div className="border border-neutral-200/90 dark:border-[#262626] rounded-2xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50/90 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <tr className="bg-neutral-50/90 dark:bg-[#171717] border-b border-neutral-200 dark:border-[#262626] text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                     <th className="p-4 pl-6 w-2/5">Module Taxonomy</th>
                     {STANDARD_ACTIONS.map(act => (
                       <th key={act.key} className="p-4 text-center">
-                        <div className="font-bold text-gray-700">{act.label.split('/')[0]}</div>
-                        <div className="text-[10px] text-gray-400 font-mono normal-case">{act.key}</div>
+                        <div className="font-bold text-neutral-700 dark:text-neutral-300">{act.label.split('/')[0]}</div>
+                        <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono normal-case">{act.key}</div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
+                <tbody className="divide-y divide-neutral-100 dark:divide-[#262626] text-sm">
                   {filteredModules.map((mod) => {
                     const activeSet = matrix[mod.id] || new Set();
 
                     return (
-                      <tr key={mod.id} className="hover:bg-purple-50/20 transition-colors">
+                      <tr key={mod.id} className="hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition-colors">
                         <td className="p-4 pl-6">
-                          <div className="font-bold text-gray-900 tracking-tight">{mod.name}</div>
-                          <div className="text-xs text-gray-400 font-mono mt-0.5">{mod.id} • {mod.category}</div>
+                          <div className="font-bold text-neutral-900 dark:text-white tracking-tight">{mod.name}</div>
+                          <div className="text-xs text-neutral-400 dark:text-neutral-500 font-mono mt-0.5">{mod.id} • {mod.category}</div>
                         </td>
 
                         {STANDARD_ACTIONS.map((act) => {
@@ -479,12 +479,12 @@ export default function RoleEditorPage() {
                                   e.stopPropagation();
                                   handleTogglePermission(mod.id, act.key);
                                 }}
-                                className="inline-flex items-center justify-center p-2 rounded-xl hover:bg-purple-100/50 active:scale-95 transition-all focus:outline-none"
+                                className="inline-flex items-center justify-center p-2 rounded-xl hover:bg-purple-100/50 dark:hover:bg-purple-900/40 active:scale-95 transition-all focus:outline-none"
                               >
                                 <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
                                   isChecked
                                     ? 'bg-[#6c48ff] border-[#6c48ff] text-white shadow-xs'
-                                    : 'bg-white border-gray-300 text-transparent hover:border-[#6c48ff]'
+                                    : 'bg-white dark:bg-[#1a1a1a] border-neutral-300 dark:border-[#333333] text-transparent hover:border-[#6c48ff]'
                                 }`}>
                                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                                 </div>
@@ -501,8 +501,8 @@ export default function RoleEditorPage() {
           </div>
 
           {/* Condition Explanation Box */}
-          <div className="p-4 bg-purple-50/70 border border-purple-100 rounded-2xl text-xs text-purple-900 flex items-start gap-3">
-            <Info className="w-4 h-4 text-[#6c48ff] shrink-0 mt-0.5" />
+          <div className="p-4 bg-purple-50/70 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/40 rounded-2xl text-xs text-purple-900 dark:text-purple-300 flex items-start gap-3">
+            <Info className="w-4 h-4 text-[#6c48ff] dark:text-purple-400 shrink-0 mt-0.5" />
             <div className="leading-relaxed">
               <span className="font-bold block mb-0.5">Enforced Permission Dependency Rule:</span>
               If you check <span className="font-semibold">Update</span>, <span className="font-semibold">Create</span>, <span className="font-semibold">Delete</span>, or <span className="font-semibold">Manage</span> for any module, the system automatically selects <span className="font-semibold">Read</span> access. Unchecking <span className="font-semibold">Read</span> automatically clears all actions for that module.
@@ -515,7 +515,7 @@ export default function RoleEditorPage() {
           <button
             type="button"
             onClick={() => navigate('/roles')}
-            className="px-6 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition"
+            className="px-6 py-3 bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] hover:bg-neutral-50 dark:hover:bg-[#262626] text-neutral-700 dark:text-neutral-200 font-bold rounded-xl text-sm transition"
           >
             Cancel
           </button>

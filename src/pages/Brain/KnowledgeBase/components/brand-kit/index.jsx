@@ -52,7 +52,7 @@ export const BrandKitEditor = () => {
 
   if (loading) {
     return (
-      <div className="p-16 text-center text-gray-400 flex flex-col items-center justify-center font-sans">
+      <div className="p-16 text-center text-neutral-400 flex flex-col items-center justify-center font-sans">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#6c48ff] mb-4"></div>
         <p className="text-sm font-medium">Loading Brand Guidelines...</p>
       </div>

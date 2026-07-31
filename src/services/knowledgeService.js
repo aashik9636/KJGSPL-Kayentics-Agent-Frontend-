@@ -24,13 +24,14 @@ export const KnowledgeService = {
   },
 
   // ─── Trigger extraction ────────────────────────────────────────────────────
-  triggerExtraction: async (fileId, overrideType) => {
+  extractDocument: async (fileId) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const res = await apiClient.post('/knowledge', {
-      sourceFileId: fileId,
-      documentTypeOverride: overrideType,
-      organizationId,
-      workspaceId
+    const res = await apiClient.post('/extraction/extract', {
+      file_id: fileId,
+      organization_id: organizationId,
+      workspace_id: workspaceId,
+      populate_db: true,
+      delete_previous: true
     });
     return res.data;
   },

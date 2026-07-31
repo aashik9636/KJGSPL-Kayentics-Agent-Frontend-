@@ -234,13 +234,13 @@ export default function TeamMaster() {
   return (
     <div className="w-full max-w-[1600px] mx-auto px-4 md:px-8 pb-8 pt-2 space-y-6 font-sans">
       {/* Header Banner - Clean White Aesthetic */}
-      <div className="bg-white border border-gray-200/90 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-[#6c48ff] text-xs font-semibold border border-purple-100">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 text-xs font-semibold border border-purple-100 dark:border-purple-900/40">
             <Users className="w-4 h-4" /> Team Member Master
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Team & Member Management</h1>
-          <p className="text-gray-500 text-xs sm:text-sm max-w-2xl leading-relaxed">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">Team & Member Management</h1>
+          <p className="text-neutral-500 dark:text-neutral-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
             Invite organization members, assign dynamic RBAC roles, track seat usage, and organize members into functional team groups.
           </p>
         </div>
@@ -256,27 +256,27 @@ export default function TeamMaster() {
       </div>
 
       {/* Seat Meter & Navigation Tabs */}
-      <div className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-[#111111] border border-neutral-200/80 dark:border-[#262626] rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="p-3.5 bg-purple-50 text-[#6c48ff] rounded-2xl border border-purple-100">
+          <div className="p-3.5 bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 rounded-2xl border border-purple-100 dark:border-purple-900/40">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Seat Allocation Overview</h3>
-            <p className="text-xs text-gray-500">Track active member invitations against your plan limit.</p>
+            <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Seat Allocation Overview</h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">Track active member invitations against your plan limit.</p>
           </div>
         </div>
 
-        <div className="w-full md:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50/80 border border-gray-100 p-4 rounded-xl">
+        <div className="w-full md:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-neutral-50/80 dark:bg-[#171717] border border-neutral-100 dark:border-[#333333] p-4 rounded-xl">
           <div>
             <div className="flex items-center justify-between gap-4 mb-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Seats Used</span>
-              <span className="text-xs font-bold text-gray-900">
+              <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Seats Used</span>
+              <span className="text-xs font-bold text-neutral-900 dark:text-white">
                 {seatsUsed} / {userLimit === Infinity ? '∞' : userLimit} Members
               </span>
             </div>
             {userLimit !== Infinity && (
-              <div className="w-48 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-48 h-2.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     percentageUsed >= 90 ? 'bg-amber-500' : 'bg-[#6c48ff]'
@@ -289,7 +289,7 @@ export default function TeamMaster() {
 
           <button
             onClick={() => navigate('/pricing')}
-            className="flex items-center gap-1.5 text-xs font-bold text-[#6c48ff] hover:text-[#5b3af0] bg-purple-50 hover:bg-purple-100 px-4 py-2.5 rounded-xl transition"
+            className="flex items-center gap-1.5 text-xs font-bold text-[#6c48ff] dark:text-purple-300 hover:text-[#5b3af0] bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 px-4 py-2.5 rounded-xl transition"
           >
             <span>Upgrade Plan</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -298,14 +298,14 @@ export default function TeamMaster() {
       </div>
 
       {/* Tabs Row */}
-      <div className="flex items-center justify-between border-b border-gray-200">
+      <div className="flex items-center justify-between border-b border-neutral-200 dark:border-[#262626]">
         <div className="flex items-center gap-4">
           <button
             onClick={() => setActiveTab('members')}
             className={`pb-4 px-2 text-sm font-bold border-b-2 transition ${
               activeTab === 'members'
-                ? 'border-[#6c48ff] text-[#6c48ff]'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
+                ? 'border-[#6c48ff] text-[#6c48ff] dark:text-purple-400'
+                : 'border-transparent text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300'
             }`}
           >
             All Members & Invites ({members.length})
@@ -315,8 +315,8 @@ export default function TeamMaster() {
             onClick={() => setActiveTab('groups')}
             className={`pb-4 px-2 text-sm font-bold border-b-2 transition ${
               activeTab === 'groups'
-                ? 'border-[#6c48ff] text-[#6c48ff]'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
+                ? 'border-[#6c48ff] text-[#6c48ff] dark:text-purple-400'
+                : 'border-transparent text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300'
             }`}
           >
             Team Groups & Departments ({groups.length})
@@ -326,7 +326,7 @@ export default function TeamMaster() {
         {activeTab === 'groups' && (
           <button
             onClick={() => setIsGroupModalOpen(true)}
-            className="mb-3 inline-flex items-center gap-1.5 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-[#6c48ff] font-bold rounded-xl text-xs transition"
+            className="mb-3 inline-flex items-center gap-1.5 px-4 py-2 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-[#6c48ff] dark:text-purple-300 font-bold rounded-xl text-xs transition"
           >
             <FolderPlus className="w-4 h-4" /> Create Team Group
           </button>
@@ -338,28 +338,39 @@ export default function TeamMaster() {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+              <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3.5" />
               <input
                 type="text"
                 placeholder="Search team members by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+                className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl pl-10 pr-4 py-2.5 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#6c48ff] transition"
               />
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-2xl overflow-hidden shadow-sm">
             {loading ? (
-              <div className="py-16 text-center text-gray-400">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent mx-auto mb-3" />
-                <p className="text-sm font-medium">Loading team members...</p>
+              <div className="w-full">
+                <div className="h-12 bg-neutral-50 dark:bg-[#171717] border-b border-neutral-100 dark:border-[#262626]"></div>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex items-center p-4 pl-6 border-b border-neutral-100 dark:border-[#262626] animate-pulse">
+                    <div className="flex items-center gap-3 w-[25%] pr-4">
+                      <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-[#222222] shrink-0"></div>
+                      <div className="h-4 w-3/4 bg-neutral-200 dark:bg-[#222222] rounded"></div>
+                    </div>
+                    <div className="w-[25%] px-4"><div className="h-4 bg-neutral-100 dark:bg-[#1a1a1a] rounded w-2/3"></div></div>
+                    <div className="w-[25%] px-4"><div className="h-4 bg-neutral-100 dark:bg-[#1a1a1a] rounded w-1/2"></div></div>
+                    <div className="w-[15%] px-4"><div className="h-6 bg-neutral-200 dark:bg-[#222222] rounded-full w-20"></div></div>
+                    <div className="w-[10%] flex justify-end pr-2"><div className="w-8 h-8 bg-neutral-200 dark:bg-[#222222] rounded-lg"></div></div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/80 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <tr className="bg-neutral-50/80 border-b border-neutral-200 text-xs font-bold text-neutral-500 uppercase tracking-wider">
                       <th className="p-4 pl-6">Member</th>
                       <th className="p-4">Department / Group</th>
                       <th className="p-4">Assigned RBAC Role</th>
@@ -367,10 +378,10 @@ export default function TeamMaster() {
                       <th className="p-4 pr-6 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                  <tbody className="divide-y divide-neutral-100 text-sm text-neutral-700">
                     {filteredMembers.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="p-12 text-center text-gray-400 text-sm">
+                        <td colSpan={5} className="p-12 text-center text-neutral-400 text-sm">
                           No team members found matching your search.
                         </td>
                       </tr>
@@ -382,17 +393,17 @@ export default function TeamMaster() {
                               {(m.firstName?.[0] || m.email?.[0] || 'U').toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-bold text-gray-900">
+                              <div className="font-bold text-neutral-900">
                                 {m.firstName ? `${m.firstName} ${m.lastName || ''}` : m.email.split('@')[0]}
                               </div>
-                              <div className="text-xs text-gray-400 flex items-center gap-1">
+                              <div className="text-xs text-neutral-400 flex items-center gap-1">
                                 <Mail className="w-3 h-3" /> {m.email}
                               </div>
                             </div>
                           </td>
 
                           <td className="p-4">
-                            <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
+                            <span className="text-xs font-semibold text-neutral-600 bg-neutral-100 px-3 py-1 rounded-lg">
                               {m.group || 'General'}
                             </span>
                           </td>
@@ -401,7 +412,7 @@ export default function TeamMaster() {
                             <select
                               value={m.role || 'MEMBER'}
                               onChange={(e) => handleChangeUserRole(m.id, e.target.value)}
-                              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#6c48ff] transition"
+                              className="bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-1.5 text-xs font-bold text-neutral-900 focus:outline-none focus:border-[#6c48ff] transition"
                             >
                               {availableRoles.map((r) => (
                                 <option key={r.id || r.code} value={r.code}>
@@ -428,7 +439,7 @@ export default function TeamMaster() {
                                 <button
                                   type="button"
                                   onClick={() => handleRevokeInvitation(m.invitationId, m.id)}
-                                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
+                                  className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
                                   title="Cancel Invitation"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -453,7 +464,7 @@ export default function TeamMaster() {
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveMember(m)}
-                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
+                                    className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
                                     title="Remove Member"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -477,23 +488,23 @@ export default function TeamMaster() {
       {activeTab === 'groups' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {groups.map((g) => (
-            <div key={g.id} className="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div key={g.id} className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-3 bg-purple-50 text-[#6c48ff] rounded-xl">
+                  <div className="p-3 bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 rounded-xl">
                     <Layers className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-base">{g.name}</h4>
-                    <p className="text-xs text-gray-400">{g.count} Team Members</p>
+                    <h4 className="font-bold text-neutral-900 dark:text-white text-base">{g.name}</h4>
+                    <p className="text-xs text-neutral-400 dark:text-neutral-500">{g.count} Team Members</p>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 leading-relaxed mb-4">{g.description}</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed mb-4">{g.description}</p>
               </div>
 
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 font-medium">
+              <div className="pt-4 border-t border-neutral-100 dark:border-[#262626] flex items-center justify-between text-xs text-neutral-400 dark:text-neutral-500 font-medium">
                 <span>Active Department</span>
-                <button className="text-[#6c48ff] font-bold hover:underline">Manage Group</button>
+                <button className="text-[#6c48ff] dark:text-purple-400 font-bold hover:underline">Manage Group</button>
               </div>
             </div>
           ))}
@@ -502,23 +513,23 @@ export default function TeamMaster() {
 
       {/* ─── INVITE MEMBER MODAL ─── */}
       {isInviteModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl space-y-6 border border-gray-100">
+        <div className="fixed inset-0 z-50 bg-neutral-900/60 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111111] border border-neutral-100 dark:border-[#262626] rounded-3xl max-w-lg w-full p-8 shadow-2xl space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-50 text-[#6c48ff] rounded-2xl">
+                <div className="p-3 bg-purple-50 dark:bg-purple-950/60 text-[#6c48ff] dark:text-purple-300 rounded-2xl">
                   <UserPlus className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Invite Team Member</h3>
-                  <p className="text-xs text-gray-500">Send an invitation email with assigned RBAC access.</p>
+                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Invite Team Member</h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">Send an invitation email with assigned RBAC access.</p>
                 </div>
               </div>
             </div>
 
             <form onSubmit={handleInviteUser} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                   Email Address *
                 </label>
                 <input
@@ -527,18 +538,18 @@ export default function TeamMaster() {
                   placeholder="colleague@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+                  className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#6c48ff] transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                   Assign RBAC Role *
                 </label>
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+                  className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
                 >
                   {availableRoles.map((r) => (
                     <option key={r.id || r.code} value={r.code}>
@@ -549,13 +560,13 @@ export default function TeamMaster() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                   Department / Group
                 </label>
                 <select
                   value={selectedGroup}
                   onChange={(e) => setSelectedGroup(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition"
+                  className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
                 >
                   {groups.map((g) => (
                     <option key={g.id} value={g.name}>
@@ -565,11 +576,11 @@ export default function TeamMaster() {
                 </select>
               </div>
 
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-neutral-100 dark:border-[#262626] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsInviteModalOpen(false)}
-                  className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition"
+                  className="px-5 py-2.5 bg-neutral-100 dark:bg-[#1a1a1a] hover:bg-neutral-200 dark:hover:bg-[#262626] text-neutral-700 dark:text-neutral-300 font-bold rounded-xl text-xs transition"
                 >
                   Cancel
                 </button>
@@ -588,12 +599,12 @@ export default function TeamMaster() {
 
       {/* ─── CREATE GROUP MODAL ─── */}
       {isGroupModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900">Create Team Department</h3>
+        <div className="fixed inset-0 z-50 bg-neutral-900/60 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111111] border border-neutral-100 dark:border-[#262626] rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
+            <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Create Team Department</h3>
             <form onSubmit={handleCreateGroup} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                   Department Name *
                 </label>
                 <input
@@ -602,12 +613,12 @@ export default function TeamMaster() {
                   placeholder="e.g. Sales & Growth"
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#6c48ff] transition"
+                  className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                   Description
                 </label>
                 <textarea
@@ -615,15 +626,15 @@ export default function TeamMaster() {
                   placeholder="Department scope and responsibilities..."
                   value={newGroupDesc}
                   onChange={(e) => setNewGroupDesc(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-900 focus:outline-none focus:border-[#6c48ff] transition"
+                  className="w-full bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl p-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#6c48ff] transition"
                 />
               </div>
 
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-neutral-100 dark:border-[#262626] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsGroupModalOpen(false)}
-                  className="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs"
+                  className="px-5 py-2.5 bg-neutral-100 dark:bg-[#1a1a1a] text-neutral-700 dark:text-neutral-300 font-bold rounded-xl text-xs"
                 >
                   Cancel
                 </button>

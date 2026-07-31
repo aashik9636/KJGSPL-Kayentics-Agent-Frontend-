@@ -166,15 +166,15 @@ export default function Storage() {
     const ext = file.name ? file.name.split('.').pop().toLowerCase() : '';
 
     if (mime.includes('image') || ['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(ext)) {
-      return <ImageIcon className="w-6 h-6 text-blue-500" />;
+      return <ImageIcon className="w-6 h-6 text-neutral-500 dark:text-neutral-400" />;
     }
     if (mime.includes('pdf') || ext === 'pdf') {
-      return <FileText className="w-6 h-6 text-red-500" />;
+      return <FileText className="w-6 h-6 text-neutral-500 dark:text-neutral-400" />;
     }
     if (mime.includes('video') || ['mp4', 'mov', 'avi'].includes(ext)) {
-      return <Film className="w-6 h-6 text-purple-500" />;
+      return <Film className="w-6 h-6 text-neutral-500 dark:text-neutral-400" />;
     }
-    return <File className="w-6 h-6 text-gray-400" />;
+    return <File className="w-6 h-6 text-neutral-400" />;
   };
 
   return (
@@ -184,22 +184,22 @@ export default function Storage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           {/* Breadcrumb */}
-          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2 font-medium">
+          <div className="flex items-center gap-1.5 text-xs text-neutral-400 dark:text-neutral-500 mb-2 font-medium">
             <button 
               onClick={() => { setCurrentFolderId(null); setCurrentFolderPath([]); }}
-              className={`hover:text-[#6c48ff] transition-colors ${!currentFolderId ? 'font-bold text-gray-900' : ''}`}
+              className={`hover:text-neutral-900 dark:text-neutral-100 transition-colors ${!currentFolderId ? 'font-bold text-neutral-900 dark:text-white' : ''}`}
             >
               Content & Media Hub
             </button>
             {currentFolderPath.map((folder, idx) => (
               <React.Fragment key={folder.id}>
-                <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                <ChevronRight className="w-3.5 h-3.5 text-neutral-300 dark:text-neutral-600" />
                 <button 
                   onClick={() => {
                     setCurrentFolderId(folder.id);
                     setCurrentFolderPath(prev => prev.slice(0, idx + 1));
                   }}
-                  className={`hover:text-[#6c48ff] transition-colors ${idx === currentFolderPath.length - 1 ? 'font-bold text-gray-900' : ''}`}
+                  className={`hover:text-neutral-900 dark:text-neutral-100 transition-colors ${idx === currentFolderPath.length - 1 ? 'font-bold text-neutral-900 dark:text-white' : ''}`}
                 >
                   {folder.name}
                 </button>
@@ -207,10 +207,10 @@ export default function Storage() {
             ))}
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">
             Content & Media Hub
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
             Centralized cloud repository for brand assets, images, documents, and AI media.
           </p>
         </div>
@@ -219,9 +219,9 @@ export default function Storage() {
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button 
             onClick={() => setShowNewFolder(true)}
-            className="flex-1 sm:flex-none px-4 py-2.5 rounded-2xl bg-white border border-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-50 shadow-sm transition-all flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none px-4 py-2.5 rounded-2xl bg-white dark:bg-[#111111] border border-neutral-200 dark:border-[#262626] text-neutral-700 dark:text-neutral-200 text-xs font-bold hover:bg-neutral-50 dark:hover:bg-[#1a1a1a] shadow-sm transition-all flex items-center justify-center gap-2"
           >
-            <FolderPlus className="w-4 h-4 text-[#6c48ff]" />
+            <FolderPlus className="w-4 h-4 text-neutral-900 dark:text-neutral-100 dark:text-neutral-100" />
             <span>New Folder</span>
           </button>
         </div>
@@ -229,8 +229,8 @@ export default function Storage() {
 
       {/* ── New Folder Input Modal/Inline ───────────────────────────────────── */}
       {showNewFolder && (
-        <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-100 flex items-center gap-3 animate-fade-in">
-          <Folder className="w-5 h-5 text-[#6c48ff] shrink-0" />
+        <div className="p-4 rounded-2xl bg-neutral-50/70 dark:bg-[#111111] border border-neutral-100 dark:border-[#262626] flex items-center gap-3 animate-fade-in">
+          <Folder className="w-5 h-5 text-neutral-500 dark:text-neutral-400 shrink-0" />
           <input
             type="text"
             value={newFolderName}
@@ -238,17 +238,17 @@ export default function Storage() {
             onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
             placeholder="Enter folder name..."
             autoFocus
-            className="flex-1 max-w-sm px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs font-medium outline-none focus:border-[#6c48ff]"
+            className="flex-1 max-w-sm px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-[#333333] bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white text-xs font-medium outline-none focus:border-neutral-900 dark:border-neutral-100"
           />
           <button 
             onClick={handleCreateFolder} 
-            className="px-4 py-2 rounded-xl bg-[#6c48ff] hover:bg-[#5b3adb] text-white text-xs font-bold transition-all shadow-sm"
+            className="px-4 py-2 rounded-xl bg-neutral-900 dark:bg-neutral-100 hover:bg-neutral-800 dark:hover:bg-neutral-300 text-white text-xs font-bold transition-all shadow-sm"
           >
             Create
           </button>
           <button 
             onClick={() => { setShowNewFolder(false); setNewFolderName(''); }} 
-            className="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-800"
+            className="px-3 py-2 text-xs font-bold text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white"
           >
             Cancel
           </button>
@@ -262,32 +262,32 @@ export default function Storage() {
         <div className="lg:col-span-1">
           <div 
             {...getRootProps()}
-            className={`relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.02)] ${
+            className={`relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 bg-white dark:bg-[#111111] shadow-[0_4px_24px_rgba(0,0,0,0.02)] ${
               isDragActive 
-                ? 'border-[#6c48ff] bg-purple-50/50 scale-[1.01]' 
-                : 'border-gray-200 hover:border-[#6c48ff]/50 hover:bg-gray-50/50'
+                ? 'border-neutral-400 dark:border-neutral-500 bg-neutral-50/50 dark:bg-[#1a1a1a] scale-[1.01]' 
+                : 'border-neutral-200 dark:border-[#262626] hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-neutral-50/50 dark:hover:bg-[#1a1a1a]'
             }`}
           >
             <input {...getInputProps()} />
             {uploading ? (
               <div className="flex flex-col items-center py-6">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent mb-3"></div>
-                <span className="text-xs font-bold text-gray-900">Uploading asset...</span>
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 dark:border-neutral-100 border-t-transparent mb-3"></div>
+                <span className="text-xs font-bold text-neutral-900 dark:text-white">Uploading asset...</span>
               </div>
             ) : (
               <div className="flex flex-col items-center text-center py-4">
-                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#6c48ff] flex items-center justify-center mb-3 shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-neutral-50 dark:bg-[#1a1a1a] text-neutral-500 dark:text-neutral-400 flex items-center justify-center mb-3 shadow-sm">
                   <Upload className="w-6 h-6" />
                 </div>
-                <h4 className="text-xs font-bold text-gray-900 mb-1">
+                <h4 className="text-xs font-bold text-neutral-900 dark:text-white mb-1">
                   {isDragActive ? 'Drop File to Upload' : 'Upload Asset'}
                 </h4>
-                <p className="text-[11px] text-gray-500 mb-3 font-medium">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-3 font-medium">
                   Drag & drop or click to select files
                 </p>
                 <div className="flex flex-wrap gap-1 justify-center">
                   {['PDF', 'PNG', 'JPG', 'DOCX', 'MP4'].map(tag => (
-                    <span key={tag} className="text-[9px] font-extrabold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">
+                    <span key={tag} className="text-[9px] font-extrabold bg-neutral-100 dark:bg-[#1a1a1a] text-neutral-500 dark:text-neutral-400 px-2 py-0.5 rounded-md">
                       {tag}
                     </span>
                   ))}
@@ -298,35 +298,35 @@ export default function Storage() {
         </div>
 
         {/* File Gallery & Controls */}
-        <div className="lg:col-span-3 bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] min-h-[480px] flex flex-col justify-between">
+        <div className="lg:col-span-3 bg-white dark:bg-[#111111] rounded-2xl p-6 border border-neutral-100 dark:border-[#262626] shadow-[0_4px_24px_rgba(0,0,0,0.02)] min-h-[480px] flex flex-col justify-between">
           
           {/* Controls Bar: Search & View Toggle */}
           <div>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 pb-4 border-b border-neutral-100 dark:border-[#262626]">
               {/* Search Bar */}
               <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search assets & folders..."
-                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-gray-50 border border-gray-100 text-xs text-gray-900 font-medium outline-none focus:bg-white focus:border-[#6c48ff] transition-all"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-100 dark:border-[#333333] text-xs text-neutral-900 dark:text-white font-medium outline-none focus:bg-white dark:focus:bg-[#262626] focus:border-neutral-900 dark:border-neutral-100 transition-all placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
                 />
               </div>
 
               {/* View Mode Switches */}
-              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl self-end sm:self-auto">
+              <div className="flex items-center gap-1 bg-neutral-100 dark:bg-[#1a1a1a] p-1 rounded-xl self-end sm:self-auto">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-[#6c48ff] shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-[#262626] text-neutral-900 dark:text-neutral-100 dark:text-neutral-100 shadow-sm' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`}
                   title="Grid View"
                 >
                   <Grid className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-[#6c48ff] shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-[#262626] text-neutral-900 dark:text-neutral-100 dark:text-neutral-100 shadow-sm' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`}
                   title="List View"
                 >
                   <List className="w-4 h-4" />
@@ -336,14 +336,38 @@ export default function Storage() {
 
             {/* Folder & Files Contents */}
             {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent"></div>
+              <div className="space-y-6">
+                <div>
+                  <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-24 mb-3 animate-pulse"></div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="p-3.5 rounded-2xl bg-white dark:bg-[#111111] border border-neutral-100 dark:border-[#262626] shadow-sm animate-pulse flex items-center justify-between">
+                         <div className="flex items-center gap-2.5">
+                            <div className="w-5 h-5 bg-neutral-200 dark:bg-[#222222] rounded-md"></div>
+                            <div className="h-3 w-16 bg-neutral-200 dark:bg-[#222222] rounded"></div>
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-24 mb-3 animate-pulse"></div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="bg-white dark:bg-[#111111] rounded-2xl p-3 border border-neutral-100 dark:border-[#262626] shadow-sm animate-pulse flex flex-col items-center text-center">
+                        <div className="w-10 h-10 bg-neutral-200 dark:bg-[#222222] rounded-xl mb-3"></div>
+                        <div className="h-3 w-20 bg-neutral-200 dark:bg-[#222222] rounded mb-1"></div>
+                        <div className="h-2 w-12 bg-neutral-100 dark:bg-[#1a1a1a] rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             ) : filteredFolders.length === 0 && filteredFiles.length === 0 ? (
               <div className="text-center py-16">
-                <Folder className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                <p className="text-xs font-bold text-gray-700 mb-1">No Assets Found</p>
-                <p className="text-[11px] text-gray-400">Upload a file or create a folder to populate your Media Hub.</p>
+                <Folder className="w-12 h-12 text-neutral-200 dark:text-neutral-700 mx-auto mb-3" />
+                <p className="text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">No Assets Found</p>
+                <p className="text-[11px] text-neutral-400 dark:text-neutral-500">Upload a file or create a folder to populate your Media Hub.</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -351,7 +375,7 @@ export default function Storage() {
                 {/* Folders Section */}
                 {filteredFolders.length > 0 && (
                   <div>
-                    <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block mb-3">
+                    <span className="text-[11px] font-extrabold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider block mb-3">
                       Folders ({filteredFolders.length})
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -362,17 +386,17 @@ export default function Storage() {
                             setCurrentFolderId(folder.id);
                             setCurrentFolderPath(prev => [...prev, { id: folder.id, name: folder.name }]);
                           }}
-                          className="group relative p-3.5 rounded-2xl bg-purple-50/60 border border-purple-100 hover:bg-purple-50 hover:border-purple-200 cursor-pointer transition-all flex items-center justify-between"
+                          className="group relative p-3.5 rounded-2xl bg-purple-50/60 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/40 hover:bg-purple-50 dark:hover:bg-purple-900/50 hover:border-purple-200 cursor-pointer transition-all flex items-center justify-between"
                         >
                           <div className="flex items-center gap-2.5 truncate">
-                            <Folder className="w-5 h-5 text-[#6c48ff] shrink-0" />
-                            <span className="text-xs font-bold text-gray-900 truncate" title={folder.name}>
+                            <Folder className="w-5 h-5 text-neutral-900 dark:text-neutral-100 dark:text-neutral-100 shrink-0" />
+                            <span className="text-xs font-bold text-neutral-900 dark:text-white truncate" title={folder.name}>
                               {folder.name}
                             </span>
                           </div>
                           <button
                             onClick={(e) => handleDeleteFolder(folder.id, e)}
-                            className="p-1 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-1 text-neutral-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Delete Folder"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -386,7 +410,7 @@ export default function Storage() {
                 {/* Files Section */}
                 {filteredFiles.length > 0 && (
                   <div>
-                    <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block mb-3">
+                    <span className="text-[11px] font-extrabold text-neutral-400 uppercase tracking-wider block mb-3">
                       Files ({filteredFiles.length})
                     </span>
 
@@ -398,27 +422,27 @@ export default function Storage() {
                           return (
                             <div
                               key={file.id}
-                              className="group relative bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md hover:border-purple-100 transition-all flex flex-col justify-between"
+                              className="group relative bg-white dark:bg-[#111111] border border-neutral-100 dark:border-[#262626] rounded-2xl overflow-hidden hover:shadow-md hover:border-neutral-300 dark:hover:border-neutral-500 transition-all flex flex-col justify-between"
                             >
                               {/* Quick Action Overlay */}
                               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 <button
                                   onClick={(e) => handleCopyLink(file.url, file.id, e)}
-                                  className="p-1.5 bg-white/90 text-gray-600 hover:text-[#6c48ff] rounded-lg shadow-sm backdrop-blur-sm"
+                                  className="p-1.5 bg-white/90 text-neutral-600 hover:text-neutral-900 dark:text-neutral-100 rounded-lg shadow-sm backdrop-blur-sm"
                                   title="Copy URL"
                                 >
                                   {copiedId === file.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                                 </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setRenamingId(file.id); setRenameValue(file.name); }}
-                                  className="p-1.5 bg-white/90 text-gray-600 hover:text-[#6c48ff] rounded-lg shadow-sm backdrop-blur-sm"
+                                  className="p-1.5 bg-white/90 text-neutral-600 hover:text-neutral-900 dark:text-neutral-100 rounded-lg shadow-sm backdrop-blur-sm"
                                   title="Rename"
                                 >
                                   <Edit3 className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={(e) => handleDeleteFile(file.id, e)}
-                                  className="p-1.5 bg-white/90 text-gray-600 hover:text-red-500 rounded-lg shadow-sm backdrop-blur-sm"
+                                  className="p-1.5 bg-white/90 text-neutral-600 hover:text-red-500 rounded-lg shadow-sm backdrop-blur-sm"
                                   title="Delete"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -428,7 +452,7 @@ export default function Storage() {
                               {/* Asset Thumbnail / Icon */}
                               <div 
                                 onClick={() => isImage && file.url ? setPreviewUrl(file.url) : window.open(file.url, '_blank')}
-                                className="h-32 bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer relative"
+                                className="h-32 bg-neutral-50 dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden cursor-pointer relative"
                               >
                                 {isImage && file.url ? (
                                   <img 
@@ -437,14 +461,14 @@ export default function Storage() {
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                   />
                                 ) : (
-                                  <div className="p-4 rounded-2xl bg-white shadow-sm border border-gray-100">
+                                  <div className="p-4 rounded-2xl bg-white dark:bg-[#111111] shadow-sm border border-neutral-100 dark:border-[#262626]">
                                     {renderFileIcon(file)}
                                   </div>
                                 )}
                               </div>
 
                               {/* Details Bottom */}
-                              <div className="p-3 border-t border-gray-100 bg-white">
+                              <div className="p-3 border-t border-neutral-100 dark:border-[#262626] bg-white dark:bg-[#111111]">
                                 {renamingId === file.id ? (
                                   <input
                                     type="text"
@@ -453,16 +477,16 @@ export default function Storage() {
                                     onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit(file.id)}
                                     onBlur={() => handleRenameSubmit(file.id)}
                                     autoFocus
-                                    className="w-full text-xs font-bold text-gray-900 border border-[#6c48ff] rounded px-1.5 py-0.5 outline-none"
+                                    className="w-full text-xs font-bold text-neutral-900 border border-neutral-900 dark:border-neutral-100 rounded px-1.5 py-0.5 outline-none"
                                   />
                                 ) : (
-                                  <p className="text-xs font-bold text-gray-900 truncate" title={file.name}>
+                                  <p className="text-xs font-bold text-neutral-900 dark:text-white truncate" title={file.name}>
                                     {file.name}
                                   </p>
                                 )}
-                                <div className="flex items-center justify-between mt-1 text-[10px] text-gray-400 font-medium">
+                                <div className="flex items-center justify-between mt-1 text-[10px] text-neutral-400 font-medium">
                                   <span>{formatBytes(file.size)}</span>
-                                  <span className="uppercase text-[9px] font-extrabold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                                  <span className="uppercase text-[9px] font-extrabold bg-neutral-100 dark:bg-[#1a1a1a] text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded">
                                     {file.status || 'READY'}
                                   </span>
                                 </div>
@@ -473,34 +497,34 @@ export default function Storage() {
                       </div>
                     ) : (
                       /* Table / List View */
-                      <div className="rounded-2xl border border-gray-100 overflow-hidden">
-                        <table className="w-full text-left text-xs text-gray-700">
-                          <thead className="bg-gray-50 text-gray-400 uppercase font-extrabold text-[10px] tracking-wider border-b border-gray-100">
+                      <div className="rounded-2xl border border-neutral-100 dark:border-[#262626] overflow-hidden bg-white dark:bg-[#111111]">
+                        <table className="w-full text-left text-xs text-neutral-700 dark:text-neutral-300">
+                          <thead className="bg-neutral-50 dark:bg-[#1a1a1a] text-neutral-400 dark:text-neutral-500 uppercase font-extrabold text-[10px] tracking-wider border-b border-neutral-100 dark:border-[#262626]">
                             <tr>
                               <th className="p-3">Name</th>
                               <th className="p-3">Size</th>
                               <th className="p-3 text-right">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-100 font-medium">
+                          <tbody className="divide-y divide-neutral-100 dark:divide-[#262626] font-medium">
                             {filteredFiles.map(file => (
-                              <tr key={file.id} className="hover:bg-gray-50/60 transition">
+                              <tr key={file.id} className="hover:bg-neutral-50/60 dark:hover:bg-[#1a1a1a] transition">
                                 <td className="p-3 flex items-center gap-2.5">
                                   {renderFileIcon(file)}
-                                  <span className="font-bold text-gray-900 truncate max-w-xs">{file.name}</span>
+                                  <span className="font-bold text-neutral-900 dark:text-white truncate max-w-xs">{file.name}</span>
                                 </td>
-                                <td className="p-3 text-gray-500">{formatBytes(file.size)}</td>
+                                <td className="p-3 text-neutral-500 dark:text-neutral-400">{formatBytes(file.size)}</td>
                                 <td className="p-3 text-right space-x-2">
                                   <button
                                     onClick={(e) => handleCopyLink(file.url, file.id, e)}
-                                    className="p-1 text-gray-400 hover:text-[#6c48ff]"
+                                    className="p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-100"
                                     title="Copy Link"
                                   >
                                     <Copy className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={(e) => handleDeleteFile(file.id, e)}
-                                    className="p-1 text-gray-400 hover:text-red-500"
+                                    className="p-1 text-neutral-400 hover:text-red-500"
                                     title="Delete"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -523,7 +547,7 @@ export default function Storage() {
       {/* ── Image Preview Lightbox Modal ───────────────────────────────────── */}
       {previewUrl && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/80 backdrop-blur-md animate-fade-in"
           onClick={() => setPreviewUrl(null)}
         >
           <div className="relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center">

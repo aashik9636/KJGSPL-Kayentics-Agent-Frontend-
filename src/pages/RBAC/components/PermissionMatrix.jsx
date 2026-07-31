@@ -103,8 +103,8 @@ export default function PermissionMatrix({
       {/* Matrix Toolbar & Bulk Helpers */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-[#6c48ff]" />
-          <h3 className="text-sm font-bold text-gray-900 tracking-tight">
+          <Layers className="w-4 h-4 text-[#6c48ff] dark:text-purple-300" />
+          <h3 className="text-sm font-bold text-neutral-900 dark:text-white tracking-tight">
             Module Permission Matrix
           </h3>
         </div>
@@ -113,34 +113,34 @@ export default function PermissionMatrix({
         <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           {/* Quick Matrix Filter */}
           <div className="relative flex-1 sm:flex-initial sm:w-44">
-            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-2.5" />
             <input
               type="text"
               placeholder="Filter modules..."
               value={matrixSearch}
               onChange={(e) => setMatrixSearch(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-800 focus:outline-none focus:border-[#6c48ff] transition-all"
+              className="w-full bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-lg pl-8 pr-3 py-1.5 text-xs text-neutral-800 dark:text-white focus:outline-none focus:border-[#6c48ff] transition-all"
             />
           </div>
 
           <button
             type="button"
             onClick={onSelectAllRead}
-            className="px-2.5 py-1.5 bg-gray-100 hover:bg-purple-50 hover:text-[#6c48ff] text-gray-700 text-xs font-bold rounded-lg transition-colors"
+            className="px-2.5 py-1.5 bg-neutral-100 dark:bg-[#1a1a1a] hover:bg-purple-50 dark:hover:bg-purple-950/60 hover:text-[#6c48ff] dark:hover:text-purple-300 text-neutral-700 dark:text-neutral-300 text-xs font-bold rounded-lg transition-colors"
           >
             Select All View
           </button>
           <button
             type="button"
             onClick={onGrantFullAdmin}
-            className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-[#6c48ff] text-xs font-bold rounded-lg transition-colors"
+            className="px-2.5 py-1.5 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-[#6c48ff] dark:text-purple-300 text-xs font-bold rounded-lg transition-colors"
           >
             Grant Full Access
           </button>
           <button
             type="button"
             onClick={onClearAll}
-            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors"
+            className="px-2.5 py-1.5 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg transition-colors"
           >
             Clear All
           </button>
@@ -152,23 +152,23 @@ export default function PermissionMatrix({
         The permission table is strictly contained in a max-h-[320px] scrollable box.
         This prevents the top Role Metadata fields (Name, Status, Description) from scrolling out of view!
       */}
-      <div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-xs max-h-[320px] overflow-y-auto scrollbar-thin">
+      <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-2xl overflow-hidden shadow-xs max-h-[320px] overflow-y-auto scrollbar-thin">
         <table className="w-full text-left border-collapse">
-          <thead className="sticky top-0 bg-gray-50/95 backdrop-blur-xs z-10 border-b border-gray-200">
-            <tr className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+          <thead className="sticky top-0 bg-neutral-50/95 dark:bg-[#171717] backdrop-blur-xs z-10 border-b border-neutral-200 dark:border-[#262626]">
+            <tr className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
               <th className="p-3 pl-5 w-2/5">Module Taxonomy</th>
               {actionsList.map(act => (
                 <th key={act.key} className="p-3 text-center">
-                  <div className="font-bold text-gray-700">{act.label.split('/')[0]}</div>
-                  <div className="text-[9px] text-gray-400 font-medium font-mono normal-case">{act.key}</div>
+                  <div className="font-bold text-neutral-700 dark:text-neutral-300">{act.label.split('/')[0]}</div>
+                  <div className="text-[9px] text-neutral-400 dark:text-neutral-500 font-medium font-mono normal-case">{act.key}</div>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 text-xs">
+          <tbody className="divide-y divide-neutral-100 dark:divide-[#262626] text-xs">
             {modulesList.length === 0 ? (
               <tr>
-                <td colSpan={actionsList.length + 1} className="p-8 text-center text-gray-400 text-xs">
+                <td colSpan={actionsList.length + 1} className="p-8 text-center text-neutral-400 dark:text-neutral-500 text-xs">
                   No modules match "{matrixSearch}"
                 </td>
               </tr>
@@ -177,10 +177,10 @@ export default function PermissionMatrix({
                 const activeSet = matrix[mod.id] || new Set();
 
                 return (
-                  <tr key={mod.id} className="hover:bg-purple-50/20 transition-colors">
+                  <tr key={mod.id} className="hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition-colors">
                     <td className="p-3 pl-5">
-                      <div className="font-bold text-gray-900 tracking-tight">{mod.name}</div>
-                      <div className="text-[10px] text-gray-400 font-mono mt-0.5">{mod.id} • {mod.category}</div>
+                      <div className="font-bold text-neutral-900 dark:text-white tracking-tight">{mod.name}</div>
+                      <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono mt-0.5">{mod.id} • {mod.category}</div>
                     </td>
 
                     {actionsList.map((act) => {
@@ -197,12 +197,12 @@ export default function PermissionMatrix({
                               e.stopPropagation();
                               onTogglePermission(mod.id, act.key);
                             }}
-                            className="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-purple-100/50 active:scale-95 transition-all focus:outline-none"
+                            className="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-purple-100/50 dark:hover:bg-purple-900/40 active:scale-95 transition-all focus:outline-none"
                           >
                             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                               isChecked
                                 ? 'bg-[#6c48ff] border-[#6c48ff] text-white shadow-xs'
-                                : 'bg-white border-gray-300 text-transparent hover:border-[#6c48ff]'
+                                : 'bg-white dark:bg-[#1a1a1a] border-neutral-300 dark:border-[#333333] text-transparent hover:border-[#6c48ff]'
                             }`}>
                               <Check className="w-3 h-3 stroke-[3]" />
                             </div>
@@ -219,8 +219,8 @@ export default function PermissionMatrix({
       </div>
 
       {/* Rule Explanation Box */}
-      <div className="p-3 bg-purple-50/60 border border-purple-100 rounded-xl text-[11px] text-purple-900 flex items-start gap-2.5">
-        <Info className="w-3.5 h-3.5 text-[#6c48ff] shrink-0 mt-0.5" />
+      <div className="p-3 bg-purple-50/60 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/40 rounded-xl text-[11px] text-purple-900 dark:text-purple-300 flex items-start gap-2.5">
+        <Info className="w-3.5 h-3.5 text-[#6c48ff] dark:text-purple-400 shrink-0 mt-0.5" />
         <div className="leading-relaxed">
           <span className="font-bold">Enforced Permission Dependency Rule:</span> Granting <span className="font-semibold">Update</span>, <span className="font-semibold">Create</span>, <span className="font-semibold">Delete</span>, or <span className="font-semibold">Manage</span> automatically selects <span className="font-semibold">Read</span> access. Unchecking <span className="font-semibold">Read</span> clears all action permissions for that module.
         </div>

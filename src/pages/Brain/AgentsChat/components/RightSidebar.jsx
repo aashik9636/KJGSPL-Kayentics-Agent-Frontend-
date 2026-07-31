@@ -10,10 +10,10 @@ const TabIcon = ({ isActive, onClick, label, isNew }) => (
     onClick={onClick}
     className={`px-3 py-2.5 rounded-[12px] flex items-center justify-center transition-all group relative text-[12.5px] font-semibold tracking-wide w-full ${
       isNew 
-        ? 'bg-gray-900 text-white hover:bg-black shadow-md'
+        ? 'bg-neutral-900 text-white hover:bg-black dark:bg-neutral-600 dark:hover:bg-neutral-700 shadow-md'
         : isActive 
           ? 'bg-gradient-to-br from-[#4F46E5] to-[#7C6BFF] text-white shadow-[0_4px_12px_rgba(79,70,229,0.3)]' 
-          : 'bg-white/50 text-[#6D6D7C] hover:bg-[#F5F5FA] hover:text-[#14141D] shadow-sm border border-gray-100'
+          : 'bg-white/50 dark:bg-[#171717] text-[#6D6D7C] dark:text-neutral-300 hover:bg-[#F5F5FA] dark:hover:bg-[#282d42] hover:text-[#14141D] dark:hover:text-white shadow-sm border border-neutral-100 dark:border-[#2a2f44]'
     }`}
     style={{ fontFamily: 'Inter' }}
   >
@@ -54,19 +54,34 @@ export default function RightSidebar({
             'post-scheduler': { image: '/stock_market_avatar.mp4', isVideo: true, name: 'Post Scheduler Agent', desc: 'Social media calendar & posting automation' },
           };
 
-          const mapped = list.map(item => {
-            const slug = item.slug || item.id;
-            const meta = defaultMetas[slug] || {};
-            const avatar = item.avatar_url || item.image || meta.image || '/brain_avatar.mp4';
-            return {
-              id: slug,
-              name: item.name || meta.name || slug,
-              desc: item.role || item.description || meta.desc || '',
-              image: avatar,
-              isVideo: avatar.endsWith('.mp4'),
-              comingSoon: item.is_coming_soon ?? false,
-            };
-          });
+          const getAvatar = (s) => {
+            const slug = (s || '').toLowerCase();
+            if (defaultMetas[slug]?.image) return defaultMetas[slug].image;
+            if (slug.includes('stock') || slug.includes('finance')) return '/stock_market_avatar.mp4';
+            if (slug.includes('research') || slug.includes('writer') || slug.includes('campaign')) return '/research_avatar.mp4';
+            if (slug.includes('market') || slug.includes('image')) return '/market_avatar.mp4';
+            if (slug.includes('lead')) return '/lead_gen_avatar.mp4';
+            if (slug.includes('recruit')) return '/recruitment_avatar.mp4';
+            if (slug.includes('social') || slug.includes('trend')) return '/social_trends_avatar.mp4';
+            return '/brain_avatar.mp4';
+          };
+
+          const mapped = list
+            .filter(item => item.is_active !== false)
+            .map(item => {
+              const slug = item.slug || item.id;
+              const meta = defaultMetas[slug] || {};
+              const avatar = getAvatar(slug);
+
+              return {
+                id: slug,
+                name: item.name || meta.name || slug,
+                desc: item.role || item.description || meta.desc || '',
+                image: avatar,
+                isVideo: avatar.endsWith('.mp4'),
+                comingSoon: item.is_coming_soon ?? false,
+              };
+            });
           setApiAgents(mapped);
         }
       }).catch(err => console.warn('Sidebar dynamic agents fetch error:', err));
@@ -81,8 +96,8 @@ export default function RightSidebar({
     return (
     <div className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-[10px] text-[13px] mb-[2px] cursor-pointer transition-colors ${
       isActive 
-        ? 'bg-[#EEEDFE] text-[#3730B8] font-semibold' 
-        : 'text-[#6D6D7C] hover:bg-[#F0F0F6] hover:text-[#14141D]'
+        ? 'bg-[#EEEDFE] dark:bg-[#222144] text-[#3730B8] dark:text-[#a59ef0] font-semibold' 
+        : 'text-[#6D6D7C] dark:text-neutral-300 hover:bg-[#F0F0F6] dark:hover:bg-[#1b1e2c] hover:text-[#14141D] dark:hover:text-white'
     }`}
     onClick={() => onSelect(conv.id)}
     >
@@ -106,7 +121,7 @@ export default function RightSidebar({
               });
             }
           }}
-          className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-0.5 rounded-md hover:bg-red-50 flex-shrink-0"
+          className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-500 transition-opacity p-0.5 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 flex-shrink-0"
           title="Delete chat"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,55 +133,92 @@ export default function RightSidebar({
   )};
 
   return (
-    <div className="flex h-full bg-white/40 backdrop-blur-3xl border-l border-white/50 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] font-sans">
+    <div className="flex h-full bg-white/40 dark:bg-transparent backdrop-blur-3xl border-l border-white/50 dark:border-white/10 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] font-sans">
       
       {/* Sliding Panel Content Area */}
-      <div className={`transition-all duration-500 ease-in-out overflow-hidden flex flex-col h-full bg-white border-l border-[#E8E7F1] ${!activeTab ? 'w-0 opacity-0' : 'w-[272px] opacity-100'}`}>
+      <div className={`transition-all duration-500 ease-in-out overflow-hidden flex flex-col h-full bg-white dark:bg-[#111111] border-l border-[#E8E7F1] dark:border-[#262626] ${!activeTab ? 'w-0 opacity-0' : 'w-[272px] opacity-100'}`}>
         <div className="w-[272px] flex-shrink-0 flex flex-col h-full pt-[22px] pb-4 px-4">
           
           {/* HISTORY PANEL */}
           {activeTab === 'history' && (
             <>
               <div className="flex items-center justify-between mb-[18px]">
-                <h2 className="text-[14px] font-semibold m-0 text-[#14141D] tracking-[0.01em]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Chat history</h2>
-                <button onClick={() => setActiveTab(null)} className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                <h2 className="text-[14px] font-semibold m-0 text-[#14141D] dark:text-white tracking-[0.01em]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Chat history</h2>
+                <button onClick={() => setActiveTab(null)} className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 bg-[#F5F5FA] border border-[#E8E7F1] rounded-[10px] px-3 py-2 mb-4 text-[#9C9CA9] text-[12.5px]">
+              <div className="flex items-center gap-2 bg-[#F5F5FA] dark:bg-[#171717] border border-[#E8E7F1] dark:border-[#2b3044] rounded-[10px] px-3 py-2 mb-4 text-[#9C9CA9] text-[12.5px]">
                 <SearchIcon />
                 <input
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Search conversations…"
-                  className="bg-transparent border-none outline-none w-full text-[#14141D] placeholder:text-[#9C9CA9] font-sans"
+                  className="bg-transparent border-none outline-none w-full text-[#14141D] dark:text-white placeholder:text-[#9C9CA9] font-sans"
                 />
               </div>
 
-              <div className="flex gap-1.5 mb-4">
-                <div className="text-[11px] font-semibold px-2.5 py-1 rounded-md cursor-pointer bg-[#EEEDFE] text-[#3730B8]">All</div>
-                <div className="text-[11px] font-semibold px-2.5 py-1 rounded-md cursor-pointer text-[#6D6D7C] hover:bg-[#F0F0F6]">Pinned</div>
-                <div className="text-[11px] font-semibold px-2.5 py-1 rounded-md cursor-pointer text-[#6D6D7C] hover:bg-[#F0F0F6]">Shared</div>
+              <div className="flex gap-1.5 mb-4 border-b border-[#E8E7F1] dark:border-[#2b3044] pb-3">
+                <div className="text-[11px] font-semibold px-3 py-1.5 rounded-full cursor-pointer bg-[#14141D] text-white dark:bg-white dark:text-black shadow-sm transition-all">All</div>
+                <div className="text-[11px] font-semibold px-3 py-1.5 rounded-full cursor-pointer text-[#6D6D7C] dark:text-neutral-400 hover:bg-[#F0F0F6] dark:hover:bg-[#1a1a1a] hover:text-[#14141D] dark:hover:text-white transition-all">Pinned</div>
+                <div className="text-[11px] font-semibold px-3 py-1.5 rounded-full cursor-pointer text-[#6D6D7C] dark:text-neutral-400 hover:bg-[#F0F0F6] dark:hover:bg-[#1a1a1a] hover:text-[#14141D] dark:hover:text-white transition-all">Shared</div>
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar group">
                 {loading ? (
                   <div className="space-y-2">
-                    {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded-lg animate-pulse" />)}
+                    {[1, 2, 3].map(i => <div key={i} className="h-8 bg-neutral-100 rounded-lg animate-pulse" />)}
                   </div>
                 ) : conversations.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-40 opacity-40">
-                    <p className="text-[12px] font-medium text-center text-gray-500">No chats yet</p>
+                    <p className="text-[12px] font-medium text-center text-neutral-500">No chats yet</p>
                   </div>
                 ) : (
                   <div className="space-y-4 pb-4">
                     <div>
-                      <div className="text-[11px] font-bold text-gray-400 tracking-[0.05em] mt-4 mx-[4px] mb-2.5 uppercase font-sans">Recent</div>
-                      <div className="space-y-[2px]">
-                        {displayedConversations.map(c => <HistoryItem key={c.id} conv={c} />)}
-                      </div>
+                      {(() => {
+                        const categories = {
+                          'Today': [],
+                          'Yesterday': [],
+                          'Previous 7 Days': [],
+                          'Older': []
+                        };
+
+                        const now = new Date();
+                        const todayDate = now.getDate();
+                        const todayMonth = now.getMonth();
+                        const todayYear = now.getFullYear();
+
+                        displayedConversations.forEach(c => {
+                          const dStr = c.updatedAt || c.updated_at || c.createdAt || c.created_at;
+                          const d = dStr ? new Date(dStr) : new Date();
+                          const chatDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                          const today = new Date(todayYear, todayMonth, todayDate);
+                          const diffTime = today - chatDate;
+                          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                          if (diffDays === 0) categories['Today'].push(c);
+                          else if (diffDays === 1) categories['Yesterday'].push(c);
+                          else if (diffDays > 1 && diffDays <= 7) categories['Previous 7 Days'].push(c);
+                          else categories['Older'].push(c);
+                        });
+
+                        return Object.keys(categories).map(cat => {
+                          if (categories[cat].length === 0) return null;
+                          return (
+                            <div key={cat} className="mb-4">
+                              <div className="text-[10px] font-bold text-[#9C9CA9] dark:text-neutral-500 tracking-[0.06em] mt-1 mx-[4px] mb-2 uppercase font-sans">
+                                {cat}
+                              </div>
+                              <div className="space-y-[2px]">
+                                {categories[cat].map(c => <HistoryItem key={c.id} conv={c} />)}
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
                       
                       {conversations.length > totalToShow && (
                         <button 
@@ -187,12 +239,12 @@ export default function RightSidebar({
           {activeTab === 'agents' && (
             <>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[14px] font-semibold m-0 text-[#14141D] tracking-[0.01em]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Agents</h2>
-                <button onClick={() => setActiveTab(null)} className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                <h2 className="text-[14px] font-semibold m-0 text-[#14141D] dark:text-white tracking-[0.01em]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Agents</h2>
+                <button onClick={() => setActiveTab(null)} className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
-              <p className="text-[12px] text-[#6D6D7C] mb-4 leading-relaxed font-sans">
+              <p className="text-[12px] text-[#6D6D7C] dark:text-neutral-400 mb-4 leading-relaxed font-sans">
                 Each agent is tuned for a specific job. Select an agent to specialize this conversation.
               </p>
               
@@ -219,14 +271,14 @@ export default function RightSidebar({
                       onClick={() => !isLocked && setSelectedAgent(agent.id)}
                       className={`group relative border rounded-lg p-3 transition-all ${
                         isLocked 
-                          ? 'bg-gray-50 border-gray-200 opacity-75 cursor-not-allowed pointer-events-none'
+                          ? 'bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 opacity-75 cursor-not-allowed pointer-events-none'
                           : isActive 
-                            ? 'bg-[#EEEDFE] border-[#4F46E5]/40 shadow-sm cursor-pointer' 
-                            : 'bg-[#F5F5FA] border-[#E8E7F1] hover:shadow-sm hover:border-[#D7D5F6] cursor-pointer'
+                            ? 'bg-[#EEEDFE] dark:bg-[#222144] border-[#4F46E5]/40 dark:border-[#4F46E5]/50 shadow-sm cursor-pointer' 
+                            : 'bg-[#F5F5FA] dark:bg-[#1a1a1a] border-[#E8E7F1] dark:border-[#333333] hover:shadow-sm hover:border-[#D7D5F6] dark:hover:border-neutral-500 cursor-pointer'
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-md overflow-hidden flex items-center justify-center shadow-sm flex-shrink-0 ${isActive ? 'bg-[#D7D5F6]' : 'bg-[#E8E7F1]'}`}>
+                        <div className={`w-10 h-10 rounded-md overflow-hidden flex items-center justify-center shadow-sm flex-shrink-0 ${isActive ? 'bg-[#D7D5F6] dark:bg-[#2f2c69]' : 'bg-[#E8E7F1] dark:bg-[#262626]'}`}>
                           {agent.isVideo ? (
                             <video 
                               src={agent.image} 
@@ -247,12 +299,12 @@ export default function RightSidebar({
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h4 className={`font-semibold text-[13px] mb-0.5 ${isActive ? 'text-[#3730B8]' : 'text-[#14141D]'}`} style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{agent.name}</h4>
+                            <h4 className={`font-semibold text-[13px] mb-0.5 ${isActive ? 'text-[#3730B8] dark:text-[#a59ef0]' : 'text-[#14141D] dark:text-white'}`} style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{agent.name}</h4>
                             {isLocked && (
-                              <span className="text-[9px] font-extrabold bg-[#6c48ff] text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">Soon</span>
+                              <span className="text-[9px] font-extrabold bg-[#1a1a1a] dark:bg-neutral-700 text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">Soon</span>
                             )}
                           </div>
-                          <p className={`text-[11.5px] leading-snug font-sans m-0 ${isActive ? 'text-[#4F46E5]/80' : 'text-[#6D6D7C]'}`}>{agent.desc}</p>
+                          <p className={`text-[11.5px] leading-snug font-sans m-0 ${isActive ? 'text-[#4F46E5]/80 dark:text-[#8881ea]' : 'text-[#6D6D7C] dark:text-neutral-400'}`}>{agent.desc}</p>
                         </div>
                       </div>
                     </div>
@@ -267,7 +319,7 @@ export default function RightSidebar({
             <>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[14px] font-semibold m-0 text-[#14141D] tracking-[0.01em]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Settings</h2>
-                <button onClick={() => setActiveTab(null)} className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                <button onClick={() => setActiveTab(null)} className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
@@ -287,7 +339,7 @@ export default function RightSidebar({
                       <b className="text-[12.5px] text-[#14141D] block mb-0.5 font-semibold">Auto-Save</b>
                       <span className="text-[11px] text-[#6D6D7C]">Keep history</span>
                     </div>
-                    <div className="w-8 h-4.5 bg-gray-300 rounded-full relative cursor-pointer shadow-inner">
+                    <div className="w-8 h-4.5 bg-neutral-300 rounded-full relative cursor-pointer shadow-inner">
                       <div className="absolute left-[2px] top-[2px] w-3.5 h-3.5 bg-white rounded-full shadow-sm"></div>
                     </div>
                   </div>
@@ -300,7 +352,7 @@ export default function RightSidebar({
       </div>
 
       {/* ── Vertical Nav Bar (Right Edge) ── */}
-      <div className="w-[100px] flex-shrink-0 flex flex-col justify-center items-center py-6 px-3 gap-3 z-20 bg-white border-l border-[#E8E7F1]">
+      <div className="w-[100px] flex-shrink-0 flex flex-col justify-center items-center py-6 px-3 gap-3 z-20 bg-white dark:bg-[#111111] border-l border-[#E8E7F1] dark:border-[#262626]">
         
         <TabIcon 
           label="+ New"

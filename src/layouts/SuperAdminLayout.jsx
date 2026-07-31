@@ -50,18 +50,18 @@ export default function SuperAdminLayout() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#0b0f19] text-gray-100 font-sans overflow-hidden">
+    <div className="flex h-screen w-full bg-[#000000] text-neutral-100 font-sans overflow-hidden">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-gray-800/80 flex flex-col justify-between transition-transform duration-300 md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-neutral-800/80 flex flex-col justify-between transition-transform duration-300 md:static md:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div>
           {/* Header Branding */}
-          <div className="p-6 border-b border-gray-800/80 flex items-center justify-between">
+          <div className="p-6 border-b border-neutral-800/80 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-gray-950 font-bold">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-neutral-950 font-bold">
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
@@ -71,12 +71,12 @@ export default function SuperAdminLayout() {
                     GOD MODE
                   </span>
                 </h1>
-                <p className="text-xs text-gray-400">Superadmin Control</p>
+                <p className="text-xs text-neutral-400">Superadmin Control</p>
               </div>
             </div>
             <button
               onClick={() => setMobileOpen(false)}
-              className="md:hidden text-gray-400 hover:text-white"
+              className="md:hidden text-neutral-400 hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
@@ -97,11 +97,11 @@ export default function SuperAdminLayout() {
                   className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     active
                       ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-md shadow-amber-500/5'
-                      : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-5 h-5 ${active ? 'text-amber-400' : 'text-gray-500'}`} />
+                    <Icon className={`w-5 h-5 ${active ? 'text-amber-400' : 'text-neutral-500'}`} />
                     <span>{item.name}</span>
                   </div>
                   {active && <ChevronRight className="w-4 h-4 text-amber-400" />}
@@ -112,22 +112,22 @@ export default function SuperAdminLayout() {
         </div>
 
         {/* Bottom Actions */}
-        <div className="p-4 border-t border-gray-800/80 space-y-3">
+        <div className="p-4 border-t border-neutral-800/80 space-y-3">
           <Link
             to="/"
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-semibold bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700/50 transition-all"
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-semibold bg-neutral-800/80 text-neutral-300 hover:bg-neutral-700 hover:text-white border border-neutral-700/50 transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Return to App</span>
           </Link>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-gray-900/60 border border-gray-800">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-neutral-900/60 border border-neutral-800">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-300 font-bold flex items-center justify-center text-xs shrink-0 border border-amber-500/30">
                 {user?.firstName?.[0] || 'A'}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-gray-200 truncate">
+                <p className="text-xs font-semibold text-neutral-200 truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
                 <p className="text-[10px] text-amber-400/90 font-mono truncate">SUPER_ADMIN</p>
@@ -135,7 +135,7 @@ export default function SuperAdminLayout() {
             </div>
             <button
               onClick={handleLogout}
-              className="text-gray-400 hover:text-red-400 transition-colors p-1.5"
+              className="text-neutral-400 hover:text-red-400 transition-colors p-1.5"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -145,19 +145,19 @@ export default function SuperAdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#0b0f19] relative overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#000000] relative overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 border-b border-gray-800/80 bg-[#111827]/70 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-10">
+        <header className="h-16 border-b border-neutral-800/80 bg-[#111827]/70 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-10">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden text-gray-400 hover:text-white"
+              className="md:hidden text-neutral-400 hover:text-white"
             >
               <Menu className="w-6 h-6" />
             </button>
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-semibold text-gray-300">SaaS Superadmin Control Center</span>
+              <span className="text-sm font-semibold text-neutral-300">SaaS Superadmin Control Center</span>
             </div>
           </div>
 

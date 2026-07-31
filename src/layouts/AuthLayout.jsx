@@ -28,7 +28,7 @@ export default function AuthLayout() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full flex bg-white font-sans overflow-hidden">
+    <div className="min-h-screen w-full flex bg-white dark:bg-[#0b0c10] font-sans overflow-hidden transition-colors duration-300">
       
       {/* Left Side: Blue Brand Panel */}
       <div 
@@ -111,8 +111,8 @@ export default function AuthLayout() {
         </div>
       </div>
 
-      {/* Right Side: White Panel for Forms */}
-      <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center items-center p-6 sm:p-12 relative">
+      {/* Right Side: Form Panel */}
+      <div className="w-full lg:w-1/2 bg-white dark:bg-[#000000] flex flex-col justify-center items-center p-6 sm:p-12 relative transition-colors duration-300">
         <div ref={rightPanelRef} className="w-full max-w-md mx-auto relative z-10">
           {/* Logo for mobile only */}
           <div className="lg:hidden flex justify-center mb-8">

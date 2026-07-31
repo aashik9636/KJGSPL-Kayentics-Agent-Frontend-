@@ -9,13 +9,6 @@ import { useAuthStore } from '../../../../store/authStore';
 import gsap from 'gsap';
 // Avatars are loaded directly from public folder
 
-const SUGGESTIONS = [
-  { icon: '🔍', text: 'Research top AI trends this week' },
-  { icon: '📊', text: "Analyze my brand's social media performance" },
-  { icon: '✍️', text: 'Draft a LinkedIn post about our product launch' },
-  { icon: '🌐', text: 'Scrape and summarize competitor pricing pages' },
-];
-
 function extractClarifyingQuestions(executionResults = {}) {
   for (const key of Object.keys(executionResults)) {
     const result = executionResults[key];
@@ -54,27 +47,99 @@ const getAgentTitle = (slug) => {
   return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Agent';
 };
 
+const getAgentHeroAvatar = (slug) => {
+  const s = (slug || '').toLowerCase();
+  if (s === 'stock-market' || s === 'post-scheduler') return '/stock_market_avatar.mp4';
+  if (s === 'research' || s === 'content-writer' || s === 'campaign-planner') return '/research_avatar.mp4';
+  if (s === 'market' || s === 'image-query' || s === 'image-generation') return '/market_avatar.mp4';
+  if (s === 'lead-generation') return '/lead_gen_avatar.mp4';
+  if (s === 'recruitment') return '/recruitment_avatar.mp4';
+  if (s === 'social-trends') return '/social_trends_avatar.mp4';
+  return '/brain_avatar.mp4';
+};
+
+const getAgentTaglines = (slug, name) => {
+  const firstName = name || 'there';
+  const s = (slug || '').toLowerCase();
+  switch (s) {
+    case 'stock-market':
+      return [
+        `Stock Market Analyst ready, ${firstName}.`,
+        `What stock or financial index shall we analyze?`
+      ];
+    case 'image-query':
+    case 'image-generation':
+      return [
+        `Visual Studio ready, ${firstName}.`,
+        `Describe the image or banner graphic you want to generate.`
+      ];
+    case 'lead-generation':
+      return [
+        `B2B Lead Prospector ready, ${firstName}.`,
+        `Which industry decision-makers shall we find today?`
+      ];
+    case 'recruitment':
+      return [
+        `Talent Recruiter ready, ${firstName}.`,
+        `Which key role are we sourcing candidates for?`
+      ];
+    case 'social-trends':
+      return [
+        `Viral Trend Radar ready, ${firstName}.`,
+        `What social platform or viral trend shall we explore?`
+      ];
+    case 'content-writer':
+      return [
+        `AI Copywriter ready, ${firstName}.`,
+        `What blog post, email, or ad copy shall we write today?`
+      ];
+    case 'campaign-planner':
+      return [
+        `Campaign Strategist ready, ${firstName}.`,
+        `What marketing campaign strategy shall we architect?`
+      ];
+    case 'post-scheduler':
+      return [
+        `Social Publisher ready, ${firstName}.`,
+        `What posts shall we schedule to your calendar today?`
+      ];
+    case 'research':
+    case 'market':
+      return [
+        `Deep Research Analyst ready, ${firstName}.`,
+        `What market topic or competitor shall we analyze?`
+      ];
+    case 'brain':
+    default:
+      return [
+        `Ready when you are, ${firstName}.`,
+        `How can I help today, ${firstName}?`,
+        `What are we working on, ${firstName}?`
+      ];
+  }
+};
+
 export default function ChatWindow({ activeConversationId, creatingSession, onNewChat, onMessageSent, onMessagesLoaded, selectedAgent }) {
   const [input, setInput]         = useState('');
   const [messages, setMessages]   = useState([]);
   const [isSending, setIsSending] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   const user = useAuthStore(state => state.user);
   const firstName = user?.firstName || 'there';
-  const taglines = [
-    `Ready when you are, ${firstName}.`,
-    `Let's build something, ${firstName}.`,
-    `How can I help today, ${firstName}?`,
-    `What are we working on, ${firstName}?`
-  ];
+  const taglines = React.useMemo(() => {
+    return getAgentTaglines(selectedAgent, firstName);
+  }, [selectedAgent, firstName]);
+
   const [taglineIndex, setTaglineIndex] = useState(0);
 
   useEffect(() => {
+    setTaglineIndex(0);
     const interval = setInterval(() => {
       setTaglineIndex(prev => (prev + 1) % taglines.length);
     }, 20000);
     return () => clearInterval(interval);
-  }, [taglines.length]);
+  }, [selectedAgent, taglines.length]);
 
   const [clarifyQueue,   setClarifyQueue]   = useState([]);
   const [clarifyIndex,   setClarifyIndex]   = useState(0);
@@ -106,6 +171,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     brain.reset();
 
     if (!creatingSession && activeConversationId) {
+      setIsLoadingMessages(true);
       chatService.getMessages(activeConversationId)
         .then(msgs => {
           const list = Array.isArray(msgs) ? msgs : msgs?.data || [];
@@ -115,7 +181,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
           })));
           if (onMessagesLoaded) onMessagesLoaded(list.length);
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setIsLoadingMessages(false));
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [activeConversationId]);
@@ -147,11 +214,6 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         { y: 20, opacity: 0, scale: 0.98 },
         { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out' },
         "-=0.5"
-      )
-      .fromTo(q('.gsap-hero-sugg'),
-        { y: 15, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power2.out' },
-        "-=0.4"
       );
     }
   }, [messages.length, isSending]);
@@ -394,7 +456,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
 
   const isInputDisabled = isSending || !activeConversationId || creatingSession;
   const isEmpty = messages.length === 0 && !isSending;
-  const isCentered = isEmpty && !isSending;
+  const isCentered = isEmpty && !isSending && (!selectedAgent || selectedAgent === 'brain');
 
   const placeholder = (() => {
     if (creatingSession)       return 'Setting up session...';
@@ -410,15 +472,15 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     <div className="flex flex-col h-full bg-transparent relative">
       
       {/* ── Top Header ── */}
-      <div className="flex items-center justify-between px-6 py-4 flex-shrink-0 z-10 bg-white/60 backdrop-blur-xl border-b border-white shadow-[0_2px_20px_rgba(0,0,0,0.02)]">
-        <div className="flex items-center gap-2.5 text-[15px] font-semibold text-gray-800 bg-white/80 hover:bg-white px-3 py-1.5 rounded-[14px] cursor-pointer transition-all shadow-sm border border-gray-100">
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-inner">
+      <div className="flex items-center justify-between px-6 py-4 flex-shrink-0 z-10 bg-white/60 dark:bg-[#111111]/80 backdrop-blur-xl border-b border-white dark:border-[#262626] shadow-[0_2px_20px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center gap-2.5 text-[15px] font-semibold text-neutral-800 dark:text-neutral-100 bg-white/80 dark:bg-[#111111] hover:bg-white dark:hover:bg-[#262626] px-3 py-1.5 rounded-[14px] cursor-pointer transition-all shadow-sm border border-neutral-100 dark:border-[#262626]">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#1a1a1a] to-[#333333] flex items-center justify-center shadow-inner">
             <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v1m6 11h2m-6 0h-8m0 0H4m4 0h4m-4-8h8m-4 0v8" />
             </svg>
           </div>
           {getAgentTitle(selectedAgent)}
-          <svg className="w-4 h-4 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 text-neutral-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
@@ -431,15 +493,74 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       {/* ── Message list / Empty State ───────────────────────────────────── */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 relative flex flex-col custom-scrollbar">
 
-        {/* Empty state is handled by the centered absolute input bar now. No overlapping loading block needed here. */}
+        {/* Dynamic Agent Landing Hero (Circle Avatar Video + Tooltip + Agent-specific Tagline) */}
+        {messages.length === 0 && !creatingSession && !isLoadingMessages && (
+          <div className="w-full max-w-4xl mx-auto text-center flex flex-col items-center justify-center pt-8 pb-2">
+            <div className="flex items-center justify-center relative group mb-5">
+              <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-full p-2 bg-white dark:bg-[#171717] ring-[8px] ring-neutral-100/80 dark:ring-neutral-900/40 shadow-[0_0_40px_10px_rgba(255,255,255,0.2)] flex items-center justify-center transition-all duration-300 hover:scale-105">
+                <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-b from-neutral-50/70 via-neutral-50/20 to-white dark:from-neutral-950/40 dark:to-neutral-900 flex items-center justify-center relative">
+                  <video 
+                    key={selectedAgent}
+                    src={getAgentHeroAvatar(selectedAgent)}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
+                      (!selectedAgent || selectedAgent === 'brain') ? 'scale-100' : 'object-top'
+                    }`} 
+                    style={(!selectedAgent || selectedAgent === 'brain') ? { objectPosition: 'center 60%' } : {}}
+                  />
+                </div>
+              </div>
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-20">
+                <div className="bg-neutral-900 text-white text-[11px] font-semibold px-3 py-1 rounded-full whitespace-nowrap shadow-lg">
+                  {getAgentTitle(selectedAgent)}
+                </div>
+              </div>
+            </div>
 
-        {messages.length > 0 && (
-          <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 pt-8 pb-40 space-y-1">
+            <div className="min-h-[40px] relative w-full flex items-center justify-center">
+              {taglines.map((tagline, idx) => (
+                <h1 
+                  key={idx}
+                  className={`text-xl sm:text-2xl md:text-[28px] font-bold text-neutral-900 dark:text-white tracking-tight transition-all duration-500 font-['Space_Grotesk'] ${
+                    idx === taglineIndex 
+                      ? 'opacity-100 translate-y-0 relative' 
+                      : 'opacity-0 translate-y-3 absolute inset-0 pointer-events-none'
+                  }`} 
+                >
+                  {tagline}
+                </h1>
+              ))}
+            </div>
+
+
+          </div>
+        )}
+
+        {(creatingSession || isLoadingMessages) && (
+          <div className="w-full h-full flex flex-col items-center justify-center pt-32 pb-20">
+            <div className="flex flex-col items-center gap-4">
+              <svg className="animate-spin w-8 h-8 text-neutral-400 dark:text-neutral-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              <span className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
+                {creatingSession ? 'Starting session...' : 'Loading messages...'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {messages.length > 0 && !creatingSession && !isLoadingMessages && (
+          <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-4 pb-40 space-y-1">
             {/* Render all FINISHED messages */}
             {messages.map((msg, idx) => (
               <MessageBubble 
                 key={idx} 
                 message={msg} 
+                selectedAgent={selectedAgent}
               />
             ))}
 
@@ -457,6 +578,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                   metrics: brain.metrics || subAgent.metrics,
                 }} 
                 isStreaming={true} 
+                selectedAgent={selectedAgent}
               />
             )}
 
@@ -464,17 +586,10 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             {isSending && !brain.streamingText && !subAgent.streamingText && (
               <div className="flex items-start gap-3.5 py-4 w-full animate-fade-in">
                 {/* Premium AI Avatar (matching MessageBubble) */}
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1 overflow-hidden">
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#333333] flex items-center justify-center shadow-lg shadow-neutral-500/30 border-2 border-white relative mt-1 overflow-hidden">
                   <video
-                    src={
-                      selectedAgent === 'stock-market' ? '/stock_market_avatar.mp4' :
-                      selectedAgent === 'research' ? '/research_avatar.mp4' :
-                      selectedAgent === 'market' ? '/market_avatar.mp4' :
-                      selectedAgent === 'lead-generation' ? '/lead_gen_avatar.mp4' :
-                      selectedAgent === 'recruitment' ? '/recruitment_avatar.mp4' :
-                      selectedAgent === 'social-trends' ? '/social_trends_avatar.mp4' :
-                      '/brain_avatar.mp4'
-                    }
+                    key={selectedAgent}
+                    src={getAgentHeroAvatar(selectedAgent)}
                     autoPlay
                     loop
                     muted
@@ -483,76 +598,101 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                     style={{ objectPosition: selectedAgent === 'brain' ? 'center 60%' : 'center 15%' }}
                   />
                 </div>
-                
                 {Boolean(
-                  (brain.status || subAgent.status)?.toLowerCase().match(/image|visual|generating|design|picture|photo|drawing|logo|art|synthesize/) ||
+                  (brain.status || subAgent.status)?.toLowerCase().match(/composing scene|rendering|dall-e|generating image|creating visual/) ||
+                  (selectedAgent?.includes('image') && (messages.slice().reverse().find(m => m.role === 'USER')?.content || '').length > 8 && !(messages.slice().reverse().find(m => m.role === 'USER')?.content || '').toLowerCase().match(/^(hello|hi|hey|test|how are you|good morning)\b/i)) ||
                   input?.toLowerCase().match(/image|generate|draw|design|picture|photo|logo|banner/)
                 ) ? (
-                  /* Light Theme ChatGPT-style DALL-E Image Generation Skeleton Card */
-                  <div className="relative w-full aspect-square max-w-[420px] bg-slate-50/90 border border-slate-200/90 rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col justify-between select-none">
-                    {/* Top Header Label - matching ChatGPT "Creating image" */}
-                    <div className="flex items-center justify-between z-10">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[15px] font-semibold text-slate-800 tracking-tight">Creating image</span>
-                        <span className="flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#6c48ff] animate-ping" />
+                  /* High-End Dynamic Developing Canvas Image Card */
+                  <div className="relative w-full aspect-square max-w-[420px] bg-white dark:bg-[#171717]/90 dark:backdrop-blur-xl border border-neutral-100/90 dark:border-[#333333] rounded-2xl p-5 shadow-[0_12px_40px_rgba(255,255,255,0.08)] overflow-hidden flex flex-col justify-between select-none">
+                    <style>{`
+                      @keyframes plate-swirl-cw {
+                        0%, 100% { transform: scale(1.2) rotate(0deg); filter: blur(24px) saturate(130%); }
+                        50% { transform: scale(1.35) rotate(10deg); filter: blur(12px) saturate(160%); }
+                      }
+                      @keyframes laser-sweep-cw {
+                        0% { transform: translateY(-110%); }
+                        100% { transform: translateY(220%); }
+                      }
+                      @keyframes fill-bar-cw {
+                        0% { width: 4%; }
+                        50% { width: 68%; }
+                        100% { width: 95%; }
+                      }
+                    `}</style>
+
+                    <div className="flex items-center justify-between z-10 mb-2">
+                      <div className="flex items-center gap-2 font-['Space_Grotesk'] text-[14px] font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neutral-500 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1a1a1a]"></span>
+                        </span>
+                        Generating image
+                      </div>
+                    </div>
+
+                    <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black border border-neutral-100 dark:border-[#333333] shadow-inner my-1">
+                      <div 
+                        className="absolute inset-0"
+                        style={{
+                          background: 'radial-gradient(circle at 25% 25%, rgba(232, 103, 122, 0.75), transparent 50%), radial-gradient(circle at 75% 65%, rgba(139, 126, 240, 0.7), transparent 55%), radial-gradient(circle at 50% 85%, rgba(240, 168, 96, 0.65), transparent 60%), #000000',
+                          animation: 'plate-swirl-cw 8s ease-in-out infinite'
+                        }}
+                      />
+                      <div 
+                        className="absolute left-0 right-0 h-2/5 pointer-events-none z-10"
+                        style={{
+                          background: 'linear-gradient(to bottom, rgba(240, 168, 96, 0) 0%, rgba(240, 168, 96, 0.25) 45%, rgba(240, 168, 96, 0.5) 50%, rgba(240, 168, 96, 0.25) 55%, rgba(240, 168, 96, 0) 100%)',
+                          animation: 'laser-sweep-cw 3s cubic-bezier(.65, 0, .35, 1) infinite'
+                        }}
+                      />
+                      <div className="absolute top-2.5 left-2.5 w-3 h-3 opacity-60 pointer-events-none">
+                        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+                        <div className="absolute left-1/2 top-0 h-full w-[1px] bg-white"></div>
+                      </div>
+                      <div className="absolute top-2.5 right-2.5 w-3 h-3 opacity-60 pointer-events-none">
+                        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+                        <div className="absolute left-1/2 top-0 h-full w-[1px] bg-white"></div>
+                      </div>
+                      <div className="absolute bottom-2.5 left-2.5 w-3 h-3 opacity-60 pointer-events-none">
+                        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+                        <div className="absolute left-1/2 top-0 h-full w-[1px] bg-white"></div>
+                      </div>
+                      <div className="absolute bottom-2.5 right-2.5 w-3 h-3 opacity-60 pointer-events-none">
+                        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+                        <div className="absolute left-1/2 top-0 h-full w-[1px] bg-white"></div>
+                      </div>
+                      <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between font-mono text-[10px] text-white/90 z-20 backdrop-blur-md bg-black/40 px-2.5 py-1 rounded-lg border border-white/10">
+                        <span>1024 × 1024</span>
+                        <span className="text-amber-300 font-bold animate-pulse">developing…</span>
+                      </div>
+                    </div>
+
+                    <div className="z-10 mt-1">
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="font-semibold text-neutral-800 dark:text-neutral-200 truncate max-w-[260px]">
+                          {brain.status || subAgent.status || "Composing scene & light..."}
+                        </span>
+                        <span className="text-[11px] font-bold text-neutral-700 dark:text-neutral-400 font-mono">
+                          Rendering...
                         </span>
                       </div>
-
-                      <span className="text-[11px] font-bold tracking-wider uppercase text-[#6c48ff] bg-purple-100/80 px-2 py-0.5 rounded-full">
-                        DALL-E 3
-                      </span>
-                    </div>
-
-                    {/* Center Animated Dot Matrix Wave (matching ChatGPT exact dot grid animation) */}
-                    <div className="relative flex-1 my-3 flex items-center justify-center overflow-hidden">
-                      {/* Soft Shimmer Sweep Overlay */}
-                      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer pointer-events-none z-10" />
-
-                      {/* 12x12 Dot Matrix Pattern */}
-                      <div className="grid grid-cols-12 gap-2.5 justify-items-center items-center opacity-80">
-                        {Array.from({ length: 12 }).map((_, row) =>
-                          Array.from({ length: 12 }).map((_, col) => {
-                            const distance = Math.sqrt(Math.pow(row - 5.5, 2) + Math.pow(col - 5.5, 2));
-                            const delay = distance * 120;
-
-                            return (
-                              <div
-                                key={`${row}-${col}`}
-                                className="w-1.5 h-1.5 rounded-full bg-purple-500/60 animate-dot-wave"
-                                style={{ animationDelay: `${delay}ms` }}
-                              />
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Bottom Status Text */}
-                    <div className="z-10 flex items-center justify-between text-xs text-slate-500 border-t border-slate-200/60 pt-3">
-                      <span className="font-medium truncate max-w-[280px]">
-                        {brain.status || "Synthesizing visual asset..."}
-                      </span>
-                      <div className="flex items-center gap-1 text-[11px] font-bold text-[#6c48ff]">
-                        <span className="animate-pulse">Rendering</span>...
+                      <div className="w-full h-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                        <div 
+                          className="h-full rounded-full bg-gradient-to-r from-neutral-600 via-pink-500 to-amber-500"
+                          style={{ animation: 'fill-bar-cw 8s ease-in-out infinite' }}
+                        />
                       </div>
                     </div>
                   </div>
                 ) : (
-                  /* Standard Chat Bubble */
-                  <div className="flex flex-col gap-2 bg-white/80 backdrop-blur-xl border border-white rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)] w-full max-w-lg">
+                  <div className="flex flex-col gap-2 bg-white/80 dark:bg-[#171717]/90 backdrop-blur-xl border border-white dark:border-[#333333] rounded-xl rounded-tl-sm px-6 py-4 shadow-[0_4px_32px_rgba(0,0,0,0.03)] w-full max-w-lg">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2 h-2 rounded-full bg-[#6c48ff]/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-[#1a1a1a]/70 dark:bg-white/70 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-[#1a1a1a]/70 dark:bg-white/70 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 rounded-full bg-[#1a1a1a]/70 dark:bg-white/70 animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
-                      
-                      {(brain.status || subAgent.status) && (
-                        <span className="text-[14px] font-medium text-gray-500 animate-pulse border-l border-gray-200 pl-3">
-                          {brain.status || subAgent.status}
-                        </span>
-                      )}
                     </div>
 
                     <StepTree 
@@ -575,80 +715,19 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       {/* ── Input bar ──────────────────────────────────────────────────────── */}
       <div
         ref={emptyStateRef}
-        className={`absolute left-0 right-0 px-4 flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-          isCentered 
-            ? 'top-1/2 -translate-y-1/2' 
-            : 'bottom-0 pb-5 pt-3'
-        }`}
-        style={!isCentered ? { background: 'linear-gradient(to top, #f6f7fb 85%, transparent)' } : {}}
+        className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-3 flex flex-col items-center z-30 bg-gradient-to-t from-[#f6f7fb] dark:from-[#111111] via-[#f6f7fb]/80 dark:via-[#111111]/80 to-transparent"
       >
-        {/* Title for Centered State */}
-        <div className={`transition-all duration-500 w-full max-w-3xl text-center flex flex-col items-center justify-center ${isCentered ? 'opacity-100 mb-6 mt-4 md:mt-8' : 'opacity-0 h-0 overflow-hidden mb-0'}`}>
-          
-          {/* Dynamic Selected Agent Avatar (Glowing Circular Container matching reference) */}
-          <div className="flex items-center justify-center gsap-hero-dock relative group mb-7 mt-2">
-            <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full p-2 bg-white ring-[10px] ring-purple-100/80 shadow-[0_0_50px_12px_rgba(167,139,250,0.25)] flex items-center justify-center transition-all duration-300 ease-out hover:scale-105">
-              <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-b from-purple-50/70 via-indigo-50/20 to-white flex items-center justify-center relative">
-                <video 
-                  src={
-                    selectedAgent === 'stock-market' ? '/stock_market_avatar.mp4' :
-                    selectedAgent === 'research' ? '/research_avatar.mp4' :
-                    selectedAgent === 'market' ? '/market_avatar.mp4' :
-                    selectedAgent === 'lead-generation' ? '/lead_gen_avatar.mp4' :
-                    selectedAgent === 'recruitment' ? '/recruitment_avatar.mp4' :
-                    selectedAgent === 'social-trends' ? '/social_trends_avatar.mp4' :
-                    '/brain_avatar.mp4'
-                  }
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
-                    (!selectedAgent || selectedAgent === 'brain')
-                      ? 'scale-100'
-                      : 'object-top'
-                  }`} 
-                  style={(!selectedAgent || selectedAgent === 'brain') ? { objectPosition: 'center 60%' } : {}}
-                />
-              </div>
-            </div>
-            {/* Tooltip */}
-            <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-20 translate-y-1 group-hover:translate-y-0">
-              <div className="bg-gray-900 text-white text-[11px] font-semibold px-3 py-1 rounded-full whitespace-nowrap shadow-lg">
-                {getAgentTitle(selectedAgent)}
-              </div>
-            </div>
-          </div>
-
-          {/* Hero Tagline Title */}
-          <div className="min-h-[48px] md:min-h-[56px] relative w-full flex items-center justify-center gsap-hero-title">
-            {taglines.map((tagline, idx) => (
-              <h1 
-                key={idx}
-                className={`text-2xl sm:text-3xl md:text-[36px] font-semibold text-gray-900 tracking-tight transition-all duration-500 ease-in-out ${
-                  idx === taglineIndex 
-                    ? 'opacity-100 translate-y-0 relative' 
-                    : 'opacity-0 translate-y-4 absolute inset-0 pointer-events-none'
-                }`} 
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                {tagline}
-              </h1>
-            ))}
-          </div>
-        </div>
-
-        <div className="w-full max-w-3xl mx-auto flex flex-col items-center">
+        <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
 
           {inClarifyMode && (
             <div className="mb-2.5 flex items-center gap-3">
-              <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div className="flex-1 h-1 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#6c48ff] to-[#a78bfa] rounded-full transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-[#1a1a1a] to-[#333333] rounded-full transition-all duration-500"
                   style={{ width: `${((clarifyIndex) / clarifyQueue.length) * 100}%` }}
                 />
               </div>
-              <span className="text-[11px] font-semibold text-[#6c48ff] whitespace-nowrap">
+              <span className="text-[11px] font-semibold text-[#1a1a1a] dark:text-[#333333] whitespace-nowrap">
                 Question {clarifyIndex} of {clarifyQueue.length}
               </span>
             </div>
@@ -657,9 +736,9 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
           <form
             ref={inputFormRef}
             onSubmit={onFormSubmit}
-            className="w-full flex items-center gap-3 bg-white/85 backdrop-blur-2xl rounded-xl border border-white shadow-[0_4px_24px_rgba(108,72,255,0.06)] px-4.5 py-2.5 sm:py-3 transition-all focus-within:bg-white focus-within:border-indigo-50 focus-within:shadow-[0_8px_32px_rgba(108,72,255,0.12)] relative overflow-hidden"
+            className="w-full flex items-center gap-3 bg-white/85 dark:bg-[#171717]/90 backdrop-blur-2xl rounded-xl border border-white dark:border-[#262626] shadow-[0_4px_24px_rgba(255,255,255,0.06)] px-4.5 py-2.5 sm:py-3 transition-all focus-within:bg-white dark:focus-within:bg-[#171717] focus-within:border-neutral-50 dark:focus-within:border-[#383e56] focus-within:shadow-[0_8px_32px_rgba(255,255,255,0.12)] relative overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/30 to-purple-50/30 pointer-events-none opacity-0 focus-within:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-50/30 to-neutral-50/30 pointer-events-none opacity-0 focus-within:opacity-100 transition-opacity duration-500"></div>
             <textarea
               ref={inputRef}
               rows={1}
@@ -672,7 +751,7 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               onKeyDown={onKeyDown}
               disabled={isInputDisabled}
               placeholder={placeholder}
-              className="flex-1 resize-none bg-transparent text-[14px] sm:text-[15px] text-gray-900 placeholder:text-gray-400 outline-none leading-normal py-0.5 font-medium disabled:opacity-40 min-h-[24px] z-10"
+              className="flex-1 resize-none bg-transparent text-[14px] sm:text-[15px] text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 outline-none leading-normal py-0.5 font-medium disabled:opacity-40 min-h-[24px] z-10"
               style={{ overflow: 'hidden' }}
             />
 
@@ -683,8 +762,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               style={{
                 background: (isInputDisabled || !input.trim())
                   ? '#f3f4f6'
-                  : 'linear-gradient(135deg, #5030e5 0%, #7b61ff 100%)',
-                boxShadow: (isInputDisabled || !input.trim()) ? 'none' : '0 6px 16px rgba(108,72,255,0.3)',
+                  : 'linear-gradient(135deg, #262626 0%, #333333 100%)',
+                boxShadow: (isInputDisabled || !input.trim()) ? 'none' : '0 6px 16px rgba(255,255,255,0.3)',
               }}
             >
               {isSending ? (
@@ -701,30 +780,14 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
             </button>
           </form>
 
-          <p className="text-center text-[11px] text-gray-400 mt-2">
+          <p className="text-center text-[11px] text-neutral-400 dark:text-neutral-500 mt-2">
             {inClarifyMode
               ? 'Answer each question to continue -- answers will be sent together'
               : brain.isStreaming
                 ? 'Streaming response in real-time...'
-                : <>Press <kbd className="bg-gray-100 border border-gray-200 rounded px-1 py-0.5 text-[10px] font-mono">Enter</kbd> to send · <kbd className="bg-gray-100 border border-gray-200 rounded px-1 py-0.5 text-[10px] font-mono">Shift + Enter</kbd> for new line</>
+                : <>Press <kbd className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 dark:text-neutral-300 rounded px-1.5 py-0.5 text-[10px] font-mono shadow-sm">Enter</kbd> to send · <kbd className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 dark:text-neutral-300 rounded px-1.5 py-0.5 text-[10px] font-mono shadow-sm">Shift + Enter</kbd> for new line</>
             }
           </p>
-
-          {/* Suggestions for Centered State */}
-          <div className={`transition-all duration-500 w-full max-w-[800px] mt-8 ${isCentered ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden mt-0'}`}>
-            <div className="flex flex-wrap justify-center gap-3">
-              {SUGGESTIONS.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSubmit(s.text)}
-                  className="flex items-center gap-2.5 bg-white/60 hover:bg-white border border-gray-200/60 hover:border-gray-300 rounded-full px-5 py-2.5 text-left transition-all shadow-[0_2px_10px_rgba(0,0,0,0.02)] gsap-hero-sugg"
-                >
-                  <span className="text-[15px]">{s.icon}</span>
-                  <span className="text-[13px] font-medium text-gray-700">{s.text}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>

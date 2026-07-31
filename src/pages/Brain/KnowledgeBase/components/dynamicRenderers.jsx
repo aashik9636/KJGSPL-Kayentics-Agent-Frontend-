@@ -13,8 +13,8 @@ export const MetadataRenderer = ({ metadata }) => {
   };
 
   return (
-    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-      <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+    <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100">
+      <h5 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
@@ -24,8 +24,8 @@ export const MetadataRenderer = ({ metadata }) => {
         {Object.entries(metadata).map(([key, val]) => (
           val !== null && val !== undefined && (
             <div key={key} className="flex flex-col border-l-2 border-[#e0d4ff] pl-2.5">
-              <dt className="text-[10px] font-bold text-gray-400 mb-0.5">{formatKey(key)}</dt>
-              <dd className="text-[12px] font-bold text-gray-800 break-words">
+              <dt className="text-[10px] font-bold text-neutral-400 mb-0.5">{formatKey(key)}</dt>
+              <dd className="text-[12px] font-bold text-neutral-800 break-words">
                 {formatValue(val)}
               </dd>
             </div>
@@ -52,7 +52,7 @@ export const CategoryBadge = ({ type }) => {
         return 'bg-rose-50 text-rose-600';
       default:
         // Generic theme for custom LLM categories
-        return 'bg-gray-100 text-gray-500';
+        return 'bg-neutral-100 text-neutral-500';
     }
   };
 

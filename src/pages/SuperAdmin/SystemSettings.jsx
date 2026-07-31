@@ -60,16 +60,16 @@ export default function SystemSettings() {
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           <Settings className="w-6 h-6 text-amber-400" /> Global Platform Settings & Feature Flags
         </h2>
-        <p className="text-sm text-gray-400">Control system-wide operational flags, global rate limits, maintenance toggles, and security policies.</p>
+        <p className="text-sm text-neutral-400">Control system-wide operational flags, global rate limits, maintenance toggles, and security policies.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Maintenance Mode */}
-        <div className="p-6 rounded-2xl bg-gray-900/90 border border-gray-800 space-y-4">
+        <div className="p-6 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-white text-base">Platform Maintenance Mode</h3>
-              <p className="text-xs text-gray-400 mt-1">Temporarily block non-superadmin access for scheduled platform upgrades.</p>
+              <p className="text-xs text-neutral-400 mt-1">Temporarily block non-superadmin access for scheduled platform upgrades.</p>
             </div>
             <button
               onClick={() => {
@@ -79,17 +79,17 @@ export default function SystemSettings() {
               }}
               className="text-amber-400"
             >
-              {maintenanceMode ? <ToggleRight className="w-10 h-10 text-amber-400" /> : <ToggleLeft className="w-10 h-10 text-gray-600" />}
+              {maintenanceMode ? <ToggleRight className="w-10 h-10 text-amber-400" /> : <ToggleLeft className="w-10 h-10 text-neutral-600" />}
             </button>
           </div>
         </div>
 
         {/* Self Signup */}
-        <div className="p-6 rounded-2xl bg-gray-900/90 border border-gray-800 space-y-4">
+        <div className="p-6 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-white text-base">Public Registration (Self Signup)</h3>
-              <p className="text-xs text-gray-400 mt-1">Allow new users to register organizations via public pricing plans.</p>
+              <p className="text-xs text-neutral-400 mt-1">Allow new users to register organizations via public pricing plans.</p>
             </div>
             <button
               onClick={() => {
@@ -99,26 +99,26 @@ export default function SystemSettings() {
               }}
               className="text-amber-400"
             >
-              {allowSelfSignup ? <ToggleRight className="w-10 h-10 text-emerald-400" /> : <ToggleLeft className="w-10 h-10 text-gray-600" />}
+              {allowSelfSignup ? <ToggleRight className="w-10 h-10 text-emerald-400" /> : <ToggleLeft className="w-10 h-10 text-neutral-600" />}
             </button>
           </div>
         </div>
 
         {/* Global AI Daily Limit */}
-        <div className="p-6 rounded-2xl bg-gray-900/90 border border-gray-800 space-y-4 md:col-span-2">
+        <div className="p-6 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-4 md:col-span-2">
           <h3 className="font-bold text-white text-base">Global AI Daily Token Limit per Tenant</h3>
-          <p className="text-xs text-gray-400">Hard limit on total AI tokens an organization can execute per day across all models.</p>
+          <p className="text-xs text-neutral-400">Hard limit on total AI tokens an organization can execute per day across all models.</p>
 
           <div className="flex items-center gap-3">
             <input
               type="number"
               value={globalAiLimit}
               onChange={(e) => setGlobalAiLimit(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white w-64 focus:outline-none focus:border-amber-400"
+              className="bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white w-64 focus:outline-none focus:border-amber-400"
             />
             <button
               onClick={() => handleSaveSetting('GLOBAL_AI_DAILY_LIMIT', 'AI', Number(globalAiLimit))}
-              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold rounded-xl text-sm flex items-center gap-2"
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-xl text-sm flex items-center gap-2"
             >
               <Save className="w-4 h-4" /> Save Limit
             </button>

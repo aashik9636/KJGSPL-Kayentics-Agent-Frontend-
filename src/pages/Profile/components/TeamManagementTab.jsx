@@ -90,7 +90,7 @@ export default function TeamManagementTab() {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-gray-500">
+      <div className="py-12 text-center text-neutral-500">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent mx-auto mb-3" />
         <p className="text-sm font-medium">Loading team members...</p>
       </div>
@@ -104,27 +104,27 @@ export default function TeamManagementTab() {
   return (
     <div className="space-y-6">
       {/* Seat Meter & Plan Header */}
-      <div className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="p-3.5 bg-purple-50 text-[#6c48ff] rounded-2xl border border-purple-100">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Organization Members</h3>
-            <p className="text-sm text-gray-500">Manage user access, roles, and invitations for your team.</p>
+            <h3 className="text-lg font-bold text-neutral-900">Organization Members</h3>
+            <p className="text-sm text-neutral-500">Manage user access, roles, and invitations for your team.</p>
           </div>
         </div>
 
-        <div className="w-full md:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50/80 border border-gray-100 p-4 rounded-xl">
+        <div className="w-full md:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-neutral-50/80 border border-neutral-100 p-4 rounded-xl">
           <div>
             <div className="flex items-center justify-between gap-4 mb-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Seat Allocation</span>
-              <span className="text-xs font-bold text-gray-900">
+              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Seat Allocation</span>
+              <span className="text-xs font-bold text-neutral-900">
                 {seatsUsed} / {userLimit === Infinity ? '∞' : userLimit} Seats
               </span>
             </div>
             {userLimit !== Infinity && (
-              <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-48 h-2 bg-neutral-200 rounded-full overflow-hidden">
                 <div 
                   className={`h-full rounded-full transition-all duration-500 ${
                     percentageUsed >= 90 ? 'bg-amber-500' : 'bg-[#6c48ff]'
@@ -146,9 +146,9 @@ export default function TeamManagementTab() {
       </div>
 
       {/* Invite Member Form */}
-      <form onSubmit={handleInvite} className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-sm space-y-4">
+      <form onSubmit={handleInvite} className="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+          <h4 className="text-sm font-bold text-neutral-900 uppercase tracking-wider flex items-center gap-2">
             <UserPlus className="w-4 h-4 text-[#6c48ff]" /> Invite Team Member
           </h4>
         </div>
@@ -177,7 +177,7 @@ export default function TeamManagementTab() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLimitReached || inviting}
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition disabled:bg-gray-50 disabled:cursor-not-allowed"
+              className="w-full bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition disabled:bg-neutral-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -186,7 +186,7 @@ export default function TeamManagementTab() {
               value={role}
               onChange={(e) => setRole(e.target.value)}
               disabled={isLimitReached || inviting}
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition disabled:bg-gray-50 disabled:cursor-not-allowed"
+              className="w-full bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-sm text-neutral-900 focus:outline-none focus:border-[#6c48ff] focus:ring-2 focus:ring-purple-100 transition disabled:bg-neutral-50 disabled:cursor-not-allowed"
             >
               <option value="MEMBER">Member</option>
               <option value="ADMIN">Admin</option>
@@ -205,25 +205,25 @@ export default function TeamManagementTab() {
       </form>
 
       {/* Members & Invitations Table */}
-      <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Current Members & Pending Invites</h4>
+      <div className="bg-white border border-neutral-200/80 rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50">
+          <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Current Members & Pending Invites</h4>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <tr className="border-b border-neutral-100 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
                 <th className="p-4 pl-6">User</th>
                 <th className="p-4">Role</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 pr-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+            <tbody className="divide-y divide-neutral-100 text-sm text-neutral-700">
               {members.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-gray-400 text-sm">
+                  <td colSpan={4} className="p-8 text-center text-neutral-400 text-sm">
                     No team members found. Send your first invitation above.
                   </td>
                 </tr>
@@ -235,14 +235,14 @@ export default function TeamManagementTab() {
                         {(m.firstName?.[0] || m.email?.[0] || 'U').toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">
+                        <div className="font-semibold text-neutral-900">
                           {m.firstName ? `${m.firstName} ${m.lastName || ''}` : (m.email ? m.email.split('@')[0] : 'User')}
                         </div>
-                        <div className="text-xs text-gray-400">{m.email}</div>
+                        <div className="text-xs text-neutral-400">{m.email}</div>
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="bg-gray-100 text-gray-700 text-xs px-2.5 py-1 rounded-lg font-medium">
+                      <span className="bg-neutral-100 text-neutral-700 text-xs px-2.5 py-1 rounded-lg font-medium">
                         {m.role || 'MEMBER'}
                       </span>
                     </td>
@@ -259,7 +259,7 @@ export default function TeamManagementTab() {
                       {(m.status === 'INVITED' || m.invitationId) && (
                         <button
                           onClick={() => handleRevoke(m.invitationId || m.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                           title="Revoke Invitation"
                         >
                           <Trash2 className="w-4 h-4" />

@@ -18,7 +18,7 @@ export default function AppLayout() {
   }, []);
 
   return (
-    <div className="flex h-screen w-full bg-[#f4f7fe] overflow-hidden font-sans text-gray-800">
+    <div className="flex h-screen w-full bg-[#f4f7fe] dark:bg-[#000000] overflow-hidden font-sans text-neutral-800 dark:text-neutral-100 transition-colors duration-300">
       <Sidebar />
       <div 
         ref={layoutRef}

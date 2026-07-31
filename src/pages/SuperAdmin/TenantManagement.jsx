@@ -104,27 +104,27 @@ export default function TenantManagement() {
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <Building2 className="w-6 h-6 text-amber-400" /> Tenant & Organization Governance
           </h2>
-          <p className="text-sm text-gray-400">View, suspend, elevate, and adjust SaaS subscriptions across all platform tenants.</p>
+          <p className="text-sm text-neutral-400">View, suspend, elevate, and adjust SaaS subscriptions across all platform tenants.</p>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 bg-gray-900/90 p-4 rounded-2xl border border-gray-800">
+      <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 bg-neutral-900/90 p-4 rounded-2xl border border-neutral-800">
         <div className="flex-1 relative">
-          <Search className="w-5 h-5 absolute left-3.5 top-3 text-gray-500" />
+          <Search className="w-5 h-5 absolute left-3.5 top-3 text-neutral-500" />
           <input
             type="text"
             placeholder="Search organization name, slug, or owner email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-800/80 border border-gray-700/60 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-400"
+            className="w-full pl-10 pr-4 py-2.5 bg-neutral-800/80 border border-neutral-700/60 rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-amber-400"
           />
         </div>
 
         <select
           value={planFilter}
           onChange={(e) => { setPlanFilter(e.target.value); setPage(1); }}
-          className="bg-gray-800/80 border border-gray-700/60 rounded-xl px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-amber-400"
+          className="bg-neutral-800/80 border border-neutral-700/60 rounded-xl px-3 py-2.5 text-sm text-neutral-200 focus:outline-none focus:border-amber-400"
         >
           <option value="">All Plans</option>
           <option value="STARTER">Starter</option>
@@ -136,7 +136,7 @@ export default function TenantManagement() {
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="bg-gray-800/80 border border-gray-700/60 rounded-xl px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-amber-400"
+          className="bg-neutral-800/80 border border-neutral-700/60 rounded-xl px-3 py-2.5 text-sm text-neutral-200 focus:outline-none focus:border-amber-400"
         >
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
@@ -144,23 +144,23 @@ export default function TenantManagement() {
           <option value="INACTIVE">Inactive</option>
         </select>
 
-        <button type="submit" className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold rounded-xl text-sm transition-all">
+        <button type="submit" className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-xl text-sm transition-all">
           Search
         </button>
       </form>
 
       {/* Tenants Table */}
-      <div className="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-neutral-900/90 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl">
         {loading ? (
           <div className="flex items-center justify-center p-12">
             <RefreshCw className="w-6 h-6 text-amber-400 animate-spin" />
           </div>
         ) : orgs.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">No tenant organizations found.</div>
+          <div className="p-12 text-center text-neutral-500">No tenant organizations found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-300">
-              <thead className="bg-gray-800/60 text-xs uppercase text-gray-400 font-semibold border-b border-gray-800">
+            <table className="w-full text-left text-sm text-neutral-300">
+              <thead className="bg-neutral-800/60 text-xs uppercase text-neutral-400 font-semibold border-b border-neutral-800">
                 <tr>
                   <th className="px-6 py-4">Organization</th>
                   <th className="px-6 py-4">Owner</th>
@@ -171,25 +171,25 @@ export default function TenantManagement() {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/60">
+              <tbody className="divide-y divide-neutral-800/60">
                 {orgs.map((org) => {
                   const planCode = org.subscription?.plan?.code || 'STARTER';
                   const isActive = org.status === 'ACTIVE';
                   return (
-                    <tr key={org.id} className="hover:bg-gray-800/40 transition-colors">
+                    <tr key={org.id} className="hover:bg-neutral-800/40 transition-colors">
                       <td className="px-6 py-4 font-semibold text-white">
                         <div>{org.name}</div>
-                        <span className="text-xs text-gray-500 font-mono">@{org.slug}</span>
+                        <span className="text-xs text-neutral-500 font-mono">@{org.slug}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-gray-200">{org.owner?.firstName} {org.owner?.lastName}</div>
-                        <div className="text-xs text-gray-400">{org.owner?.email}</div>
+                        <div className="text-neutral-200">{org.owner?.firstName} {org.owner?.lastName}</div>
+                        <div className="text-xs text-neutral-400">{org.owner?.email}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                           {planCode}
                         </span>
-                        <span className="text-xs text-gray-400 block mt-1">{org.subscription?.region || 'INR'}</span>
+                        <span className="text-xs text-neutral-400 block mt-1">{org.subscription?.region || 'INR'}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
@@ -206,13 +206,13 @@ export default function TenantManagement() {
                       <td className="px-6 py-4 text-right space-x-2">
                         <button
                           onClick={() => { setSelectedOrg(org); setOverrideData({ planCode, billingCycle: 'MONTHLY', region: 'INDIA_INR' }); setShowOverrideModal(true); }}
-                          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-amber-400 text-xs font-semibold rounded-lg border border-gray-700"
+                          className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-amber-400 text-xs font-semibold rounded-lg border border-neutral-700"
                         >
                           Override Plan
                         </button>
                         <button
                           onClick={() => { setSelectedOrg(org); setShowCreditModal(true); }}
-                          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-emerald-400 text-xs font-semibold rounded-lg border border-gray-700"
+                          className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-emerald-400 text-xs font-semibold rounded-lg border border-neutral-700"
                         >
                           + Credits
                         </button>
@@ -237,19 +237,19 @@ export default function TenantManagement() {
       {/* Override Plan Modal */}
       {showOverrideModal && selectedOrg && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
               <h3 className="text-lg font-bold text-white">Override Subscription ({selectedOrg.name})</h3>
-              <button onClick={() => setShowOverrideModal(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowOverrideModal(false)} className="text-neutral-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
 
             <form onSubmit={handleApplyOverride} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Target Plan</label>
+                <label className="block text-xs font-semibold text-neutral-400 mb-1">Target Plan</label>
                 <select
                   value={overrideData.planCode}
                   onChange={(e) => setOverrideData({ ...overrideData, planCode: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white"
                 >
                   <option value="STARTER">STARTER</option>
                   <option value="TEAM">TEAM</option>
@@ -259,11 +259,11 @@ export default function TenantManagement() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Billing Cycle</label>
+                <label className="block text-xs font-semibold text-neutral-400 mb-1">Billing Cycle</label>
                 <select
                   value={overrideData.billingCycle}
                   onChange={(e) => setOverrideData({ ...overrideData, billingCycle: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white"
                 >
                   <option value="MONTHLY">MONTHLY</option>
                   <option value="ANNUAL">ANNUAL</option>
@@ -271,11 +271,11 @@ export default function TenantManagement() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Billing Region</label>
+                <label className="block text-xs font-semibold text-neutral-400 mb-1">Billing Region</label>
                 <select
                   value={overrideData.region}
                   onChange={(e) => setOverrideData({ ...overrideData, region: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white"
                 >
                   <option value="INDIA_INR">INDIA_INR</option>
                   <option value="GLOBAL_USD">GLOBAL_USD</option>
@@ -283,8 +283,8 @@ export default function TenantManagement() {
               </div>
 
               <div className="flex justify-end gap-3 pt-3">
-                <button type="button" onClick={() => setShowOverrideModal(false)} className="px-4 py-2 bg-gray-800 text-gray-300 text-sm rounded-xl">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-sm rounded-xl">Apply Override</button>
+                <button type="button" onClick={() => setShowOverrideModal(false)} className="px-4 py-2 bg-neutral-800 text-neutral-300 text-sm rounded-xl">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-sm rounded-xl">Apply Override</button>
               </div>
             </form>
           </div>
@@ -294,38 +294,38 @@ export default function TenantManagement() {
       {/* Grant Credits Modal */}
       {showCreditModal && selectedOrg && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
               <h3 className="text-lg font-bold text-white">Grant Credits ({selectedOrg.name})</h3>
-              <button onClick={() => setShowCreditModal(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowCreditModal(false)} className="text-neutral-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
 
             <form onSubmit={handleGrantCredits} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Credit Amount (Task Units)</label>
+                <label className="block text-xs font-semibold text-neutral-400 mb-1">Credit Amount (Task Units)</label>
                 <input
                   type="number"
                   min="1"
                   value={creditAmount}
                   onChange={(e) => setCreditAmount(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Reason / Description</label>
+                <label className="block text-xs font-semibold text-neutral-400 mb-1">Reason / Description</label>
                 <input
                   type="text"
                   placeholder="e.g. Complimentary top-up for enterprise trial"
                   value={creditDesc}
                   onChange={(e) => setCreditDesc(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white"
                 />
               </div>
 
               <div className="flex justify-end gap-3 pt-3">
-                <button type="button" onClick={() => setShowCreditModal(false)} className="px-4 py-2 bg-gray-800 text-gray-300 text-sm rounded-xl">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-sm rounded-xl">Grant Credits</button>
+                <button type="button" onClick={() => setShowCreditModal(false)} className="px-4 py-2 bg-neutral-800 text-neutral-300 text-sm rounded-xl">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-sm rounded-xl">Grant Credits</button>
               </div>
             </form>
           </div>

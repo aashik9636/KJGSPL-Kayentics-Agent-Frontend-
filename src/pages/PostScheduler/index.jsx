@@ -332,116 +332,152 @@ export default function PostScheduler() {
           </div>
         )}
 
-        {(viewMode === 'month' || viewMode === 'week') && (
-          <div className="cal-card">
-            <div className="cal-headrow">
-              <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-            </div>
-            <div className={`cal-grid ${viewMode === 'week' ? 'week-grid' : ''}`}>
-              {(viewMode === 'month' ? visibleDays : currentWeekDays).map((dateObj, i) => {
-                if (!dateObj) {
-                  return <div key={i} className="cal-cell empty"></div>;
-                }
-                const dayPosts = getPostsForDay(dateObj);
-                const isToday = dateObj.toDateString() === new Date().toDateString();
-
-                return (
-                  <div 
-                    key={i} 
-                    className={`cal-cell ${isToday ? 'today' : ''} ${viewMode === 'week' ? 'selected' : ''}`}
-                    style={viewMode === 'week' ? { background: 'var(--surface)' } : {}}
-                  >
-                    <span className="daynum">{dateObj.getDate()}</span>
-                    <div className="posts-wrap">
-                      {viewMode === 'month' ? (
-                        <>
-                          {dayPosts.slice(0, 2).map(p => {
-                            const pf = getPlatformInfo(p.platforms?.[0] || p.platform || '');
-                            return (
-                              <div key={p.id} className="post-chip" style={{ background: `${pf.c}22`, color: pf.c }}>
-                                <span className="d" style={{ background: pf.c }}></span>
-                                {p.content ? (p.content.length > 16 ? p.content.slice(0, 16) + '...' : p.content) : 'Post'}
-                              </div>
-                            );
-                          })}
-                          {dayPosts.length > 2 && (
-                            <div className="more-chip">+{dayPosts.length - 2} more</div>
-                          )}
-                        </>
-                      ) : (
-                        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {dayPosts.map(post => {
-                             const pf = getPlatformInfo(post.platforms?.[0] || post.platform || '');
-                             const pDate = parseLocalDate(post.scheduledAt);
-                             const time = pDate ? pDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                             return (
-                               <div key={post.id} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg)' }}>
-                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                                   <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: pf.c, color: '#fff', fontSize: '9px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                     {pf.label}
-                                   </div>
-                                   {time && <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>{time}</span>}
-                                 </div>
-                                 <div style={{ fontSize: '11px', color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                   {post.content || 'Media Post'}
-                                 </div>
-                               </div>
-                             );
-                          })}
-                        </div>
-                      )}
+        {loading ? (
+          <div className="animate-pulse w-full">
+            {viewMode !== 'list' ? (
+              <div className="cal-card">
+                <div className="cal-headrow">
+                  <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+                </div>
+                <div className={`cal-grid ${viewMode === 'week' ? 'week-grid' : ''}`}>
+                  {Array.from({ length: viewMode === 'week' ? 7 : 35 }).map((_, i) => (
+                    <div key={i} className="cal-cell" style={{ border: '1px solid var(--border)', padding: '10px' }}>
+                      <div className="w-5 h-5 bg-neutral-200 dark:bg-[#222222] rounded mb-2"></div>
+                      <div className="w-full h-5 bg-neutral-100 dark:bg-[#1a1a1a] rounded mb-1"></div>
+                      <div className="w-2/3 h-5 bg-neutral-100 dark:bg-[#1a1a1a] rounded"></div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {viewMode === 'list' && (
-          <div className="list-view-container">
-            {groupedPosts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
-                No scheduled posts for this time period.
+                  ))}
+                </div>
               </div>
             ) : (
-              groupedPosts.map(group => (
-                <div key={group.date}>
-                  <div className="list-date-header">{group.date}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {group.posts.map(post => renderPostCard(post))}
+              <div className="list-view-container" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {[1, 2].map(i => (
+                  <div key={i}>
+                    <div className="w-32 h-6 bg-neutral-200 dark:bg-[#222222] rounded mb-4"></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {[1, 2].map(j => (
+                        <div key={j} className="h-32 bg-white dark:bg-[#111111] rounded-2xl border border-neutral-100 dark:border-[#262626]"></div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
+        ) : (
+          <>
+            {(viewMode === 'month' || viewMode === 'week') && (
+              <div className="cal-card">
+                <div className="cal-headrow">
+                  <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+                </div>
+                <div className={`cal-grid ${viewMode === 'week' ? 'week-grid' : ''}`}>
+                  {(viewMode === 'month' ? visibleDays : currentWeekDays).map((dateObj, i) => {
+                    if (!dateObj) {
+                      return <div key={i} className="cal-cell empty"></div>;
+                    }
+                    const dayPosts = getPostsForDay(dateObj);
+                    const isToday = dateObj.toDateString() === new Date().toDateString();
+
+                    return (
+                      <div 
+                        key={i} 
+                        className={`cal-cell ${isToday ? 'today' : ''} ${viewMode === 'week' ? 'selected' : ''}`}
+                        style={viewMode === 'week' ? { background: 'var(--surface)' } : {}}
+                      >
+                        <span className="daynum">{dateObj.getDate()}</span>
+                        <div className="posts-wrap">
+                          {viewMode === 'month' ? (
+                            <>
+                              {dayPosts.slice(0, 2).map(p => {
+                                const pf = getPlatformInfo(p.platforms?.[0] || p.platform || '');
+                                return (
+                                  <div key={p.id} className="post-chip" style={{ background: `${pf.c}22`, color: pf.c }}>
+                                    <span className="d" style={{ background: pf.c }}></span>
+                                    {p.content ? (p.content.length > 16 ? p.content.slice(0, 16) + '...' : p.content) : 'Post'}
+                                  </div>
+                                );
+                              })}
+                              {dayPosts.length > 2 && (
+                                <div className="more-chip">+{dayPosts.length - 2} more</div>
+                              )}
+                            </>
+                          ) : (
+                            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {dayPosts.map(post => {
+                                 const pf = getPlatformInfo(post.platforms?.[0] || post.platform || '');
+                                 const pDate = parseLocalDate(post.scheduledAt);
+                                 const time = pDate ? pDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                                 return (
+                                   <div key={post.id} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg)' }}>
+                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                       <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: pf.c, color: '#fff', fontSize: '9px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                         {pf.label}
+                                       </div>
+                                       {time && <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>{time}</span>}
+                                     </div>
+                                     <div style={{ fontSize: '11px', color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                       {post.content || 'Media Post'}
+                                     </div>
+                                   </div>
+                                 );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {viewMode === 'list' && (
+              <div className="list-view-container">
+                {groupedPosts.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
+                    No scheduled posts for this time period.
+                  </div>
+                ) : (
+                  groupedPosts.map(group => (
+                    <div key={group.date}>
+                      <div className="list-date-header">{group.date}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {group.posts.map(post => renderPostCard(post))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </>
         )}
 
       </div>
 
       {/* New Post Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
-              <h2 className="text-lg font-bold text-gray-900">Generate & Schedule Post</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-[#111111] border border-transparent dark:border-[#262626] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors">
+            <div className="px-6 py-5 border-b border-neutral-100 dark:border-[#262626] flex items-center justify-between shrink-0">
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Generate & Schedule Post</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             
             <div className="p-6 overflow-y-auto flex-1">
-              <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
+              <div className="flex gap-2 mb-6 p-1 bg-neutral-100 dark:bg-[#171717] rounded-xl">
                 <button 
                   type="button"
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${genMode === 'custom' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${genMode === 'custom' ? 'bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white shadow-sm' : 'text-neutral-500 dark:text-neutral-400'}`}
                   onClick={() => setGenMode('custom')}
                 >
                   Custom Topic / Event
                 </button>
                 <button 
                   type="button"
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${genMode === 'festivals' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${genMode === 'festivals' ? 'bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white shadow-sm' : 'text-neutral-500 dark:text-neutral-400'}`}
                   onClick={() => setGenMode('festivals')}
                 >
                   Batch Festivals
@@ -452,17 +488,17 @@ export default function PostScheduler() {
                 {genMode === 'custom' ? (
                   <>
                     <div>
-                      <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Topic / Campaign Prompt *</label>
-                      <input type="text" value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} placeholder="e.g. Product launch update or Industry insights" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                      <label className="block text-[12px] font-bold text-[#6b7280] dark:text-neutral-300 mb-2 uppercase tracking-wide">Topic / Campaign Prompt *</label>
+                      <input type="text" value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} placeholder="e.g. Product launch update or Industry insights" className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Event Name</label>
-                        <input type="text" value={formData.eventName} onChange={(e) => setFormData({...formData, eventName: e.target.value})} placeholder="e.g. AI Webinar" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                        <label className="block text-[12px] font-bold text-[#6b7280] dark:text-neutral-300 mb-2 uppercase tracking-wide">Event Name</label>
+                        <input type="text" value={formData.eventName} onChange={(e) => setFormData({...formData, eventName: e.target.value})} placeholder="e.g. AI Webinar" className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
                       </div>
                       <div>
-                        <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Scheduled Date</label>
-                        <input type="date" value={formData.eventDate} onChange={(e) => setFormData({...formData, eventDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                        <label className="block text-[12px] font-bold text-[#6b7280] dark:text-neutral-300 mb-2 uppercase tracking-wide">Scheduled Date</label>
+                        <input type="date" value={formData.eventDate} onChange={(e) => setFormData({...formData, eventDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
                       </div>
                     </div>
                   </>
@@ -470,24 +506,24 @@ export default function PostScheduler() {
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Start Date *</label>
-                        <input type="date" value={formData.startDate} onChange={(e) => setFormData({...formData, startDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                        <label className="block text-[12px] font-bold text-[#6b7280] dark:text-neutral-300 mb-2 uppercase tracking-wide">Start Date *</label>
+                        <input type="date" value={formData.startDate} onChange={(e) => setFormData({...formData, startDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
                       </div>
                       <div>
-                        <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">End Date *</label>
-                        <input type="date" value={formData.endDate} onChange={(e) => setFormData({...formData, endDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                        <label className="block text-[12px] font-bold text-[#6b7280] dark:text-neutral-300 mb-2 uppercase tracking-wide">End Date *</label>
+                        <input type="date" value={formData.endDate} onChange={(e) => setFormData({...formData, endDate: e.target.value})} required className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Country Code</label>
-                      <input type="text" value={formData.countryCode} onChange={(e) => setFormData({...formData, countryCode: e.target.value})} placeholder="e.g. US, IN, GB" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
+                      <label className="block text-[12px] font-bold text-[#6b7280] dark:text-neutral-300 mb-2 uppercase tracking-wide">Country Code</label>
+                      <input type="text" value={formData.countryCode} onChange={(e) => setFormData({...formData, countryCode: e.target.value})} placeholder="e.g. US, IN, GB" className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]" />
                     </div>
                   </>
                 )}
 
                 <div>
-                  <label className="block text-[12px] font-bold text-[#6b7280] mb-2 uppercase tracking-wide">Target Platform</label>
-                  <select value={formData.platform} onChange={(e) => setFormData({...formData, platform: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]">
+                  <label className="block text-[12px] font-bold text-[#6b7280] dark:text-neutral-300 mb-2 uppercase tracking-wide">Target Platform</label>
+                  <select value={formData.platform} onChange={(e) => setFormData({...formData, platform: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-[#333333] bg-[#f9fafb] dark:bg-[#1a1a1a] focus:bg-white dark:focus:bg-[#1a1a1a] text-neutral-900 dark:text-white text-sm transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2]">
                     <option value="linkedin">LinkedIn</option>
                     <option value="instagram">Instagram</option>
                     <option value="twitter">X (Twitter)</option>
@@ -496,8 +532,8 @@ export default function PostScheduler() {
               </form>
             </div>
             
-            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0 rounded-b-3xl">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium text-sm hover:bg-white transition-colors">
+            <div className="p-6 border-t border-neutral-100 dark:border-[#262626] bg-neutral-50 dark:bg-[#171717] flex justify-end gap-3 shrink-0 rounded-b-3xl">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl border border-neutral-200 dark:border-[#333333] text-neutral-600 dark:text-neutral-300 font-medium text-sm hover:bg-white dark:hover:bg-[#1a1a1a] transition-colors">
                 Cancel
               </button>
               <button type="submit" form="postGenForm" className="px-6 py-2.5 rounded-xl bg-[#1967d2] hover:bg-[#1557b0] text-white font-medium text-sm shadow-sm hover:shadow transition-all">

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -16,7 +16,7 @@ function CopyButton({ text, light = false }) {
       className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md transition-all ${
         light
           ? 'bg-white/10 hover:bg-white/20 text-white/80'
-          : 'bg-gray-100 hover:bg-gray-200 text-gray-500'
+          : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-500'
       }`}
     >
       {copied
@@ -32,54 +32,150 @@ function CopyButton({ text, light = false }) {
 function ImageWithSkeleton({ src, alt }) {
   const [loaded, setLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [stageIndex, setStageIndex] = useState(0);
   const fullUrl = getAssetUrl(src);
 
+  const stages = [
+    { title: "Parsing prompt description", sub: "understanding context" },
+    { title: "Composing the scene", sub: "laying out structure" },
+    { title: "Rendering details & light", sub: "applying textures" },
+    { title: "Finishing touches", sub: "sharpening output" }
+  ];
+
+  useEffect(() => {
+    if (loaded) return;
+    const timer = setInterval(() => {
+      setStageIndex(prev => (prev + 1) % stages.length);
+    }, 2200);
+    return () => clearInterval(timer);
+  }, [loaded]);
+
+  const handleDownload = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(fullUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kaynetics-asset-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Download failed, opening in new tab:", err);
+      window.open(fullUrl, '_blank');
+    }
+  };
+
   return (
-    <div className="my-4 overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-md max-w-[420px] w-full transition-all group">
-      <div className="relative w-full aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
+    <div className="my-4 overflow-hidden rounded-xl border border-neutral-200 dark:border-[#333333] bg-white dark:bg-[#171717] shadow-sm max-w-[420px] w-full transition-all group">
+      <div className="relative w-full aspect-square bg-black overflow-hidden flex items-center justify-center">
         {!loaded && !hasError && (
-          <div className="absolute inset-0 z-10 flex flex-col justify-between p-5 bg-slate-50">
-            {/* Top Label */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] font-semibold text-slate-800 tracking-tight">Loading visual asset</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#6c48ff] animate-ping" />
-              </div>
-              <span className="text-[10px] font-bold tracking-wider uppercase text-[#6c48ff] bg-purple-100/80 px-2 py-0.5 rounded-full">
-                Rendering
-              </span>
-            </div>
+          <div className="absolute inset-0 z-10 flex flex-col justify-between p-5 bg-white dark:bg-[#171717] select-none">
+            <style>{`
+              @keyframes plate-swirl-light {
+                0%, 100% { transform: scale(1.2) rotate(0deg); filter: blur(24px) saturate(130%); }
+                50% { transform: scale(1.35) rotate(10deg); filter: blur(12px) saturate(160%); }
+              }
+              @keyframes laser-sweep-light {
+                0% { transform: translateY(-110%); }
+                100% { transform: translateY(220%); }
+              }
+              @keyframes fill-bar-light {
+                0% { width: 4%; }
+                50% { width: 68%; }
+                100% { width: 95%; }
+              }
+            `}</style>
 
-            {/* Center Dot Matrix Wave */}
-            <div className="relative flex-1 my-2 flex items-center justify-center overflow-hidden">
-              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer pointer-events-none z-10" />
-              <div className="grid grid-cols-12 gap-2.5 justify-items-center items-center opacity-80">
-                {Array.from({ length: 12 }).map((_, row) =>
-                  Array.from({ length: 12 }).map((_, col) => {
-                    const distance = Math.sqrt(Math.pow(row - 5.5, 2) + Math.pow(col - 5.5, 2));
-                    const delay = distance * 120;
-                    return (
-                      <div
-                        key={`${row}-${col}`}
-                        className="w-1.5 h-1.5 rounded-full bg-purple-500/60 animate-dot-wave"
-                        style={{ animationDelay: `${delay}ms` }}
-                      />
-                    );
-                  })
-                )}
+            {/* Header */}
+            <div className="flex items-center justify-between z-10">
+              <div className="flex items-center gap-2 font-['Space_Grotesk'] text-[14px] font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neutral-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1a1a1a]"></span>
+                </span>
+                Generating image
               </div>
             </div>
 
-            {/* Bottom Status */}
-            <div className="flex items-center justify-between text-xs text-slate-400 border-t border-slate-200/60 pt-2.5">
-              <span>Fetching image bytes...</span>
-              <span className="font-bold text-[#6c48ff]">100%</span>
+            {/* Developing Canvas Frame */}
+            <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black border border-neutral-100 dark:border-[#333333] shadow-inner my-2">
+              <div 
+                className="absolute inset-0"
+                style={{
+                  background: `
+                    radial-gradient(circle at 25% 25%, rgba(232, 103, 122, 0.75), transparent 50%),
+                    radial-gradient(circle at 75% 65%, rgba(139, 126, 240, 0.7), transparent 55%),
+                    radial-gradient(circle at 50% 85%, rgba(240, 168, 96, 0.65), transparent 60%),
+                    #000000
+                  `,
+                  animation: 'plate-swirl-light 8s ease-in-out infinite'
+                }}
+              />
+
+              <div 
+                className="absolute left-0 right-0 h-2/5 pointer-events-none z-10"
+                style={{
+                  background: `linear-gradient(
+                    to bottom,
+                    rgba(240, 168, 96, 0) 0%,
+                    rgba(240, 168, 96, 0.25) 45%,
+                    rgba(240, 168, 96, 0.5) 50%,
+                    rgba(240, 168, 96, 0.25) 55%,
+                    rgba(240, 168, 96, 0) 100%
+                  )`,
+                  animation: 'laser-sweep-light 3s cubic-bezier(.65, 0, .35, 1) infinite'
+                }}
+              />
+
+              {/* Crosshair Viewport Markers */}
+              <div className="absolute top-2.5 left-2.5 w-3 h-3 opacity-60 pointer-events-none">
+                <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+                <div className="absolute left-1/2 top-0 h-full w-[1px] bg-white"></div>
+              </div>
+              <div className="absolute top-2.5 right-2.5 w-3 h-3 opacity-60 pointer-events-none">
+                <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+                <div className="absolute left-1/2 top-0 h-full w-[1px] bg-white"></div>
+              </div>
+              <div className="absolute bottom-2.5 left-2.5 w-3 h-3 opacity-60 pointer-events-none">
+                <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+                <div className="absolute left-1/2 top-0 h-full w-[1px] bg-white"></div>
+              </div>
+              <div className="absolute bottom-2.5 right-2.5 w-3 h-3 opacity-60 pointer-events-none">
+                <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+                <div className="absolute left-1/2 top-0 h-full w-[1px] bg-white"></div>
+              </div>
+
+              <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between font-mono text-[10px] text-white/90 z-20 backdrop-blur-md bg-black/40 px-2.5 py-1 rounded-lg border border-white/10">
+                <span>1024 × 1024</span>
+                <span className="text-amber-300 font-bold animate-pulse">developing…</span>
+              </div>
+            </div>
+
+            {/* Status Footer */}
+            <div className="z-10 mt-1">
+              <div className="flex items-center justify-between text-xs mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-neutral-800 dark:text-neutral-200">{stages[stageIndex].title}</span>
+                  <span className="text-neutral-400 dark:text-neutral-500 text-[11px]">— {stages[stageIndex].sub}</span>
+                </div>
+              </div>
+
+              <div className="w-full h-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                <div 
+                  className="h-full rounded-full bg-gradient-to-r from-neutral-600 via-pink-500 to-amber-500"
+                  style={{ animation: 'fill-bar-light 8s ease-in-out infinite' }}
+                />
+              </div>
             </div>
           </div>
         )}
 
         {hasError && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-slate-900 text-slate-400 text-xs text-center">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-neutral-900 text-neutral-400 text-xs text-center">
             <svg className="w-8 h-8 text-rose-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -96,33 +192,30 @@ function ImageWithSkeleton({ src, alt }) {
         />
       </div>
 
-      <div className="px-4 py-3 bg-white border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500">
-        <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-700 uppercase tracking-wider">
-          <svg className="w-3.5 h-3.5 text-[#6c48ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="px-3.5 py-3 bg-neutral-50 dark:bg-[#171717] border-t border-neutral-200 dark:border-[#333333] flex items-center justify-between text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+        <span className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+          <svg className="w-3.5 h-3.5 text-[#1a1a1a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           {alt || "AI Visual Asset"}
         </span>
 
         <div className="flex items-center gap-3">
-          <a
-            href={fullUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            download
-            className="text-gray-500 hover:text-[#6c48ff] transition-colors flex items-center gap-1 text-[11px]"
+          <button
+            onClick={handleDownload}
+            className="text-neutral-500 dark:text-neutral-400 hover:text-[#1a1a1a] dark:hover:text-[#1a1a1a] transition-colors flex items-center gap-1 text-[11px] focus:outline-none"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             Download
-          </a>
+          </button>
 
           <a
             href={fullUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#6c48ff] hover:text-purple-800 transition-colors flex items-center gap-1 text-[11px] font-bold"
+            className="text-[#1a1a1a] hover:text-neutral-800 transition-colors flex items-center gap-1 text-[11px] font-bold"
           >
             Full View ↗
           </a>
@@ -134,16 +227,16 @@ function ImageWithSkeleton({ src, alt }) {
 
 // ─── Markdown components ──────────────────────────────────────────────────────
 function makeMarkdownComponents(isUser) {
-  const textColor = isUser ? 'text-white' : 'text-gray-800';
+  const textColor = isUser ? 'text-white' : 'text-neutral-800 dark:text-neutral-100';
   return {
     code({ node, inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className || '');
       const codeString = String(children).replace(/\n$/, '');
       if (!inline && match) {
         return (
-          <div className="rounded-xl overflow-hidden my-3 shadow-sm border border-gray-800">
+          <div className="rounded-xl overflow-hidden my-3 shadow-sm border border-neutral-800">
             <div className="flex items-center justify-between px-4 py-2.5 bg-[#1e1e2e]">
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">{match[1]}</span>
+              <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-widest">{match[1]}</span>
               <CopyButton text={codeString} light />
             </div>
             <SyntaxHighlighter
@@ -159,7 +252,7 @@ function makeMarkdownComponents(isUser) {
         );
       }
       return (
-        <code className={`${isUser ? 'bg-white/20 text-white' : 'bg-violet-50 text-[#6c48ff]'} px-1.5 py-0.5 rounded-md text-[13px] font-mono`} {...props}>
+        <code className={`${isUser ? 'bg-white/20 text-white' : 'bg-neutral-50 text-[#1a1a1a]'} px-1.5 py-0.5 rounded-md text-[13px] font-mono`} {...props}>
           {children}
         </code>
       );
@@ -172,36 +265,36 @@ function makeMarkdownComponents(isUser) {
     ol: ({ children }) => <ol className={`my-2 space-y-1.5 pl-4 list-decimal ${textColor}`}>{children}</ol>,
     li: ({ children }) => (
       <li className={`flex items-start gap-2.5 ${textColor} text-[15px] leading-[1.75]`}>
-        <span className={`mt-[10px] w-1.5 h-1.5 rounded-full flex-shrink-0 ${isUser ? 'bg-white/70' : 'bg-[#6c48ff]'}`} />
+        <span className={`mt-[10px] w-1.5 h-1.5 rounded-full flex-shrink-0 ${isUser ? 'bg-white/70' : 'bg-[#1a1a1a] dark:bg-neutral-400'}`} />
         <span>{children}</span>
       </li>
     ),
     blockquote: ({ children }) => (
-      <blockquote className={`border-l-[3px] ${isUser ? 'border-white/40 bg-white/10' : 'border-[#6c48ff] bg-violet-50'} pl-4 py-2 my-3 rounded-r-xl text-[14px] italic`}>
+      <blockquote className={`border-l-[3px] ${isUser ? 'border-white/40 bg-white/10' : 'border-[#1a1a1a] bg-neutral-50'} pl-4 py-2 my-3 rounded-r-xl text-[14px] italic`}>
         {children}
       </blockquote>
     ),
     strong: ({ children }) => <strong className={`font-bold ${textColor}`}>{children}</strong>,
-    em: ({ children }) => <em className={`italic ${isUser ? 'text-white/90' : 'text-gray-700'}`}>{children}</em>,
+    em: ({ children }) => <em className={`italic ${isUser ? 'text-white/90' : 'text-neutral-700'}`}>{children}</em>,
     a: ({ href, children }) => {
       const fullHref = getAssetUrl(href);
       return (
         <a href={fullHref} target="_blank" rel="noopener noreferrer"
-          className={`underline underline-offset-2 transition-colors ${isUser ? 'text-white/90 hover:text-white' : 'text-[#6c48ff] hover:text-violet-800'}`}>
+          className={`underline underline-offset-2 transition-colors ${isUser ? 'text-white/90 hover:text-white' : 'text-[#1a1a1a] hover:text-neutral-800'}`}>
           {children}
         </a>
       );
     },
-    hr: () => <hr className={`my-4 ${isUser ? 'border-white/20' : 'border-gray-200'}`} />,
+    hr: () => <hr className={`my-4 ${isUser ? 'border-white/20' : 'border-neutral-200'}`} />,
     table: ({ children }) => (
-      <div className="overflow-x-auto my-3 rounded-xl border border-gray-200 shadow-sm">
+      <div className="overflow-x-auto my-3 rounded-xl border border-neutral-200 shadow-sm">
         <table className="w-full text-[13px] border-collapse">{children}</table>
       </div>
     ),
-    thead: ({ children }) => <thead className="bg-gray-50">{children}</thead>,
-    th: ({ children }) => <th className="px-4 py-2.5 font-semibold text-gray-700 text-left border-b border-gray-200">{children}</th>,
-    tr: ({ children }) => <tr className="border-b border-gray-100 last:border-0">{children}</tr>,
-    td: ({ children }) => <td className="px-4 py-2.5 text-gray-600">{children}</td>,
+    thead: ({ children }) => <thead className="bg-neutral-50">{children}</thead>,
+    th: ({ children }) => <th className="px-4 py-2.5 font-semibold text-neutral-700 text-left border-b border-neutral-200">{children}</th>,
+    tr: ({ children }) => <tr className="border-b border-neutral-100 last:border-0">{children}</tr>,
+    td: ({ children }) => <td className="px-4 py-2.5 text-neutral-600">{children}</td>,
     img: ({ src, alt }) => <ImageWithSkeleton src={src} alt={alt} />,
   };
 }
@@ -221,32 +314,64 @@ function resolveAgent(raw) {
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function MessageBubble({ message, isStreaming }) {
+function resolveAgentAvatarVideo(message = {}, selectedAgent = 'brain') {
+  const m = (
+    message.agentSlug ||
+    message.agent ||
+    message.slug ||
+    message.agent_slug ||
+    message.model ||
+    selectedAgent ||
+    'brain'
+  ).toLowerCase().trim();
+
+  if (m.includes('stock')) return '/stock_market_avatar.mp4';
+  if (m.includes('research') || m.includes('writer') || m.includes('campaign')) return '/research_avatar.mp4';
+  if (m.includes('market') || m.includes('image')) return '/market_avatar.mp4';
+  if (m.includes('lead')) return '/lead_gen_avatar.mp4';
+  if (m.includes('recruit')) return '/recruitment_avatar.mp4';
+  if (m.includes('social') || m.includes('trend')) return '/social_trends_avatar.mp4';
+  return '/brain_avatar.mp4';
+}
+
+export default function MessageBubble({ message, isStreaming = false, selectedAgent = 'brain' }) {
   const bubbleRef = useRef(null);
 
   useLayoutEffect(() => {
     if (bubbleRef.current) {
       gsap.fromTo(bubbleRef.current,
-        { y: 16, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
       );
     }
   }, []);
-  const isUser          = message.role === 'user' || message.role === 'USER';
-  const isClarification = !isUser && message.isClarification;
-  const isSummary       = !isUser && message.isSummary;
 
-  const agents  = message.targetOrchestrators || message.agentsCalled || [];
-  const sources = message.sources || [];
-  const inScope = message.inScope ?? true;
-  const showMeta = !isUser && agents.length > 0;
+  const isUser    = message.role === 'USER';
+  const isSystem  = message.role === 'SYSTEM';
+  const isClarify = Boolean(message.isClarifying || message.clarifying_questions);
+  const isSummary = Boolean(message.isSummarySubmit);
+  const inScope   = message.inScope !== false && message.in_scope !== false;
+  const agents    = message.agents_involved || message.agentsInvolved || [];
+  const sources   = message.sources || message.metadata?.sources || [];
 
-  // ── Special: Clarification question bubble ─────────────────────────────────
-  if (isClarification) {
+  // ── Special: System message ────────────────────────────────────────────────
+  if (isSystem) {
     return (
-      <div ref={bubbleRef} className="flex gap-4 py-4 justify-start group">
-        <div className="flex-shrink-0 w-9 h-9 rounded-[14px] bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center mt-1 shadow-md shadow-teal-500/20">
-          <svg className="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div ref={bubbleRef} className="flex justify-center my-3 w-full">
+        <div className="bg-neutral-100/80 text-neutral-500 text-xs px-4 py-1.5 rounded-full border border-neutral-200/50 flex items-center gap-2 shadow-sm font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#1a1a1a]" />
+          {message.content}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Special: Clarification question bubble ───────────────────────────────
+  if (isClarify) {
+    return (
+      <div ref={bubbleRef} className="flex gap-3.5 py-4 justify-start group w-full">
+        <div className="flex-shrink-0 w-9 h-9 rounded-[14px] bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center mt-1 shadow-md shadow-teal-500/20">
+          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -257,7 +382,7 @@ export default function MessageBubble({ message, isStreaming }) {
             </span>
           )}
           <div className="bg-white border border-teal-100 rounded-2xl rounded-tl-sm px-5 py-3.5 shadow-sm">
-            <p className="text-[15px] font-medium text-gray-800 leading-[1.6]">{message.content}</p>
+            <p className="text-[15px] font-medium text-neutral-800 leading-[1.6]">{message.content}</p>
           </div>
         </div>
       </div>
@@ -280,41 +405,30 @@ export default function MessageBubble({ message, isStreaming }) {
     );
   }
 
+  const avatarVideo = resolveAgentAvatarVideo(message, selectedAgent);
+
   return (
     <div ref={bubbleRef} className={`flex gap-3.5 py-4 ${isUser ? 'justify-end' : 'justify-start'} group w-full`}>
 
       {/* AI avatar */}
       {!isUser && (
-        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c48ff] to-[#a78bfa] flex items-center justify-center shadow-lg shadow-violet-500/30 border-2 border-white relative mt-1 overflow-hidden">
-          {(() => {
-            const m = (message.model || message.agentSlug || '').toLowerCase();
-            const avatarSrc =
-              m === 'stock-market' ? '/stock_market_avatar.mp4' :
-              m === 'research' ? '/research_avatar.mp4' :
-              m === 'market' ? '/market_avatar.mp4' :
-              m === 'lead-generation' ? '/lead_gen_avatar.mp4' :
-              m === 'recruitment' ? '/recruitment_avatar.mp4' :
-              m === 'social-trends' ? '/social_trends_avatar.mp4' :
-              '/brain_avatar.mp4';
-            return (
-              <video
-                src={avatarSrc}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover scale-100"
-                style={{ 
-                  objectPosition: m === 'brain' || !m ? 'center 60%' : 'center 15%',
-                  filter: m === 'stock-market' ? 'contrast(1.15) brightness(1.06)' : 'none'
-                }}
-              />
-            );
-          })()}
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#333333] flex items-center justify-center shadow-md shadow-neutral-500/20 border-2 border-white relative mt-1 overflow-hidden">
+          <video
+            key={avatarVideo}
+            src={avatarVideo}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover scale-100"
+            style={{ 
+              objectPosition: avatarVideo.includes('brain') ? 'center 60%' : 'center 15%',
+            }}
+          />
         </div>
       )}
 
-      <div className={`flex flex-col gap-2 relative ${isUser ? 'items-end w-auto max-w-[75%]' : 'items-start flex-1 min-w-0 max-w-[85%]'}`}>
+      <div className={`flex flex-col gap-2 relative ${isUser ? 'items-end w-auto max-w-[75%]' : 'items-start flex-1 min-w-0 max-w-full'}`}>
 
         {/* ── Out of scope warning ── */}
         {!isUser && !inScope && (
@@ -330,7 +444,7 @@ export default function MessageBubble({ message, isStreaming }) {
             {agents.map(a => {
               const { icon, name } = resolveAgent(a);
               return (
-                <span key={a} className="inline-flex items-center gap-1.5 bg-violet-50/80 text-violet-700 border border-violet-100 text-[12px] font-medium px-2.5 py-1 rounded-full shadow-sm">
+                <span key={a} className="inline-flex items-center gap-1.5 bg-neutral-50/80 text-neutral-700 border border-neutral-100 text-[12px] font-medium px-2.5 py-1 rounded-full shadow-sm">
                   <span className="text-[13px]">{icon}</span> {name}
                 </span>
               );
@@ -339,15 +453,15 @@ export default function MessageBubble({ message, isStreaming }) {
         )}
 
         {/* ── Message bubble ── */}
-        <div className={`relative px-6 py-4 transition-all ${
+        <div className={`relative transition-all ${
           isUser
-            ? 'bg-gradient-to-br from-[#5030e5] to-[#7b61ff] text-white rounded-2xl rounded-br-sm shadow-[0_8px_24px_rgba(108,72,255,0.25)] border border-white/10'
-            : 'bg-white/80 backdrop-blur-xl text-gray-800 rounded-2xl rounded-tl-sm border border-white shadow-[0_4px_32px_rgba(0,0,0,0.03)]'
+            ? 'px-6 py-4 bg-gradient-to-br from-[#262626] to-[#333333] text-white rounded-2xl rounded-br-sm shadow-sm border border-white/10'
+            : 'py-2 text-neutral-800 dark:text-neutral-100'
         }`}>
           {isUser ? (
             <p className="text-[15px] leading-[1.6] font-medium whitespace-pre-wrap">{message.content}</p>
           ) : (
-            <div className="text-[15px] leading-[1.7] text-gray-800 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 font-normal">
+            <div className="text-[15px] leading-[1.7] text-neutral-800 dark:text-neutral-100 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 font-normal">
               {/* Execution Step Tree */}
               <StepTree 
                 steps={message.steps || []} 
@@ -370,7 +484,8 @@ export default function MessageBubble({ message, isStreaming }) {
                   text = text.replace(/([^\n])\n(#+ )/g, '$1\n\n$2');
                   // Enforce blank lines before lists
                   text = text.replace(/([^\n])\n(-|\*|\d+\.) /g, '$1\n\n$2 ');
-                  // Hide ugly raw image URLs from the text (they are rendered as cards below anyway)
+                  // Hide markdown images and raw image URLs from text (they are rendered cleanly below)
+                  text = text.replace(/!\[.*?\]\([^\)]+\)/g, '');
                   text = text.replace(/`?(?:\/kayneticsagents\/|https?:\/\/[^\s"'`<>]+)[^\s"'`<>]+\.(?:png|jpg|jpeg|gif|webp)`?/ig, '');
                   
                   // Clean up left-behind labels and AI-generated image details
@@ -385,51 +500,62 @@ export default function MessageBubble({ message, isStreaming }) {
                 })()}
               </ReactMarkdown>
               
-              {/* Method B: Direct Structured Metadata Image Card */}
+              {/* Single Unified & Deduplicated Image Card Renderer */}
               {(() => {
-                let rawImageUrl = 
-                  message.executionResults?.image_generation?.image_url ||
-                  message.executionResults?.social_media_orchestrator?.execution_results?.image_generation?.image_url ||
-                  message.executionResults?.social_media_orchestrator?.image_generation?.image_url;
-                  
-                // Smart Fallback: If metadata is missing or changed, extract from text!
-                if (!rawImageUrl && message.content) {
+                const collectedUrls = [];
+                
+                // 1. From artifacts array
+                if (Array.isArray(message.artifacts)) {
+                  message.artifacts.forEach(art => {
+                    if (art?.url && (art.type === 'image' || art.url.match(/\.(png|jpg|jpeg|gif|webp)$/i))) {
+                      collectedUrls.push(art.url);
+                    }
+                  });
+                }
+                
+                // 2. From executionResults metadata
+                const imgGenRes1 = message.executionResults?.image_generation;
+                const imgGenRes2 = message.executionResults?.social_media_orchestrator?.execution_results?.image_generation;
+                const imgGenRes3 = message.executionResults?.social_media_orchestrator?.image_generation;
+
+                const resImgNode = imgGenRes1 || imgGenRes2 || imgGenRes3;
+                if (resImgNode?.image_generated && resImgNode?.image_url) {
+                  collectedUrls.push(resImgNode.image_url);
+                }
+                
+                // 3. Fallback: match from message.content string
+                if (collectedUrls.length === 0 && message.content) {
                   const match = message.content.match(/(?:\/kayneticsagents\/|https?:\/\/[^\s"'`<>]+)[^\s"'`<>]+\.(?:png|jpg|jpeg|gif|webp)/i);
-                  if (match) {
-                    rawImageUrl = match[0];
-                  }
+                  if (match) collectedUrls.push(match[0]);
                 }
-                  
-                if (!rawImageUrl) return null;
-                const imageUrl = getAssetUrl(rawImageUrl);
-                  
-                // Check if the URL was rendered specifically as a Markdown image tag (![])
-                const isRenderedAsImage = message.content && new RegExp(`!\\[.*?\\]\\(.*?${rawImageUrl.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}.*?\\)`).test(message.content);
-                  
-                // Only render if it exists AND wasn't already rendered as an image by Markdown (Method A)
-                if (imageUrl && !isRenderedAsImage) {
-                  return <ImageWithSkeleton src={imageUrl} alt="Generated Visual Asset" />;
-                }
-                return null;
+
+                // Deduplicate URLs
+                const uniqueUrls = Array.from(new Set(collectedUrls));
+                if (uniqueUrls.length === 0) return null;
+
+                return (
+                  <div className="my-3 space-y-3">
+                    {uniqueUrls.map((url, idx) => (
+                      <ImageWithSkeleton key={idx} src={url} alt="Generated Visual Asset" />
+                    ))}
+                  </div>
+                );
               })()}
 
-              {/* Method C: Downloadable File / Export Artifacts (CSV/XLSX/Generated Files) */}
-              {Array.isArray(message.artifacts) && message.artifacts.length > 0 && (
+              {/* Downloadable File / Export Non-Image Artifacts (CSV/XLSX/PDF) */}
+              {Array.isArray(message.artifacts) && message.artifacts.some(a => a && a.type !== 'image' && !a.url?.match(/\.(png|jpg|jpeg|gif|webp)$/i)) && (
                 <div className="my-3 flex flex-col gap-2">
                   {message.artifacts.map((art, idx) => {
-                    if (!art) return null;
-                    if (art.type === 'image' || art.url?.match(/\.(png|jpg|jpeg|gif|webp)$/i)) {
-                      return <ImageWithSkeleton key={idx} src={getAssetUrl(art.url)} alt={art.label || "Generated Image"} />;
-                    }
+                    if (!art || art.type === 'image' || art.url?.match(/\.(png|jpg|jpeg|gif|webp)$/i)) return null;
                     const downloadUrl = getAssetUrl(art.url);
                     const filename = art.filename || art.label || `Export_${idx + 1}.${art.type || 'file'}`;
                     return (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-violet-50/70 border border-violet-100 rounded-xl">
+                      <div key={idx} className="flex items-center justify-between p-3 bg-neutral-50/70 border border-neutral-100 rounded-xl">
                         <div className="flex items-center gap-2.5">
                           <span className="text-xl">📊</span>
                           <div className="flex flex-col">
-                            <span className="text-xs font-semibold text-slate-800">{filename}</span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">{art.type || 'export'}</span>
+                            <span className="text-xs font-semibold text-neutral-800">{filename}</span>
+                            <span className="text-[10px] text-neutral-500 uppercase tracking-wider">{art.type || 'export'}</span>
                           </div>
                         </div>
                         <a
@@ -437,7 +563,7 @@ export default function MessageBubble({ message, isStreaming }) {
                           target="_blank"
                           rel="noopener noreferrer"
                           download
-                          className="px-3 py-1.5 bg-[#6c48ff] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-purple-700 transition-colors flex items-center gap-1.5"
+                          className="px-3 py-1.5 bg-[#1a1a1a] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-neutral-700 transition-colors flex items-center gap-1.5"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -452,20 +578,20 @@ export default function MessageBubble({ message, isStreaming }) {
               
               {/* Live Streaming Skeleton Loader for Images */}
               {isStreaming && message.status && /image|visual|drawing|generating/i.test(message.status) && (
-                <div className="my-3 overflow-hidden rounded-[18px] border border-gray-200/80 bg-gray-50 shadow-sm max-w-[400px]">
+                <div className="my-3 overflow-hidden rounded-[18px] border border-neutral-200/80 bg-neutral-50 shadow-sm max-w-[400px]">
                   {/* Skeleton Image Area */}
-                  <div className="w-full aspect-square bg-gray-200/50 animate-pulse flex flex-col items-center justify-center gap-3">
-                    <svg className="w-8 h-8 text-gray-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ animationDuration: '2s' }}>
+                  <div className="w-full aspect-square bg-neutral-200/50 animate-pulse flex flex-col items-center justify-center gap-3">
+                    <svg className="w-8 h-8 text-neutral-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ animationDuration: '2s' }}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-widest animate-pulse">
+                    <span className="text-xs font-medium text-neutral-500 uppercase tracking-widest animate-pulse">
                       Creating Visual...
                     </span>
                   </div>
                   {/* Skeleton Footer Area */}
-                  <div className="px-3 py-3.5 bg-white border-t border-gray-100 flex items-center justify-between">
-                    <div className="w-32 h-2.5 bg-gray-200/80 rounded-full animate-pulse" />
-                    <div className="w-16 h-2.5 bg-gray-200/80 rounded-full animate-pulse" />
+                  <div className="px-3 py-3.5 bg-white border-t border-neutral-100 flex items-center justify-between">
+                    <div className="w-32 h-2.5 bg-neutral-200/80 rounded-full animate-pulse" />
+                    <div className="w-16 h-2.5 bg-neutral-200/80 rounded-full animate-pulse" />
                   </div>
                 </div>
               )}
@@ -475,10 +601,10 @@ export default function MessageBubble({ message, isStreaming }) {
 
         {/* ── Generation Metadata ── */}
         {!isUser && (message.tokensUsed || message.model) && !isStreaming && (
-          <div className="flex items-center gap-2.5 mt-0.5 ml-2 text-[11px] font-semibold text-gray-400">
+          <div className="flex items-center gap-2.5 mt-0.5 ml-2 text-[11px] font-semibold text-neutral-400">
             {message.model && (
               <span className="flex items-center gap-1">
-                <svg className="w-3 h-3 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                <svg className="w-3 h-3 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                 {message.model}
               </span>
             )}
@@ -502,7 +628,7 @@ export default function MessageBubble({ message, isStreaming }) {
         {/* ── Sources ── */}
         {!isUser && sources.length > 0 && (
           <div className="flex flex-col gap-2 w-full mt-2">
-            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-[12px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
               Sources
             </span>
@@ -516,7 +642,7 @@ export default function MessageBubble({ message, isStreaming }) {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-violet-300 hover:bg-violet-50 text-gray-600 hover:text-violet-700 text-[13px] font-medium px-3 py-1.5 rounded-xl transition-all shadow-sm max-w-[250px] truncate"
+                    className="inline-flex items-center gap-1.5 bg-white border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 text-neutral-600 hover:text-neutral-700 text-[13px] font-medium px-3 py-1.5 rounded-xl transition-all shadow-sm max-w-[250px] truncate"
                   >
                     {label}
                   </a>
@@ -530,7 +656,7 @@ export default function MessageBubble({ message, isStreaming }) {
 
       {/* User avatar */}
       {isUser && (
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center shadow-lg shadow-black/10 border-2 border-white relative mt-1">
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-black flex items-center justify-center shadow-lg shadow-black/10 border-2 border-white relative mt-1">
           <svg className="w-5 h-5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
           </svg>

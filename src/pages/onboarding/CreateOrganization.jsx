@@ -148,7 +148,7 @@ export default function CreateOrganization() {
             value={name}
             onChange={handleNameChange}
             required
-            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[15px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] shadow-sm"
+            className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 bg-[#f9fafb] focus:bg-white text-neutral-900 placeholder-neutral-400 text-[15px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] shadow-sm"
           />
         </div>
 
@@ -164,7 +164,7 @@ export default function CreateOrganization() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-[#f9fafb] focus:bg-white text-gray-900 placeholder-gray-400 text-[15px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] shadow-sm"
+              className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 bg-[#f9fafb] focus:bg-white text-neutral-900 placeholder-neutral-400 text-[15px] transition-all outline-none focus:ring-2 focus:ring-[#1967d2]/20 focus:border-[#1967d2] shadow-sm"
             />
           </div>
 

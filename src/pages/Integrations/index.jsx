@@ -35,14 +35,14 @@ export default function Integrations() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-100 text-[#6c48ff] text-xs font-bold mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-900/40 text-neutral-900 dark:text-white dark:text-neutral-200 text-xs font-bold mb-3">
             <Sparkles className="w-3.5 h-3.5" />
             <span>App Integrations</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">
             Channel Integrations
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
             Connect your social channels to enable automated AI publishing and real-time sync.
           </p>
         </div>
@@ -53,27 +53,27 @@ export default function Integrations() {
         {integrations.map((integration) => (
           <div 
             key={integration.name} 
-            className="relative rounded-2xl p-7 flex flex-col justify-between bg-gray-50/70 border border-gray-100 transition-all duration-300 opacity-90"
+            className="relative rounded-2xl p-7 flex flex-col justify-between bg-neutral-50/70 dark:bg-[#111111] border border-neutral-100 dark:border-[#262626] transition-all duration-300 opacity-90"
           >
             {/* Coming Soon Badge */}
             <div className="absolute top-5 right-5 z-10">
-              <div className="bg-[#6c48ff] text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+              <div className="bg-neutral-900 dark:bg-neutral-100 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                 Coming Soon
               </div>
             </div>
 
             <div>
               {/* Icon */}
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 border bg-white border-gray-100 shadow-sm">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 border bg-white dark:bg-[#1a1a1a] border-neutral-100 dark:border-[#333333] shadow-sm">
                 <svg className="w-7 h-7" fill={integration.color} viewBox="0 0 24 24">
                   <path d={integration.icon} />
                 </svg>
               </div>
               
-              <h3 className="font-bold text-gray-900 mb-1.5 text-base font-['Space_Grotesk']">
+              <h3 className="font-bold text-neutral-900 dark:text-white mb-1.5 text-base font-['Space_Grotesk']">
                 {integration.displayName}
               </h3>
-              <p className="text-xs text-gray-500 mb-6 font-medium leading-relaxed min-h-[36px]">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-6 font-medium leading-relaxed min-h-[36px]">
                 {integration.description}
               </p>
             </div>
@@ -82,9 +82,9 @@ export default function Integrations() {
             <div className="pt-2">
               <button 
                 disabled 
-                className="w-full py-3 px-4 rounded-2xl bg-gray-100 text-gray-400 font-bold text-xs cursor-not-allowed border border-gray-200 flex items-center justify-center gap-1.5"
+                className="w-full py-3 px-4 rounded-2xl bg-neutral-100 dark:bg-[#1a1a1a] text-neutral-400 dark:text-neutral-500 font-bold text-xs cursor-not-allowed border border-neutral-200 dark:border-[#333333] flex items-center justify-center gap-1.5"
               >
-                <Lock className="w-3.5 h-3.5 text-gray-400" />
+                <Lock className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500" />
                 <span>Feature Locked • Coming Soon</span>
               </button>
             </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import RightSidebar from './components/RightSidebar';
 import ChatWindow from './components/ChatWindow';
 import { chatService } from '../../../services/chatService';
@@ -14,6 +14,7 @@ export default function AgentsChat() {
   const [selectedAgent, setSelectedAgent] = useState('brain');
   const hasAutoStarted = useRef(false);
   const location = useLocation();
+  const params = useParams();
   const lastProcessedNewChat = useRef(null);
 
   // Fetch conversation history
@@ -59,26 +60,28 @@ export default function AgentsChat() {
       handleNewChat();
       setActiveTab(null); // Close sidebar on new chat just to be clean
     }
-    if (location.state?.selectedAgent) {
+    if (params.agentSlug) {
+      setSelectedAgent(params.agentSlug);
+    } else if (location.state?.selectedAgent) {
       setSelectedAgent(location.state.selectedAgent);
     }
-  }, [location.state?.newChat, location.state?.selectedAgent, creatingSession]);
+  }, [params.agentSlug, location.state?.newChat, location.state?.selectedAgent, creatingSession]);
 
   const handleSelectConversation = (id) => {
     setActiveSessionId(id);
   };
 
   return (
-    <div className="flex h-full w-full bg-[#f8f9fa] p-3 md:p-5 overflow-hidden relative font-sans text-gray-900">
+    <div className="flex h-screen w-full bg-[#f8f9fa] dark:bg-[#000000] p-3 md:p-5 overflow-hidden relative font-sans text-neutral-900 dark:text-neutral-100">
       
-      {/* Background Soft Glows (Light Mode) */}
+      {/* Background Soft Glows */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -left-40 w-[60rem] h-[60rem] bg-violet-400/10 rounded-full blur-[140px] animate-pulse-slow mix-blend-multiply" />
-        <div className="absolute bottom-[-10rem] right-[-10rem] w-[50rem] h-[50rem] bg-pink-400/10 rounded-full blur-[140px] animate-pulse-slow mix-blend-multiply" style={{ animationDelay: '2s' }} />
+        <div className="absolute -top-40 -left-40 w-[60rem] h-[60rem] bg-neutral-400/10 dark:bg-neutral-900/20 rounded-full blur-[140px] animate-pulse-slow mix-blend-multiply dark:mix-blend-screen" />
+        <div className="absolute bottom-[-10rem] right-[-10rem] w-[50rem] h-[50rem] bg-neutral-400/10 dark:bg-neutral-900/20 rounded-full blur-[140px] animate-pulse-slow mix-blend-multiply dark:mix-blend-screen" style={{ animationDelay: '2s' }} />
       </div>
 
       {/* Main Glass Window */}
-      <div className="flex flex-1 w-full h-full bg-white/70 backdrop-blur-3xl rounded-[32px] shadow-[0_8px_40px_rgba(0,0,0,0.04)] border border-white overflow-hidden relative z-10 transition-all duration-500">
+      <div className="flex flex-1 w-full h-full bg-white/70 dark:bg-[#111111]/90 backdrop-blur-3xl rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.04)] border border-white dark:border-[#262626] overflow-hidden relative z-10 transition-all duration-500">
         
         {/* Main Chat Window */}
         <div className="flex-1 flex flex-col h-full relative bg-transparent z-10">

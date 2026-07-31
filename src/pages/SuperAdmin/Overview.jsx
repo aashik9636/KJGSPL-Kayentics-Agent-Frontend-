@@ -40,18 +40,18 @@ export default function SuperAdminOverview() {
   return (
     <div className="space-y-8">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border border-gray-800 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 border border-neutral-800 shadow-xl">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             Platform Command Center <Sparkles className="w-5 h-5 text-amber-400" />
           </h2>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-neutral-400 mt-1">
             Real-time SaaS financial performance, organization usage, and AI model consumption metrics.
           </p>
         </div>
         <button
           onClick={fetchStats}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-amber-400 border border-gray-700 text-sm font-semibold transition-all self-start md:self-auto"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-amber-400 border border-neutral-700 text-sm font-semibold transition-all self-start md:self-auto"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh Stats
@@ -61,9 +61,9 @@ export default function SuperAdminOverview() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* MRR Card */}
-        <div className="p-5 rounded-2xl bg-gray-900/90 border border-gray-800 hover:border-amber-500/30 transition-all shadow-lg">
+        <div className="p-5 rounded-2xl bg-neutral-900/90 border border-neutral-800 hover:border-amber-500/30 transition-all shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Monthly Recurring Revenue</span>
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Monthly Recurring Revenue</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
               <DollarSign className="w-5 h-5" />
             </div>
@@ -76,37 +76,37 @@ export default function SuperAdminOverview() {
         </div>
 
         {/* Organizations Card */}
-        <div className="p-5 rounded-2xl bg-gray-900/90 border border-gray-800 hover:border-amber-500/30 transition-all shadow-lg">
+        <div className="p-5 rounded-2xl bg-neutral-900/90 border border-neutral-800 hover:border-amber-500/30 transition-all shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Tenants</span>
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Tenants</span>
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
               <Building2 className="w-5 h-5" />
             </div>
           </div>
           <p className="text-3xl font-extrabold text-white mt-3">{overview?.totalOrganizations || 0}</p>
-          <p className="text-xs text-gray-400 mt-2 font-medium">
+          <p className="text-xs text-neutral-400 mt-2 font-medium">
             <span className="text-emerald-400 font-semibold">{overview?.activeOrganizations || 0} Active</span> tenants
           </p>
         </div>
 
         {/* Users Card */}
-        <div className="p-5 rounded-2xl bg-gray-900/90 border border-gray-800 hover:border-amber-500/30 transition-all shadow-lg">
+        <div className="p-5 rounded-2xl bg-neutral-900/90 border border-neutral-800 hover:border-amber-500/30 transition-all shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Users</span>
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Users</span>
             <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
               <Users className="w-5 h-5" />
             </div>
           </div>
           <p className="text-3xl font-extrabold text-white mt-3">{overview?.totalUsers || 0}</p>
-          <p className="text-xs text-gray-400 mt-2 font-medium">
+          <p className="text-xs text-neutral-400 mt-2 font-medium">
             <span className="text-purple-400 font-semibold">{overview?.activeUsers || 0} Active</span> accounts
           </p>
         </div>
 
         {/* AI Tokens Card */}
-        <div className="p-5 rounded-2xl bg-gray-900/90 border border-gray-800 hover:border-amber-500/30 transition-all shadow-lg">
+        <div className="p-5 rounded-2xl bg-neutral-900/90 border border-neutral-800 hover:border-amber-500/30 transition-all shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">AI Tokens Consumed</span>
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">AI Tokens Consumed</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
               <Cpu className="w-5 h-5" />
             </div>
@@ -123,7 +123,7 @@ export default function SuperAdminOverview() {
       {/* Subscription Breakdown & AI Metrics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Subscription Tier Distribution */}
-        <div className="p-6 rounded-2xl bg-gray-900/90 border border-gray-800 shadow-xl space-y-5">
+        <div className="p-6 rounded-2xl bg-neutral-900/90 border border-neutral-800 shadow-xl space-y-5">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <Layers className="w-5 h-5 text-amber-400" /> Subscription Plan Distribution
@@ -137,10 +137,10 @@ export default function SuperAdminOverview() {
               return (
                 <div key={plan} className="space-y-1.5">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-gray-300">{plan}</span>
+                    <span className="text-neutral-300">{plan}</span>
                     <span className="text-amber-400">{count} tenants ({pct}%)</span>
                   </div>
-                  <div className="w-full h-2.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2.5 bg-neutral-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-500"
                       style={{ width: `${pct}%` }}
@@ -153,7 +153,7 @@ export default function SuperAdminOverview() {
         </div>
 
         {/* AI Consumption Summary */}
-        <div className="p-6 rounded-2xl bg-gray-900/90 border border-gray-800 shadow-xl space-y-5">
+        <div className="p-6 rounded-2xl bg-neutral-900/90 border border-neutral-800 shadow-xl space-y-5">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <Activity className="w-5 h-5 text-amber-400" /> AI Execution Summary
@@ -161,20 +161,20 @@ export default function SuperAdminOverview() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
-              <p className="text-xs text-gray-400">Total Executions</p>
+            <div className="p-4 rounded-xl bg-neutral-800/60 border border-neutral-700/50">
+              <p className="text-xs text-neutral-400">Total Executions</p>
               <p className="text-2xl font-bold text-white mt-1">{aiMetrics?.totalExecutions || 0}</p>
             </div>
-            <div className="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
-              <p className="text-xs text-gray-400">Input Tokens</p>
+            <div className="p-4 rounded-xl bg-neutral-800/60 border border-neutral-700/50">
+              <p className="text-xs text-neutral-400">Input Tokens</p>
               <p className="text-2xl font-bold text-white mt-1">{((aiMetrics?.inputTokens || 0) / 1000).toFixed(1)}k</p>
             </div>
-            <div className="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
-              <p className="text-xs text-gray-400">Output Tokens</p>
+            <div className="p-4 rounded-xl bg-neutral-800/60 border border-neutral-700/50">
+              <p className="text-xs text-neutral-400">Output Tokens</p>
               <p className="text-2xl font-bold text-white mt-1">{((aiMetrics?.outputTokens || 0) / 1000).toFixed(1)}k</p>
             </div>
-            <div className="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
-              <p className="text-xs text-gray-400">Total Workspaces</p>
+            <div className="p-4 rounded-xl bg-neutral-800/60 border border-neutral-700/50">
+              <p className="text-xs text-neutral-400">Total Workspaces</p>
               <p className="text-2xl font-bold text-white mt-1">{overview?.totalWorkspaces || 0}</p>
             </div>
           </div>

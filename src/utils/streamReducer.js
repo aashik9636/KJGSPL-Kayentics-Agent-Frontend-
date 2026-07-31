@@ -186,12 +186,32 @@ export function applyChunk(state, chunk) {
       };
     }
 
+    case 'image_result': {
+      if (metadata?.image_generated && metadata?.image_url) {
+        const art = {
+          name: 'Generated Image',
+          title: 'Generated Image',
+          url: metadata.image_url,
+          type: 'image',
+        };
+        const updatedArtifacts = [...nextState.artifacts];
+        if (!updatedArtifacts.some(a => a.url === art.url)) {
+          updatedArtifacts.push(art);
+        }
+        return {
+          ...nextState,
+          artifacts: updatedArtifacts,
+        };
+      }
+      return nextState;
+    }
+
     case 'done': {
       const meta = metadata || {};
 
       // 1. Extract artifacts from metadata (including single image_url)
       const doneArtifacts = Array.isArray(meta.artifacts) ? [...meta.artifacts] : [];
-      if (meta.image_url) {
+      if (meta.image_generated && meta.image_url) {
         doneArtifacts.push({
           name: 'Generated Image',
           title: 'Generated Image',
@@ -209,7 +229,7 @@ export function applyChunk(state, chunk) {
 
       // 2. Set answer fallback for agents that return final result in done.metadata
       const fallbackText = meta.response || meta.message || content || '';
-      const imageMarkdown = meta.image_url ? `![Generated Image](${meta.image_url})\n\n${fallbackText}` : fallbackText;
+      const imageMarkdown = (meta.image_generated && meta.image_url) ? `![Generated Image](${meta.image_url})\n\n${fallbackText}` : fallbackText;
       const finalAnswer = nextState.answer || imageMarkdown;
 
       const settledNodes = { ...nextState.nodes };

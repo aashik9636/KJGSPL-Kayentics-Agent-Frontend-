@@ -3,13 +3,13 @@ import { Sparkles, Save } from 'lucide-react';
 
 export const BrandKitHeader = ({ saving, resetting, onReset, onSave }) => {
   return (
-    <div className="bg-white border border-gray-200/90 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="bg-white dark:bg-[#171717] border border-neutral-200/90 dark:border-[#333333] rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors">
       <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-[#6c48ff] text-xs font-semibold border border-purple-100">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-[#6c48ff] dark:text-purple-400 text-xs font-semibold border border-purple-100 dark:border-purple-800/50">
           <Sparkles className="w-4 h-4" /> Brand Guidelines & AI Kit
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Corporate Identity & AI Guardrails</h2>
-        <p className="text-gray-500 text-xs sm:text-sm max-w-2xl leading-relaxed">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Corporate Identity & AI Guardrails</h2>
+        <p className="text-neutral-500 dark:text-neutral-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
           Define corporate logo assets, color palettes, font stacks, voice guidelines, and compliance rules enforced across AI Agents and Content Generators.
         </p>
       </div>
@@ -19,7 +19,7 @@ export const BrandKitHeader = ({ saving, resetting, onReset, onSave }) => {
           type="button"
           onClick={onReset}
           disabled={resetting}
-          className="px-4 py-2.5 bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 font-bold rounded-xl text-xs transition border border-gray-200"
+          className="px-4 py-2.5 bg-neutral-100 dark:bg-[#171717] hover:bg-rose-50 dark:hover:bg-rose-900/30 text-neutral-700 dark:text-neutral-300 hover:text-rose-600 dark:hover:text-rose-400 font-bold rounded-xl text-xs transition border border-neutral-200 dark:border-[#333333]"
         >
           {resetting ? 'Resetting...' : 'Reset Kit'}
         </button>

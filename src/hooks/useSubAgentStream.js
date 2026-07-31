@@ -16,7 +16,7 @@ export const useSubAgentStream = () => {
   const wsRef = useRef(null);
   const pollIntervalRef = useRef(null);
 
-  const startBackgroundExecution = useCallback(async (agentSlug, sessionId, message, jobId) => {
+  const startBackgroundExecution = useCallback(async (agentSlug, sessionId, message, jobId, options = {}) => {
     setStreamState(prev => ({
       ...prev,
       isStreaming: false,
@@ -28,18 +28,28 @@ export const useSubAgentStream = () => {
       const { organizationId, workspaceId } = useWorkspaceStore.getState();
       const apiClient = (await import('../services/apiClient')).default;
       
-      const res = await apiClient.post(`/api/chat/${agentSlug}`, {
+      const endpoint = agentSlug === 'image-generation' ? '/api/chat/image-generation' : `/api/chat/${agentSlug}`;
+      const payload = agentSlug === 'image-generation' ? {
+        prompt_text: message,
+        platform: options?.platform || 'instagram',
+        companyId: workspaceId || undefined,
+        organizationId: organizationId || undefined,
+        sessionId,
+        jobId: jobId || undefined,
+      } : {
         message,
         userQuery: message,
         sessionId,
         jobId: jobId || undefined,
         organizationId,
         workspaceId,
-      });
+      };
+
+      const res = await apiClient.post(endpoint, payload);
 
       const data = res.data?.data || res.data || {};
-      const answer = data?.response || data?.finalAnswer || data?.content || data?.summary || (data?.image_url ? 'Generated visual asset.' : 'Task completed.');
-      const extractedArtifacts = Array.isArray(data?.artifacts) ? data.artifacts : (data?.image_url ? [{ type: 'image', url: data.image_url }] : []);
+      const answer = data?.response || data?.finalAnswer || data?.content || data?.summary || ((data?.image_generated && data?.image_url) ? 'Generated visual asset.' : 'Task completed.');
+      const extractedArtifacts = Array.isArray(data?.artifacts) ? data.artifacts : ((data?.image_generated && data?.image_url) ? [{ type: 'image', url: data.image_url }] : []);
 
       setSources(data?.sources || []);
       setStreamState(prev => ({
@@ -51,7 +61,7 @@ export const useSubAgentStream = () => {
         artifacts: extractedArtifacts.length > 0 ? extractedArtifacts : prev.artifacts,
       }));
     } catch (err) {
-      console.error(`Failed background execution for ${agentSlug}:`, err);
+      console.error(`Failed execution for ${agentSlug}:`, err);
       setStreamState(prev => ({
         ...prev,
         isPendingBackground: false,
@@ -75,6 +85,12 @@ export const useSubAgentStream = () => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
     const jobId = options.jobId || options.job_id || `job_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const queryText = (message || options.query || options.user_query || options.prompt || '').toString().trim();
+
+    // REST-only agent slug direct dispatch
+    if (agentSlug === 'image-generation') {
+      startBackgroundExecution(agentSlug, sessionId, queryText, jobId, options);
+      return;
+    }
 
     setStreamState({
       ...initStreamState(),

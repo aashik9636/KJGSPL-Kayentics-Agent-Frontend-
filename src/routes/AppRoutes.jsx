@@ -23,6 +23,7 @@ export const AppRoutes = (
     <Route path="/" element={<Dashboard />} />
     <Route path="/chat" element={<Chat />} />
     <Route path="/agents" element={<Agents />} />
+    <Route path="/agents/:agentSlug" element={<Chat />} />
     <Route path="/knowledge-base" element={<KnowledgeBase />} />
     <Route path="/integrations" element={<Integrations />} />
     <Route path="/profile" element={<Profile />} />

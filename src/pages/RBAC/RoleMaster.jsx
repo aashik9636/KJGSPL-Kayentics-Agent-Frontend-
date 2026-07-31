@@ -442,13 +442,13 @@ export default function RoleMaster() {
   return (
     <div className="w-full max-w-[1600px] mx-auto px-4 md:px-8 pb-8 pt-2 space-y-6 font-sans transform-gpu">
       {/* Header Banner - Clean White Aesthetic */}
-      <div className="bg-white border border-gray-200/90 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-[#6c48ff] text-xs font-semibold border border-purple-100">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white dark:text-neutral-200 text-xs font-semibold border border-neutral-100 dark:border-neutral-900/40">
             <ShieldCheck className="w-4 h-4" /> Role Master (RBAC)
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Role & Access Control Master</h1>
-          <p className="text-gray-500 text-xs sm:text-sm max-w-2xl leading-relaxed">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">Role & Access Control Master</h1>
+          <p className="text-neutral-500 dark:text-neutral-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
             Create and manage system roles, set fine-grained module access rules, and enforce permission dependencies across your workspace.
           </p>
         </div>
@@ -456,7 +456,7 @@ export default function RoleMaster() {
         <button
           type="button"
           onClick={openCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#6c48ff] hover:bg-[#5b3af0] text-white font-bold rounded-xl shadow-md shadow-purple-500/20 transition-all shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-neutral-100 hover:bg-[#262626] text-white font-bold rounded-xl shadow-md shadow-neutral-500/20 transition-all shrink-0"
         >
           <Plus className="w-5 h-5" />
           <span>Create New Role</span>
@@ -465,43 +465,43 @@ export default function RoleMaster() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
-        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-4">
-          <div className="p-3.5 bg-purple-50 text-[#6c48ff] rounded-2xl border border-purple-100">
+        <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-neutral-200/80 dark:border-[#262626] shadow-xs flex items-center gap-4">
+          <div className="p-3.5 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white dark:text-neutral-200 rounded-2xl border border-neutral-100 dark:border-neutral-900/40">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Roles</p>
-            <h3 className="text-2xl font-black text-gray-900">{roles.length}</h3>
+            <p className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Total Roles</p>
+            <h3 className="text-2xl font-black text-neutral-900 dark:text-white">{roles.length}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-4">
-          <div className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100">
+        <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-neutral-200/80 dark:border-[#262626] shadow-xs flex items-center gap-4">
+          <div className="p-3.5 bg-neutral-50 dark:bg-neutral-950/60 text-neutral-600 dark:text-neutral-300 rounded-2xl border border-neutral-100 dark:border-neutral-900/40">
             <LockKeyhole className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">System Roles</p>
-            <h3 className="text-2xl font-black text-gray-900">{roles.filter(r => r.isSystemRole || r.isSystem).length}</h3>
+            <p className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">System Roles</p>
+            <h3 className="text-2xl font-black text-neutral-900 dark:text-white">{roles.filter(r => r.isSystemRole || r.isSystem).length}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-4">
-          <div className="p-3.5 bg-amber-50 text-amber-600 rounded-2xl border border-amber-100">
+        <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-neutral-200/80 dark:border-[#262626] shadow-xs flex items-center gap-4">
+          <div className="p-3.5 bg-neutral-50 dark:bg-neutral-950/60 text-neutral-600 dark:text-neutral-300 rounded-2xl border border-neutral-100 dark:border-neutral-900/40">
             <Sparkles className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Custom Roles</p>
-            <h3 className="text-2xl font-black text-gray-900">{roles.filter(r => !(r.isSystemRole || r.isSystem)).length}</h3>
+            <p className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Custom Roles</p>
+            <h3 className="text-2xl font-black text-neutral-900 dark:text-white">{roles.filter(r => !(r.isSystemRole || r.isSystem)).length}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-4">
-          <div className="p-3.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100">
+        <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-neutral-200/80 dark:border-[#262626] shadow-xs flex items-center gap-4">
+          <div className="p-3.5 bg-neutral-50 dark:bg-neutral-950/60 text-neutral-600 dark:text-neutral-300 rounded-2xl border border-neutral-100 dark:border-neutral-900/40">
             <CheckCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Active Roles</p>
-            <h3 className="text-2xl font-black text-gray-900">{roles.filter(r => r.status === 'ACTIVE').length}</h3>
+            <p className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Active Roles</p>
+            <h3 className="text-2xl font-black text-neutral-900 dark:text-white">{roles.filter(r => r.status === 'ACTIVE').length}</h3>
           </div>
         </div>
       </div>
@@ -525,23 +525,36 @@ export default function RoleMaster() {
 
       {/* Roles Display */}
       {loading ? (
-        <div className="py-20 text-center text-gray-400">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6c48ff] border-t-transparent mx-auto mb-3" />
-          <p className="text-sm font-medium">Loading Role Master Dataset...</p>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-neutral-100 dark:border-[#262626] shadow-sm animate-pulse flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-neutral-200 dark:bg-[#222222] rounded-xl shrink-0"></div>
+                <div className="space-y-2">
+                  <div className="h-4 w-32 bg-neutral-200 dark:bg-[#222222] rounded"></div>
+                  <div className="h-3 w-48 bg-neutral-100 dark:bg-[#1a1a1a] rounded"></div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <div className="h-8 w-20 bg-neutral-200 dark:bg-[#222222] rounded-lg"></div>
+                <div className="h-8 w-8 bg-neutral-200 dark:bg-[#222222] rounded-lg"></div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredRoles.length === 0 ? (
-        <div className="bg-white border border-gray-200/90 rounded-3xl p-12 text-center space-y-4 shadow-xs">
-          <div className="w-12 h-12 bg-purple-50 text-[#6c48ff] rounded-2xl flex items-center justify-center mx-auto">
+        <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-3xl p-12 text-center space-y-4 shadow-xs">
+          <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white dark:text-neutral-200 rounded-2xl flex items-center justify-center mx-auto">
             <Filter className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">No matching roles found</h3>
-          <p className="text-xs text-gray-500 max-w-md mx-auto">
+          <h3 className="text-lg font-bold text-neutral-900 dark:text-white">No matching roles found</h3>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
             No roles matched your current search and filter criteria. Try adjusting your search query or reset your filters.
           </p>
           <button
             type="button"
             onClick={handleResetFilters}
-            className="px-5 py-2.5 bg-purple-50 text-[#6c48ff] hover:bg-purple-100 font-bold rounded-xl text-xs transition-colors"
+            className="px-5 py-2.5 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white dark:text-neutral-200 hover:bg-neutral-800 font-bold rounded-xl text-xs transition-colors"
           >
             Reset All Filters
           </button>
@@ -556,7 +569,7 @@ export default function RoleMaster() {
             return (
               <div
                 key={role.id}
-                className="bg-white border border-gray-200/90 rounded-3xl p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group relative"
+                className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-3xl p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group relative"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -564,24 +577,24 @@ export default function RoleMaster() {
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
                           role.status === 'ACTIVE'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-gray-100 text-gray-500 border-gray-200'
+                            ? 'bg-neutral-50 dark:bg-neutral-900/30 text-neutral-700 dark:text-neutral-400 border-neutral-200 dark:border-neutral-800/40'
+                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700'
                         }`}>
                           {role.status}
                         </span>
 
                         {isSys ? (
-                          <span className="flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 text-[10px] font-extrabold text-neutral-700 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900/30 border border-neutral-200 dark:border-neutral-800/40 px-2.5 py-0.5 rounded-full">
                             <Lock className="w-3 h-3" /> System
                           </span>
                         ) : (
-                          <span className="text-[10px] font-extrabold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-full">
+                          <span className="text-[10px] font-extrabold text-neutral-200 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-800/40 px-2.5 py-0.5 rounded-full">
                             Custom
                           </span>
                         )}
                       </div>
 
-                      <h3 className="text-xl font-extrabold text-gray-900 group-hover:text-[#6c48ff] transition-colors">
+                      <h3 className="text-xl font-extrabold text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-900 dark:text-white dark:group-hover:text-neutral-400 transition-colors">
                         {role.name}
                       </h3>
                     </div>
@@ -592,38 +605,38 @@ export default function RoleMaster() {
                       disabled={isSys}
                       title={isSys ? "System roles cannot be deactivated" : "Toggle Active/Inactive status"}
                       className={`p-1.5 rounded-lg transition-colors ${
-                        isSys ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100'
+                        isSys ? 'opacity-40 cursor-not-allowed' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700/50'
                       }`}
                     >
                       {role.status === 'ACTIVE' ? (
-                        <CheckCircle className="w-5 h-5 text-emerald-500" />
+                        <CheckCircle className="w-5 h-5 text-neutral-500" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-gray-400" />
+                        <XCircle className="w-5 h-5 text-neutral-400" />
                       )}
                     </button>
                   </div>
 
-                  <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-4">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed mb-4">
                     {role.description || 'Configured workspace role with specific module permission matrix.'}
                   </p>
 
-                  <div className="bg-gray-50/80 p-3 rounded-2xl border border-gray-100 mb-4">
-                    <div className="flex items-center justify-between text-[11px] text-gray-500 font-semibold mb-2">
+                  <div className="bg-neutral-50/80 dark:bg-[#171717] p-3 rounded-2xl border border-neutral-100 dark:border-[#333333] mb-4 transition-colors">
+                    <div className="flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 font-semibold mb-2">
                       <span>Permissions Granted</span>
-                      <span className="font-bold text-gray-900">{permCount} Rules</span>
+                      <span className="font-bold text-neutral-900 dark:text-neutral-100">{permCount} Rules</span>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5">
                       {role.permissions?.slice(0, 4).map((p, idx) => {
                         const permObj = p.permission || p;
                         return (
-                          <span key={idx} className="text-[10px] font-medium bg-white text-gray-700 px-2 py-0.5 rounded-md border border-gray-200/80">
+                          <span key={idx} className="text-[10px] font-medium bg-white dark:bg-[#12141D] text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded-md border border-neutral-200/80 dark:border-[#333333]">
                             {permObj.module}: {permObj.action}
                           </span>
                         );
                       })}
                       {permCount > 4 && (
-                        <span className="text-[10px] font-bold bg-purple-50 text-[#6c48ff] px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-bold bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white dark:text-neutral-400 px-2 py-0.5 rounded-md">
                           +{permCount - 4} more
                         </span>
                       )}
@@ -631,8 +644,8 @@ export default function RoleMaster() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                  <span className="text-[11px] text-gray-400 font-medium">
+                <div className="pt-4 border-t border-neutral-100 dark:border-[#333333] flex items-center justify-between">
+                  <span className="text-[11px] text-neutral-400 font-medium">
                     {role.userCount || 0} Members
                   </span>
 
@@ -640,7 +653,7 @@ export default function RoleMaster() {
                     <button
                       type="button"
                       onClick={() => openEditModal(role)}
-                      className="p-2 text-gray-500 hover:text-[#6c48ff] hover:bg-purple-50 rounded-xl transition-colors"
+                      className="p-2 text-neutral-500 hover:text-neutral-900 dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl transition-colors"
                       title="Edit Role & Permissions Matrix"
                     >
                       <Edit3 className="w-4 h-4" />
@@ -649,7 +662,7 @@ export default function RoleMaster() {
                     <button
                       type="button"
                       onClick={() => handleCloneRole(role)}
-                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                      className="p-2 text-neutral-500 hover:text-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-900/20 rounded-xl transition-colors"
                       title="Clone Role (Duplicate Permissions)"
                     >
                       <Copy className="w-4 h-4" />
@@ -658,9 +671,9 @@ export default function RoleMaster() {
                     {!isSys && (
                       <button
                         type="button"
-                        onClick={() => handleDeleteRole(role)}
-                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                        title="Delete Role"
+                        onClick={() => setRoleToDelete(role)}
+                        className="p-2 text-neutral-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors"
+                        title="Delete Custom Role"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -673,11 +686,11 @@ export default function RoleMaster() {
         </div>
       ) : (
         /* ROW TABLE VIEW */
-        <div className="bg-white border border-gray-200/90 rounded-3xl overflow-hidden shadow-xs transform-gpu">
+        <div className="bg-white dark:bg-[#111111] border border-neutral-200/90 dark:border-[#262626] rounded-3xl overflow-hidden shadow-xs transform-gpu transition-colors">
           <div className="overflow-x-auto scrollbar-thin scroll-smooth">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/80 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <tr className="bg-neutral-50/80 dark:bg-[#171717] border-b border-neutral-200 dark:border-[#333333] text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                   <th className="p-4 pl-6">Role Name & Description</th>
                   <th className="p-4">Type</th>
                   <th className="p-4">Status</th>
@@ -686,7 +699,7 @@ export default function RoleMaster() {
                   <th className="p-4 pr-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+              <tbody className="divide-y divide-neutral-100 dark:divide-[#333333] text-sm text-neutral-700 dark:text-neutral-300">
                 {filteredRoles.map((role) => {
                   const isSys = role.isSystemRole || role.isSystem;
                   const permCount = role.permissions?.length || 0;
@@ -695,19 +708,19 @@ export default function RoleMaster() {
                     : 'System Default';
 
                   return (
-                    <tr key={role.id} className="hover:bg-purple-50/20 transition-colors duration-150">
+                    <tr key={role.id} className="hover:bg-neutral-50/20 dark:hover:bg-neutral-800 transition-colors duration-150">
                       <td className="p-4 pl-6">
-                        <div className="font-extrabold text-gray-900">{role.name}</div>
-                        <div className="text-xs text-gray-400 line-clamp-1">{role.description}</div>
+                        <div className="font-extrabold text-neutral-900 dark:text-neutral-100">{role.name}</div>
+                        <div className="text-xs text-neutral-400 dark:text-neutral-500 line-clamp-1">{role.description}</div>
                       </td>
 
                       <td className="p-4">
                         {isSys ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-neutral-700 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900/30 border border-neutral-200 dark:border-neutral-800/40 px-2.5 py-0.5 rounded-full">
                             <Lock className="w-3 h-3" /> System
                           </span>
                         ) : (
-                          <span className="text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-full">
+                          <span className="text-[11px] font-bold text-neutral-200 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-800/40 px-2.5 py-0.5 rounded-full">
                             Custom
                           </span>
                         )}
@@ -720,8 +733,8 @@ export default function RoleMaster() {
                           disabled={isSys}
                           className={`text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider border transition-colors ${
                             role.status === 'ACTIVE'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                              : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                              ? 'bg-neutral-50 dark:bg-neutral-900/30 text-neutral-700 dark:text-neutral-400 border-neutral-200 dark:border-neutral-800/40 hover:bg-neutral-100 dark:hover:bg-neutral-900/50'
+                              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                           } ${isSys ? 'cursor-not-allowed opacity-80' : ''}`}
                         >
                           {role.status}
@@ -729,12 +742,12 @@ export default function RoleMaster() {
                       </td>
 
                       <td className="p-4">
-                        <span className="bg-purple-50 text-[#6c48ff] font-bold text-xs px-3 py-1 rounded-xl">
+                        <span className="bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white dark:text-neutral-400 font-bold text-xs px-3 py-1 rounded-xl">
                           {permCount} Permissions
                         </span>
                       </td>
 
-                      <td className="p-4 text-xs font-medium text-gray-500">
+                      <td className="p-4 text-xs font-medium text-neutral-500 dark:text-neutral-400">
                         {createdStr}
                       </td>
 
@@ -743,7 +756,7 @@ export default function RoleMaster() {
                           <button
                             type="button"
                             onClick={() => openEditModal(role)}
-                            className="p-2 text-gray-500 hover:text-[#6c48ff] hover:bg-purple-50 rounded-xl transition-colors"
+                            className="p-2 text-neutral-500 hover:text-neutral-900 dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl transition-colors"
                             title="Edit Role"
                           >
                             <Edit3 className="w-4 h-4" />
@@ -752,7 +765,7 @@ export default function RoleMaster() {
                           <button
                             type="button"
                             onClick={() => handleCloneRole(role)}
-                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                            className="p-2 text-neutral-500 hover:text-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-900/20 rounded-xl transition-colors"
                             title="Clone Role (Duplicate Permissions)"
                           >
                             <Copy className="w-4 h-4" />
@@ -762,7 +775,7 @@ export default function RoleMaster() {
                             <button
                               type="button"
                               onClick={() => handleDeleteRole(role)}
-                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                              className="p-2 text-neutral-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors"
                               title="Delete Role"
                             >
                               <Trash2 className="w-4 h-4" />

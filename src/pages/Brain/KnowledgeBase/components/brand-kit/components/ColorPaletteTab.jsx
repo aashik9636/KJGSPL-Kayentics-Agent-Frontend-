@@ -13,23 +13,23 @@ export const ColorPaletteTab = ({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-sm space-y-6">
-        <h3 className="text-base font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+      <div className="bg-white dark:bg-[#171717] border border-neutral-200/90 dark:border-[#333333] rounded-2xl p-6 shadow-sm space-y-6 transition-colors">
+        <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2 border-b border-neutral-100 dark:border-[#333333] pb-3">
           <Palette className="w-5 h-5 text-[#6c48ff]" /> Brand Color Palette System
         </h3>
 
         {/* Primary Colors */}
         <div className="space-y-3">
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+          <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             Primary Colors (HEX)
           </label>
           <div className="flex flex-wrap items-center gap-3">
             {primaryColors.map((hex) => (
-              <div key={hex} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50 shadow-xs">
+              <div key={hex} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-[#333333] bg-neutral-50 dark:bg-[#12141D] shadow-xs">
                 <div className="w-5 h-5 rounded-full border border-black/10 shadow-xs" style={{ backgroundColor: hex }} />
-                <span className="text-xs font-mono font-bold text-gray-800">{hex}</span>
+                <span className="text-xs font-mono font-bold text-neutral-800 dark:text-neutral-200">{hex}</span>
                 {primaryColors.length > 1 && (
-                  <button type="button" onClick={() => onRemoveColor(hex, setPrimaryColors)} className="text-gray-400 hover:text-rose-600">
+                  <button type="button" onClick={() => onRemoveColor(hex, setPrimaryColors)} className="text-neutral-400 hover:text-rose-600">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -43,7 +43,7 @@ export const ColorPaletteTab = ({
               value={newPrimaryInput}
               onChange={(e) => setNewPrimaryInput(e.target.value)}
               placeholder="#0052FF"
-              className="w-36 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-mono text-gray-800"
+              className="w-36 bg-neutral-50 dark:bg-[#12141D] border border-neutral-200 dark:border-[#333333] rounded-xl px-3 py-1.5 text-xs font-mono text-neutral-800 dark:text-neutral-200 focus:outline-none"
             />
             <button
               type="button"
@@ -56,17 +56,17 @@ export const ColorPaletteTab = ({
         </div>
 
         {/* Secondary Colors */}
-        <div className="space-y-3 border-t border-gray-100 pt-5">
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+        <div className="space-y-3 border-t border-neutral-100 dark:border-[#333333] pt-5">
+          <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             Secondary Colors (HEX)
           </label>
           <div className="flex flex-wrap items-center gap-3">
             {secondaryColors.map((hex) => (
-              <div key={hex} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50 shadow-xs">
+              <div key={hex} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-[#333333] bg-neutral-50 dark:bg-[#12141D] shadow-xs">
                 <div className="w-5 h-5 rounded-full border border-black/10 shadow-xs" style={{ backgroundColor: hex }} />
-                <span className="text-xs font-mono font-bold text-gray-800">{hex}</span>
+                <span className="text-xs font-mono font-bold text-neutral-800 dark:text-neutral-200">{hex}</span>
                 {secondaryColors.length > 1 && (
-                  <button type="button" onClick={() => onRemoveColor(hex, setSecondaryColors)} className="text-gray-400 hover:text-rose-600">
+                  <button type="button" onClick={() => onRemoveColor(hex, setSecondaryColors)} className="text-neutral-400 hover:text-rose-600">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -80,12 +80,12 @@ export const ColorPaletteTab = ({
               value={newSecondaryInput}
               onChange={(e) => setNewSecondaryInput(e.target.value)}
               placeholder="#F4F7FE"
-              className="w-36 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-mono text-gray-800"
+              className="w-36 bg-neutral-50 dark:bg-[#12141D] border border-neutral-200 dark:border-[#333333] rounded-xl px-3 py-1.5 text-xs font-mono text-neutral-800 dark:text-neutral-200 focus:outline-none"
             />
             <button
               type="button"
               onClick={() => onAddColor(newSecondaryInput, setSecondaryColors)}
-              className="px-3 py-1.5 bg-gray-900 text-white font-bold rounded-xl text-xs hover:bg-gray-800"
+              className="px-3 py-1.5 bg-neutral-900 dark:bg-neutral-700 text-white font-bold rounded-xl text-xs hover:bg-neutral-800 dark:hover:bg-neutral-600 transition-colors"
             >
               Add Secondary Color
             </button>
@@ -93,17 +93,17 @@ export const ColorPaletteTab = ({
         </div>
 
         {/* Accent Colors */}
-        <div className="space-y-3 border-t border-gray-100 pt-5">
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+        <div className="space-y-3 border-t border-neutral-100 dark:border-[#333333] pt-5">
+          <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             Accent Colors (HEX)
           </label>
           <div className="flex flex-wrap items-center gap-3">
             {accentColors.map((hex) => (
-              <div key={hex} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50 shadow-xs">
+              <div key={hex} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-[#333333] bg-neutral-50 dark:bg-[#12141D] shadow-xs">
                 <div className="w-5 h-5 rounded-full border border-black/10 shadow-xs" style={{ backgroundColor: hex }} />
-                <span className="text-xs font-mono font-bold text-gray-800">{hex}</span>
+                <span className="text-xs font-mono font-bold text-neutral-800 dark:text-neutral-200">{hex}</span>
                 {accentColors.length > 1 && (
-                  <button type="button" onClick={() => onRemoveColor(hex, setAccentColors)} className="text-gray-400 hover:text-rose-600">
+                  <button type="button" onClick={() => onRemoveColor(hex, setAccentColors)} className="text-neutral-400 hover:text-rose-600">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -117,7 +117,7 @@ export const ColorPaletteTab = ({
               value={newAccentInput}
               onChange={(e) => setNewAccentInput(e.target.value)}
               placeholder="#FF5630"
-              className="w-36 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-mono text-gray-800"
+              className="w-36 bg-neutral-50 dark:bg-[#12141D] border border-neutral-200 dark:border-[#333333] rounded-xl px-3 py-1.5 text-xs font-mono text-neutral-800 dark:text-neutral-200 focus:outline-none"
             />
             <button
               type="button"

@@ -41,7 +41,10 @@ export const KnowledgeUploader = ({ onSuccess }) => {
       const fileData = await KnowledgeService.uploadFile(targetFile);
       setUploadProgress(50);
       setStep('extracting');
-      // Extraction is triggered automatically by the backend's text-extraction worker.
+      
+      // Explicitly trigger backend extraction via the new API endpoint
+      await KnowledgeService.extractDocument(fileData.id);
+      
       // Poll the knowledge base to check if indexed items have appeared.
       setUploadProgress(80);
       await pollStatus(fileData.id);
@@ -69,20 +72,22 @@ export const KnowledgeUploader = ({ onSuccess }) => {
           {...getRootProps()}
           className={`relative z-10 flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${
             isDragActive 
-              ? 'border-[#6c48ff] bg-[#f4f7fe]' 
-              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              ? 'border-[#6c48ff] bg-[#f4f7fe] dark:bg-purple-950/30' 
+              : 'border-neutral-200 dark:border-[#333333] hover:border-neutral-300 dark:hover:border-purple-500/50 hover:bg-neutral-50 dark:hover:bg-[#171717]'
           }`}
         >
           <input {...getInputProps()} />
-          <div className="p-3 rounded-full mb-3 bg-gray-50 text-gray-400">
+          <div className="p-3 rounded-full mb-3 bg-neutral-50 dark:bg-[#171717] text-neutral-400 dark:text-neutral-500">
             <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 48 48">
               <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <p className="text-[13px] font-bold text-gray-900">
-            {isDragActive ? 'Drop document here' : 'Drag & drop or click to upload business document'}
+          <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+            Drag & drop or click to upload business document
           </p>
-          <p className="text-[11px] text-gray-500 font-medium mt-1">Supports PDF, DOCX, XLSX, PNG, JPG up to 32MB</p>
+          <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1">
+            Supports PDF, DOCX, XLSX, PNG, JPG up to 32MB
+          </p>
         </div>
       )}
 
@@ -106,7 +111,7 @@ export const KnowledgeUploader = ({ onSuccess }) => {
           </div>
 
           <div className="text-center w-full max-w-md">
-            <h3 className="text-[14px] font-bold text-gray-900 mb-1">
+            <h3 className="text-[14px] font-bold text-neutral-900 mb-1">
               {step === 'uploading' && 'Uploading document...'}
               {step === 'extracting' && 'AI is classifying & indexing content...'}
               {step === 'done' && 'Knowledge added successfully!'}
@@ -115,7 +120,7 @@ export const KnowledgeUploader = ({ onSuccess }) => {
             
             {(step === 'uploading' || step === 'extracting' || step === 'done') && (
               <div className="mt-4 mb-2">
-                <div className="flex justify-between text-[11px] font-semibold text-gray-500 mb-2">
+                <div className="flex justify-between text-[11px] font-semibold text-neutral-500 mb-2">
                   <span>Progress</span>
                   <span className="text-[#6c48ff]">{step === 'done' ? '100%' : `${uploadProgress}%`}</span>
                 </div>
@@ -139,7 +144,7 @@ export const KnowledgeUploader = ({ onSuccess }) => {
             {(step === 'done' || step === 'error') && (
               <button
                 onClick={() => setStep('idle')}
-                className="mt-5 px-5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 text-[12px] font-bold rounded-xl transition-all shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
+                className="mt-5 px-5 py-2 bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-600 text-[12px] font-bold rounded-xl transition-all shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
               >
                 Upload Another File
               </button>
