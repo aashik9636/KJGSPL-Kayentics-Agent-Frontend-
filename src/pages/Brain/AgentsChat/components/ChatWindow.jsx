@@ -196,12 +196,20 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       const tokensUsed = brainRef.current.metadata?.tokens_used || null;
       const model = brainRef.current.metadata?.model || null;
 
-      if (!finalAnswer) {
-        throw new Error('No response generated.');
-      }
-
-      const artifacts = brainRef.current.artifacts || brainRef.current.metadata?.artifacts || [];
+      let artifacts = brainRef.current.artifacts || brainRef.current.metadata?.artifacts || [];
       const metrics = brainRef.current.metrics || brainRef.current.metadata?.metrics || null;
+
+      if (!finalAnswer) {
+        if (artifacts && artifacts.length > 0) {
+          finalAnswer = `Generated ${artifacts.length} asset(s).`;
+        } else if (brainRef.current.metadata?.summary) {
+          finalAnswer = brainRef.current.metadata.summary;
+        } else if (brainRef.current.steps && brainRef.current.steps.length > 0) {
+          finalAnswer = 'Execution completed successfully.';
+        } else {
+          throw new Error('No response generated.');
+        }
+      }
 
       // Append the fully resolved content to the message history
       setMessages(prev => [...prev, {
@@ -271,14 +279,22 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
         }, 100);
       });
 
-      const finalAnswer = subAgentRef.current.streamingText;
+      let finalAnswer = subAgentRef.current.streamingText;
       const sources = subAgentRef.current.sources || subAgentRef.current.metadata?.sources || [];
       const artifacts = subAgentRef.current.artifacts || subAgentRef.current.metadata?.artifacts || [];
       const metrics = subAgentRef.current.metrics || subAgentRef.current.metadata?.metrics || null;
       const tokensUsed = subAgentRef.current.metadata?.tokens_used || null;
 
       if (!finalAnswer) {
-        throw new Error('No response generated.');
+        if (artifacts && artifacts.length > 0) {
+          finalAnswer = `Generated ${artifacts.length} asset(s).`;
+        } else if (subAgentRef.current.metadata?.summary) {
+          finalAnswer = subAgentRef.current.metadata.summary;
+        } else if (subAgentRef.current.steps && subAgentRef.current.steps.length > 0) {
+          finalAnswer = 'Execution completed successfully.';
+        } else {
+          throw new Error('No response generated.');
+        }
       }
 
       setMessages(prev => [...prev, {

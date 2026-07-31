@@ -28,10 +28,50 @@ export default function RightSidebar({
   const { user } = useAuthStore();
   const [search, setSearch] = useState('');
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [apiAgents, setApiAgents] = useState([]);
 
   React.useEffect(() => {
     window.dispatchEvent(new CustomEvent('toggle-sidebar', { detail: { collapse: !!activeTab } }));
   }, [activeTab]);
+
+  React.useEffect(() => {
+    import('../../../../services/agentService').then(({ agentService }) => {
+      agentService.getAgents().then(res => {
+        const list = Array.isArray(res) ? res : res?.data;
+        if (Array.isArray(list) && list.length > 0) {
+          const defaultMetas = {
+            'brain': { image: '/brain_avatar.mp4', isVideo: true, name: 'Brain Agent', desc: 'Meta-orchestrator & multi-agent planner' },
+            'stock-market': { image: '/stock_market_avatar.mp4', isVideo: true, name: 'Stock Market Agent', desc: 'Real-time financial & market data' },
+            'research': { image: '/research_avatar.mp4', isVideo: true, name: 'Universal Research Agent', desc: 'Deep web research & scraping' },
+            'market': { image: '/market_avatar.mp4', isVideo: true, name: 'Competitor Intelligence Agent', desc: 'Market & competitor analysis' },
+            'lead-generation': { image: '/lead_gen_avatar.mp4', isVideo: true, name: 'Lead Generation Agent', desc: 'B2B lead discovery & prospecting' },
+            'recruitment': { image: '/recruitment_avatar.mp4', isVideo: true, name: 'Recruitment Agent', desc: 'Talent sourcing and outreach' },
+            'social-trends': { image: '/social_trends_avatar.mp4', isVideo: true, name: 'Social Trends Agent', desc: 'Social media trend discovery' },
+            'content-writer': { image: '/research_avatar.mp4', isVideo: true, name: 'Content Writer Agent', desc: 'AI content creation & copywriting' },
+            'image-query': { image: '/market_avatar.mp4', isVideo: true, name: 'Conversational Image Query', desc: 'Interactive visual generation via prompt stream' },
+            'image-generation': { image: '/market_avatar.mp4', isVideo: true, name: 'Image Generation Agent', desc: 'AI visual generation & brand asset design' },
+            'campaign-planner': { image: '/research_avatar.mp4', isVideo: true, name: 'Campaign Planner Agent', desc: 'Multi-channel marketing campaign strategy' },
+            'post-scheduler': { image: '/stock_market_avatar.mp4', isVideo: true, name: 'Post Scheduler Agent', desc: 'Social media calendar & posting automation' },
+          };
+
+          const mapped = list.map(item => {
+            const slug = item.slug || item.id;
+            const meta = defaultMetas[slug] || {};
+            const avatar = item.avatar_url || item.image || meta.image || '/brain_avatar.mp4';
+            return {
+              id: slug,
+              name: item.name || meta.name || slug,
+              desc: item.role || item.description || meta.desc || '',
+              image: avatar,
+              isVideo: avatar.endsWith('.mp4'),
+              comingSoon: item.is_coming_soon ?? false,
+            };
+          });
+          setApiAgents(mapped);
+        }
+      }).catch(err => console.warn('Sidebar dynamic agents fetch error:', err));
+    });
+  }, []);
 
   const totalToShow = 5;
   const displayedConversations = showAllHistory ? conversations : conversations.slice(0, totalToShow);
@@ -157,7 +197,7 @@ export default function RightSidebar({
               </p>
               
               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pb-4 pr-1">
-                {[
+                {(apiAgents.length > 0 ? apiAgents : [
                   { id: 'brain', image: '/brain_avatar.mp4', isVideo: true, name: 'Brain Agent', desc: 'Meta-orchestrator & multi-agent planner', comingSoon: false },
                   { id: 'stock-market', image: '/stock_market_avatar.mp4', isVideo: true, name: 'Stock Market Agent', desc: 'Real-time financial & market data', comingSoon: false },
                   { id: 'research', image: '/research_avatar.mp4', isVideo: true, name: 'Universal Research Agent', desc: 'Deep web research & scraping', comingSoon: false },
@@ -165,10 +205,12 @@ export default function RightSidebar({
                   { id: 'lead-generation', image: '/lead_gen_avatar.mp4', isVideo: true, name: 'Lead Generation Agent', desc: 'B2B lead discovery & prospecting', comingSoon: false },
                   { id: 'recruitment', image: '/recruitment_avatar.mp4', isVideo: true, name: 'Recruitment Agent', desc: 'Talent sourcing and outreach', comingSoon: false },
                   { id: 'social-trends', image: '/social_trends_avatar.mp4', isVideo: true, name: 'Social Trends Agent', desc: 'Social media trend discovery', comingSoon: false },
+                  { id: 'content-writer', image: '/research_avatar.mp4', isVideo: true, name: 'Content Writer Agent', desc: 'AI content creation & copywriting', comingSoon: false },
+                  { id: 'image-query', image: '/market_avatar.mp4', isVideo: true, name: 'Conversational Image Query', desc: 'Interactive visual generation via prompt stream', comingSoon: false },
                   { id: 'image-generation', image: '/market_avatar.mp4', isVideo: true, name: 'Image Generation Agent', desc: 'AI visual generation & brand asset design', comingSoon: false },
                   { id: 'campaign-planner', image: '/research_avatar.mp4', isVideo: true, name: 'Campaign Planner Agent', desc: 'Multi-channel marketing campaign strategy', comingSoon: false },
                   { id: 'post-scheduler', image: '/stock_market_avatar.mp4', isVideo: true, name: 'Post Scheduler Agent', desc: 'Social media calendar & posting automation', comingSoon: false },
-                ].map((agent) => {
+                ]).map((agent) => {
                   const isActive = selectedAgent === agent.id;
                   const isLocked = agent.comingSoon;
                   return (

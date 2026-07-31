@@ -35,7 +35,8 @@ export default function TeamManagementTab() {
       if (organizationId) {
         try {
           const subData = await subscriptionService.getOrganizationSubscription(organizationId);
-          const entitlements = subData?.subscription?.plan?.entitlements || [];
+          const sub = subData?.data?.subscription || subData?.subscription;
+          const entitlements = sub?.plan?.entitlements || [];
           const userEntitlement = entitlements.find((e) => e.key === 'users');
           const limitStr = userEntitlement?.value || '2';
           const limit = limitStr.toLowerCase() === 'unlimited' ? Infinity : parseInt(limitStr, 10);

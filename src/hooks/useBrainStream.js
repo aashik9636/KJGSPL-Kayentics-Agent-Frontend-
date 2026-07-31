@@ -99,8 +99,12 @@ export const useBrainStream = () => {
       socket.onopen = () => {
         setStreamState(prev => ({ ...prev, statusText: 'Analyzing query intent...' }));
         socket.send(JSON.stringify({
-          user_query: userQuery,
           message: userQuery,
+          user_query: userQuery,
+          request: userQuery,
+          prompt: userQuery,
+          query: userQuery,
+          goal: userQuery,
           session_id: sessionId,
           job_id: jobId,
           task_id: jobId,

@@ -37,14 +37,18 @@ export const useSubAgentStream = () => {
         workspaceId,
       });
 
-      const data = res.data;
+      const data = res.data?.data || res.data || {};
+      const answer = data?.response || data?.finalAnswer || data?.content || data?.summary || (data?.image_url ? 'Generated visual asset.' : 'Task completed.');
+      const extractedArtifacts = Array.isArray(data?.artifacts) ? data.artifacts : (data?.image_url ? [{ type: 'image', url: data.image_url }] : []);
+
       setSources(data?.sources || []);
       setStreamState(prev => ({
         ...prev,
         isPendingBackground: false,
         statusText: '',
-        answer: data?.response || data?.finalAnswer || data?.content || 'Task completed.',
+        answer: answer,
         metadata: data?.metadata || data || null,
+        artifacts: extractedArtifacts.length > 0 ? extractedArtifacts : prev.artifacts,
       }));
     } catch (err) {
       console.error(`Failed background execution for ${agentSlug}:`, err);
@@ -70,6 +74,7 @@ export const useSubAgentStream = () => {
 
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
     const jobId = options.jobId || options.job_id || `job_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const queryText = (message || options.query || options.user_query || options.prompt || '').toString().trim();
 
     setStreamState({
       ...initStreamState(),
@@ -81,7 +86,7 @@ export const useSubAgentStream = () => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     const defaultWsUrl = apiBaseUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
     const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || defaultWsUrl;
-    const socketUrl = `${wsBaseUrl}/conversations/${agentSlug}/stream?token=${accessToken}&session_id=${sessionId}&job_id=${encodeURIComponent(jobId)}&bypass-tunnel-reminder=true&ngrok-skip-browser-warning=true`;
+    const socketUrl = `${wsBaseUrl}/conversations/${agentSlug}/stream?token=${accessToken}&session_id=${sessionId}&job_id=${encodeURIComponent(jobId)}&query=${encodeURIComponent(queryText)}&user_query=${encodeURIComponent(queryText)}&message=${encodeURIComponent(queryText)}&prompt=${encodeURIComponent(queryText)}&request=${encodeURIComponent(queryText)}&goal=${encodeURIComponent(queryText)}&bypass-tunnel-reminder=true&ngrok-skip-browser-warning=true`;
 
     try {
       const socket = new WebSocket(socketUrl);
@@ -89,15 +94,21 @@ export const useSubAgentStream = () => {
 
       socket.onopen = () => {
         setStreamState(prev => ({ ...prev, statusText: `Running ${agentSlug} query...` }));
-        socket.send(JSON.stringify({
-          message: message,
-          user_query: message,
-          session_id: sessionId,
-          job_id: jobId,
-          token: accessToken,
+        const queryStr = String(queryText || message || '').trim();
+        const payload = {
+          query: queryStr,
+          user_query: queryStr,
+          message: queryStr,
+          request: queryStr,
+          prompt: queryStr,
+          goal: queryStr,
+          session_id: String(sessionId || ''),
+          job_id: String(jobId || ''),
+          token: String(accessToken || ''),
           company_id: workspaceId || undefined,
           organization_id: organizationId || undefined,
-        }));
+        };
+        socket.send(JSON.stringify(payload));
       };
 
       socket.onmessage = (event) => {

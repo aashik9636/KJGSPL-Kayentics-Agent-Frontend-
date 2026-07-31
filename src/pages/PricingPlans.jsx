@@ -142,7 +142,8 @@ export default function PricingPlans() {
   const fetchCurrentSubscription = async () => {
     try {
       const data = await subscriptionService.getOrganizationSubscription(organizationId);
-      setCurrentSubscription(data?.subscription || null);
+      const sub = data?.data?.subscription || data?.subscription || null;
+      setCurrentSubscription(sub);
     } catch {
       console.log('No active subscription found');
     }
@@ -377,7 +378,13 @@ export default function PricingPlans() {
     return { included: [], excluded: [] };
   };
 
-  const activePlanCode = currentSubscription?.planCode || 'TEAM';
+  const activePlanCode = (
+    currentSubscription?.plan?.code ||
+    currentSubscription?.code ||
+    currentSubscription?.planCode ||
+    currentSubscription?.plan_code ||
+    ''
+  ).toUpperCase();
 
   return (
     <div ref={containerRef} className="w-full max-w-[1600px] mx-auto px-4 md:px-8 pb-8 pt-2 font-sans space-y-6">

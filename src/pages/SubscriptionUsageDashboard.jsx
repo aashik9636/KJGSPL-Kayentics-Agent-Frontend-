@@ -141,7 +141,8 @@ export default function SubscriptionUsageDashboard() {
     }
   };
 
-  const { subscription, usageMeter, addOns } = subData || {};
+  const subObj = subData?.data || subData || {};
+  const { subscription, usageMeter, addOns } = subObj;
   const plan = subscription?.plan;
 
   const meterData = [
