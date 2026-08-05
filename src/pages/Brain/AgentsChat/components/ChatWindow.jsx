@@ -175,10 +175,13 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       chatService.getMessages(activeConversationId)
         .then(msgs => {
           const list = Array.isArray(msgs) ? msgs : msgs?.data || [];
-          setMessages(list.map(m => ({
-            role: m.role || (m.senderId ? 'USER' : 'ASSISTANT'),
-            content: m.content || m.text || '',
-          })));
+          setMessages(list.map(m => {
+            const roleStr = m.role ? m.role.toUpperCase() : (m.senderId ? 'USER' : 'ASSISTANT');
+            return {
+              role: (roleStr === 'AGENT') ? 'ASSISTANT' : roleStr,
+              content: m.content || m.text || '',
+            };
+          }));
           if (onMessagesLoaded) onMessagesLoaded(list.length);
         })
         .catch(() => {})

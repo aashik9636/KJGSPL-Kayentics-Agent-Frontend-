@@ -227,7 +227,7 @@ export const chatService = {
   // ─── Conversations (REST) ─────────────────────────────────────────────────
   createConversation: async (data) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.post('/conversations', {
+    const response = await apiClient.post('/api/conversations', {
       ...data,
       organizationId,
       workspaceId
@@ -236,16 +236,15 @@ export const chatService = {
   },
 
   getConversations: async (params = {}) => {
-    const { organizationId, workspaceId } = useWorkspaceStore.getState();
     try {
-      const response = await apiClient.get('/conversations', {
-        params: { 
-          ...(organizationId ? { organizationId } : {}),
-          ...(workspaceId ? { workspaceId } : {}),
-          ...params 
-        }
-      });
-      return response.data;
+      const response = await apiClient.get('/api/chat/sessions', { params });
+      const sessions = response.data.sessions || response.data || [];
+      // Map session_id to id for compatibility with UI components
+      return sessions.map(s => ({
+        ...s,
+        id: s.id || s.session_id,
+        title: s.title || 'Untitled Chat'
+      }));
     } catch (err) {
       // Silently return empty list — conversation history is non-critical
       return [];
@@ -253,29 +252,29 @@ export const chatService = {
   },
 
   getConversationDetails: async (id) => {
-    const response = await apiClient.get(`/conversations/${id}`);
+    const response = await apiClient.get(`/api/conversations/${id}`);
     return response.data;
   },
 
   updateConversation: async (id, data) => {
-    const response = await apiClient.put(`/conversations/${id}`, data);
+    const response = await apiClient.put(`/api/conversations/${id}`, data);
     return response.data;
   },
 
   deleteConversation: async (id) => {
-    const response = await apiClient.delete(`/conversations/${id}`);
+    const response = await apiClient.delete(`/api/conversations/${id}`);
     return response.data;
   },
 
   exportConversation: async (id) => {
-    const response = await apiClient.get(`/conversations/${id}/export`);
+    const response = await apiClient.get(`/api/conversations/${id}/export`);
     return response.data;
   },
 
   // ─── Messages ─────────────────────────────────────────────────────────────
   sendMessage: async (data) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.post('/messages', {
+    const response = await apiClient.post('/api/messages', {
       ...data,
       organizationId,
       workspaceId
@@ -285,7 +284,7 @@ export const chatService = {
 
   sendConversationMessage: async (conversationId, data) => {
     const { organizationId, workspaceId } = useWorkspaceStore.getState();
-    const response = await apiClient.post(`/conversations/${conversationId}/messages`, {
+    const response = await apiClient.post(`/api/conversations/${conversationId}/messages`, {
       ...data,
       organizationId,
       workspaceId
@@ -294,12 +293,12 @@ export const chatService = {
   },
 
   getMessages: async (conversationId) => {
-    const response = await apiClient.get(`/conversations/${conversationId}/messages`);
-    return response.data;
+    const response = await apiClient.get(`/api/chat/history/${conversationId}`);
+    return response.data.conversation || response.data || [];
   },
 
   getMessagesByConversation: async (conversationId) => {
-    const response = await apiClient.get(`/messages/${conversationId}`);
+    const response = await apiClient.get(`/api/messages/${conversationId}`);
     return response.data;
   },
 

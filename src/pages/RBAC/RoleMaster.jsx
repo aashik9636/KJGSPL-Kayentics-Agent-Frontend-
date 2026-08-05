@@ -456,7 +456,7 @@ export default function RoleMaster() {
         <button
           type="button"
           onClick={openCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-neutral-100 hover:bg-[#262626] text-white font-bold rounded-xl shadow-md shadow-neutral-500/20 transition-all shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#6c48ff] hover:bg-[#5b3af0] text-white font-bold rounded-xl shadow-md shadow-purple-500/20 transition-all shrink-0"
         >
           <Plus className="w-5 h-5" />
           <span>Create New Role</span>

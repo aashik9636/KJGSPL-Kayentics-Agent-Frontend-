@@ -46,24 +46,33 @@ export default function BrandProfile() {
         brandVoice: prohibitedKeywords.split(',').map(k => k.trim()).filter(Boolean).join(', '),
       });
       toast.success("Brand profile saved successfully!");
-      
+    } catch (err) {
+      console.warn("Failed to save brand guidelines:", err);
+      // apiClient handles toasts
+    }
+    
+    try {
       const updatedUser = await authService.getCurrentUser();
       const { accessToken, refreshToken } = useAuthStore.getState();
-      useAuthStore.getState().setAuth(updatedUser, accessToken, refreshToken);
-
-      navigate('/');
+      useAuthStore.getState().setAuth(updatedUser?.user || updatedUser, accessToken, refreshToken);
     } catch (err) {
-      // apiClient handles toasts
-    } finally {
-      setLoading(false);
+      console.warn("Failed to refresh user auth state:", err);
     }
+    
+    setLoading(false);
+    navigate('/');
   };
 
   const handleSkip = async () => {
-    const updatedUser = await authService.getCurrentUser();
-    const { accessToken, refreshToken } = useAuthStore.getState();
-    useAuthStore.getState().setAuth(updatedUser, accessToken, refreshToken);
-    navigate('/');
+    try {
+      const updatedUser = await authService.getCurrentUser();
+      const { accessToken, refreshToken } = useAuthStore.getState();
+      useAuthStore.getState().setAuth(updatedUser?.user || updatedUser, accessToken, refreshToken);
+    } catch (err) {
+      console.warn("Failed to refresh user auth state:", err);
+    } finally {
+      navigate('/');
+    }
   };
 
   return (

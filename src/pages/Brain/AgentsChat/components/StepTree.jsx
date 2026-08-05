@@ -277,56 +277,28 @@ export default function StepTree({ steps = [], nodes = {}, confidence = null, st
 
   return (
     <div
-      style={{
-        background: T.console,
-        border: `1px solid ${T.consoleEdge}`,
-        borderRadius: 12,
-        boxShadow: '0 1px 2px rgba(16,20,26,0.04)',
-      }}
-      className="my-3 w-full overflow-hidden font-sans"
+      className="my-2 max-w-xl font-sans"
     >
       {/* Header Bar */}
       <div
         onClick={() => setExpanded((e) => !e)}
-        style={{
-          borderBottom: expanded ? `1px solid ${T.consoleEdge}` : 'none',
-        }}
-        className="flex items-center justify-between px-3.5 py-3 cursor-pointer select-none"
+        className="inline-flex items-center gap-2 px-3 py-1.5 cursor-pointer select-none rounded-lg transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
       >
-        <div className="flex items-center gap-2.5">
-          <span
-            style={{ background: T.signalSoft }}
-            className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
-          >
-            <Terminal size={13} color={T.signal} />
-          </span>
+        <div className="flex items-center gap-2">
+          {isStreaming ? (
+            <Loader2 size={14} color={T.consoleTextSoft} className="animate-spin" />
+          ) : (
+            <Terminal size={14} color={T.consoleTextSoft} />
+          )}
 
-          <span style={{ fontFamily: fontStack.display, fontSize: 13.5, fontWeight: 600, color: T.ink }}>
-            {isStreaming ? (statusText || 'Thinking...') : 'Execution trace'}
-          </span>
-
-          <span
-            style={{
-              fontFamily: fontStack.mono,
-              fontSize: 10.5,
-              color: T.signal,
-              background: T.signalSoft,
-            }}
-            className="rounded-full px-2 py-0.5 font-medium"
-          >
-            {nodeEntries.length} step{nodeEntries.length === 1 ? '' : 's'}
+          <span style={{ fontFamily: fontStack.body, fontSize: 13, fontWeight: 500, color: T.consoleTextSoft }}>
+            {isStreaming ? (statusText || 'Thinking...') : 'Analyzed steps'}
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {confidence !== null && confidence !== undefined && (
-            <span style={{ fontFamily: fontStack.mono, fontSize: 10.5, color: T.ok, background: T.okSoft }} className="px-2 py-0.5 rounded-md font-semibold">
-              {Math.round(confidence * 100)}% confidence
-            </span>
-          )}
-
+        <div className="flex items-center pl-1">
           <ChevronDown
-            size={15}
+            size={14}
             color={T.consoleTextSoft}
             className="transition-transform duration-150"
             style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}
@@ -362,8 +334,8 @@ export default function StepTree({ steps = [], nodes = {}, confidence = null, st
             </div>
           )}
 
-          {/* Tree Rows (Completed Steps at the Top) */}
-          <div className="p-2 space-y-1">
+          {/* Tree Rows */}
+          <div className="mt-2 pl-2 border-l-2 border-neutral-200 dark:border-neutral-800 space-y-0.5 ml-3">
             {rootIds.map((id, i) => (
               <StepRow
                 key={id}
