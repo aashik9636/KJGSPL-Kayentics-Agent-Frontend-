@@ -280,21 +280,21 @@ function makeMarkdownComponents(isUser) {
       const fullHref = getAssetUrl(href);
       return (
         <a href={fullHref} target="_blank" rel="noopener noreferrer"
-          className={`underline underline-offset-2 transition-colors ${isUser ? 'text-white/90 hover:text-white' : 'text-[#1a1a1a] hover:text-neutral-800'}`}>
+          className={`underline underline-offset-2 transition-colors ${isUser ? 'text-white/90 hover:text-white' : 'text-[#1a1a1a] dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-white'}`}>
           {children}
         </a>
       );
     },
-    hr: () => <hr className={`my-4 ${isUser ? 'border-white/20' : 'border-neutral-200'}`} />,
+    hr: () => <hr className={`my-4 ${isUser ? 'border-white/20' : 'border-neutral-200 dark:border-neutral-800'}`} />,
     table: ({ children }) => (
-      <div className="overflow-x-auto my-3 rounded-xl border border-neutral-200 shadow-sm">
+      <div className="overflow-x-auto my-3 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
         <table className="w-full text-[13px] border-collapse">{children}</table>
       </div>
     ),
-    thead: ({ children }) => <thead className="bg-neutral-50">{children}</thead>,
-    th: ({ children }) => <th className="px-4 py-2.5 font-semibold text-neutral-700 text-left border-b border-neutral-200">{children}</th>,
-    tr: ({ children }) => <tr className="border-b border-neutral-100 last:border-0">{children}</tr>,
-    td: ({ children }) => <td className="px-4 py-2.5 text-neutral-600">{children}</td>,
+    thead: ({ children }) => <thead className="bg-neutral-50 dark:bg-neutral-800/50">{children}</thead>,
+    th: ({ children }) => <th className="px-4 py-2.5 font-semibold text-neutral-700 dark:text-neutral-200 text-left border-b border-neutral-200 dark:border-neutral-800">{children}</th>,
+    tr: ({ children }) => <tr className="border-b border-neutral-100 dark:border-neutral-800/50 last:border-0">{children}</tr>,
+    td: ({ children }) => <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-300">{children}</td>,
     img: ({ src, alt }) => <ImageWithSkeleton src={src} alt={alt} />,
   };
 }
