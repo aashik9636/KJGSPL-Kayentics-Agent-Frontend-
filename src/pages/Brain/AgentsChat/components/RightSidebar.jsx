@@ -40,30 +40,31 @@ export default function RightSidebar({
         const list = Array.isArray(res) ? res : res?.data;
         if (Array.isArray(list) && list.length > 0) {
           const defaultMetas = {
-            'brain': { image: '/brain_avatar.mp4', isVideo: true, name: 'Brain Agent', desc: 'Meta-orchestrator & multi-agent planner' },
-            'stock-market': { image: '/stock_market_avatar.mp4', isVideo: true, name: 'Stock Market Agent', desc: 'Real-time financial & market data' },
-            'research': { image: '/research_avatar.mp4', isVideo: true, name: 'Universal Research Agent', desc: 'Deep web research & scraping' },
-            'market': { image: '/market_avatar.mp4', isVideo: true, name: 'Competitor Intelligence Agent', desc: 'Market & competitor analysis' },
-            'lead-generation': { image: '/lead_gen_avatar.mp4', isVideo: true, name: 'Lead Generation Agent', desc: 'B2B lead discovery & prospecting' },
-            'recruitment': { image: '/recruitment_avatar.mp4', isVideo: true, name: 'Recruitment Agent', desc: 'Talent sourcing and outreach' },
-            'social-trends': { image: '/social_trends_avatar.mp4', isVideo: true, name: 'Social Trends Agent', desc: 'Social media trend discovery' },
-            'content-writer': { image: '/research_avatar.mp4', isVideo: true, name: 'Content Writer Agent', desc: 'AI content creation & copywriting' },
-            'image-query': { image: '/market_avatar.mp4', isVideo: true, name: 'Conversational Image Query', desc: 'Interactive visual generation via prompt stream' },
-            'image-generation': { image: '/market_avatar.mp4', isVideo: true, name: 'Image Generation Agent', desc: 'AI visual generation & brand asset design' },
-            'campaign-planner': { image: '/research_avatar.mp4', isVideo: true, name: 'Campaign Planner Agent', desc: 'Multi-channel marketing campaign strategy' },
-            'post-scheduler': { image: '/stock_market_avatar.mp4', isVideo: true, name: 'Post Scheduler Agent', desc: 'Social media calendar & posting automation' },
+            'brain': { image: '/Brain.mp4', isVideo: true, name: 'Brain Agent', agent_name: 'BRAIN', desc: 'Meta-orchestrator & multi-agent planner' },
+            'stock-market': { image: '/MARC.mp4', isVideo: true, name: 'Stock Market Agent', agent_name: 'MARC', desc: 'Real-time financial & market data' },
+            'research': { image: '/REA.mp4', isVideo: true, name: 'Universal Research Agent', agent_name: 'REA', desc: 'Deep web research & scraping' },
+            'market': { image: '/MIA.mp4', isVideo: true, name: 'Competitor Intelligence Agent', agent_name: 'MIA', desc: 'Market & competitor analysis' },
+            'lead-generation': { image: '/LEA.mp4', isVideo: true, name: 'Lead Generation Agent', agent_name: 'LEA', desc: 'B2B lead discovery & prospecting' },
+            'recruitment': { image: '/JOEY.mp4', isVideo: true, name: 'Recruitment Agent', agent_name: 'JOEY', desc: 'Talent sourcing and outreach' },
+            'social-trends': { image: '/BUZZ.mp4', isVideo: true, name: 'Social Trends Agent', agent_name: 'BUZZ', desc: 'Social media trend discovery' },
+            'trends': { image: '/BUZZ.mp4', isVideo: true, name: 'Trend Intelligence Agent', agent_name: 'BUZZ', desc: 'Discovers active market trends, search volume, Google/web trends, and industry insights for a given topic or keyword.' },
+            'content-writer': { image: '/REA.mp4', isVideo: true, name: 'Content Writer Agent', agent_name: 'QUILL', desc: 'AI content creation & copywriting' },
+            'image-query': { image: '/PIXA.mp4', isVideo: true, name: 'Conversational Image Query', agent_name: 'PIXA', desc: 'Interactive visual generation via prompt stream' },
+            'social-media-agent': { image: '/NOVA.mp4', isVideo: true, name: 'Social Media Orchestrator Agent', agent_name: 'NOVA', desc: 'Routes a request across the full social media agent pipeline.' },
+            'image-generation': { image: '/PIXA.mp4', isVideo: true, name: 'Image Generation Agent', agent_name: 'ART', desc: 'AI visual generation & brand asset design' },
+            'campaign-planner': { image: '/REA.mp4', isVideo: true, name: 'Campaign Planner Agent', agent_name: 'STRAT', desc: 'Multi-channel marketing campaign strategy' },
+            'post-scheduler': { image: '/MARC.mp4', isVideo: true, name: 'Post Scheduler Agent', agent_name: 'CHRONO', desc: 'Social media calendar & posting automation' },
           };
 
-          const getAvatar = (s) => {
+          const getAvatar = (s, agentName) => {
+            if (agentName) {
+               if (agentName.toUpperCase() === 'BRAIN') return '/Brain.mp4';
+               if (agentName.toUpperCase() === 'PIXA') return '/PIXA.mp4#t=3';
+               return `/${agentName.toUpperCase()}.mp4`;
+            }
             const slug = (s || '').toLowerCase();
             if (defaultMetas[slug]?.image) return defaultMetas[slug].image;
-            if (slug.includes('stock') || slug.includes('finance')) return '/stock_market_avatar.mp4';
-            if (slug.includes('research') || slug.includes('writer') || slug.includes('campaign')) return '/research_avatar.mp4';
-            if (slug.includes('market') || slug.includes('image')) return '/market_avatar.mp4';
-            if (slug.includes('lead')) return '/lead_gen_avatar.mp4';
-            if (slug.includes('recruit')) return '/recruitment_avatar.mp4';
-            if (slug.includes('social') || slug.includes('trend')) return '/social_trends_avatar.mp4';
-            return '/brain_avatar.mp4';
+            return '/Brain.mp4';
           };
 
           const mapped = list
@@ -71,15 +72,15 @@ export default function RightSidebar({
             .map(item => {
               const slug = item.slug || item.id;
               const meta = defaultMetas[slug] || {};
-              const avatar = getAvatar(slug);
-
+              const agentName = item.agent_name || meta.agent_name || '';
               return {
                 id: slug,
                 name: item.name || meta.name || slug,
-                desc: item.role || item.description || meta.desc || '',
-                image: avatar,
-                isVideo: avatar.endsWith('.mp4'),
-                comingSoon: item.is_coming_soon ?? false,
+                agent_name: agentName,
+                desc: item.description || meta.desc || '',
+                image: getAvatar(slug, agentName),
+                isVideo: true,
+                comingSoon: item.is_coming_soon ?? false
               };
             });
           setApiAgents(mapped);
@@ -299,12 +300,19 @@ export default function RightSidebar({
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h4 className={`font-semibold text-[13px] mb-0.5 ${isActive ? 'text-[#3730B8] dark:text-[#a59ef0]' : 'text-[#14141D] dark:text-white'}`} style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{agent.name}</h4>
+                            <h4 className={`font-semibold text-[13px] mb-0.5 flex items-center ${isActive ? 'text-[#3730B8] dark:text-[#a59ef0]' : 'text-[#14141D] dark:text-white'}`} style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                              {agent.name}
+                              {agent.agent_name && (
+                                <span className={`ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${isActive ? 'bg-[#3730B8]/10 dark:bg-[#a59ef0]/20 text-[#3730B8] dark:text-[#a59ef0]' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400'}`}>
+                                  {agent.agent_name}
+                                </span>
+                              )}
+                            </h4>
                             {isLocked && (
                               <span className="text-[9px] font-extrabold bg-[#1a1a1a] dark:bg-neutral-700 text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">Soon</span>
                             )}
                           </div>
-                          <p className={`text-[11.5px] leading-snug font-sans m-0 ${isActive ? 'text-[#4F46E5]/80 dark:text-[#8881ea]' : 'text-[#6D6D7C] dark:text-neutral-400'}`}>{agent.desc}</p>
+                          <p className={`text-[11.5px] leading-snug font-sans m-0 line-clamp-2 ${isActive ? 'text-[#4F46E5]/80 dark:text-[#8881ea]' : 'text-[#6D6D7C] dark:text-neutral-400'}`}>{agent.desc}</p>
                         </div>
                       </div>
                     </div>

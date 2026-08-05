@@ -142,12 +142,15 @@ export default function Sidebar() {
       </button>
 
       {/* Brand Logo Header */}
-      <div className={`h-20 flex items-center sidebar-logo relative ${collapsed ? 'justify-center px-0' : 'px-6 justify-start'}`}>
+      <div className={`h-24 flex items-center sidebar-logo relative ${collapsed ? 'justify-center px-0' : 'px-4 justify-start'}`}>
         <Link to="/" className="flex items-center gap-3 w-full h-full">
           {collapsed ? (
             <img src="/kaynetics-logo-icon.svg" alt="Kaynetics Icon" className="w-8 h-8 object-contain mx-auto" />
           ) : (
-            <img src="/kaynetics-logo-primary.svg" alt="Kaynetics Logo" className="w-[170px] h-auto object-contain dark:brightness-125" />
+            <>
+              <img src="/Kaynetics_logo-removebg-preview.png" alt="Kaynetics Logo" className="w-[180px] h-auto object-contain dark:hidden" />
+              <img src="/Kaynetics_logo_Dark_-removebg-preview.png" alt="Kaynetics Logo" className="w-[180px] h-auto object-contain hidden dark:block" />
+            </>
           )}
         </Link>
       </div>

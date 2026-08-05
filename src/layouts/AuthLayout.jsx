@@ -46,8 +46,8 @@ export default function AuthLayout() {
           {/* Logo block */}
           <div className="stagger-left-item mb-10 flex justify-center lg:justify-start">
              <div className="bg-white dark:bg-white/5 dark:backdrop-blur-xl dark:border dark:border-white/10 px-6 py-3.5 rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 flex items-center justify-center transition-colors">
-                <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-10 sm:h-12 w-auto object-contain dark:hidden" />
-                <img src="/kaynetics-logo-dark-bg.svg" alt="Kaynetics" className="h-10 sm:h-12 w-auto object-contain hidden dark:block" />
+                <img src="/Kaynetics_logo-removebg-preview.png" alt="Kaynetics" className="w-48 sm:w-64 h-auto max-h-24 object-contain dark:hidden" />
+                <img src="/Kaynetics_logo_Dark_-removebg-preview.png" alt="Kaynetics" className="w-48 sm:w-64 h-auto max-h-24 object-contain hidden dark:block" />
              </div>
           </div>
 
@@ -120,8 +120,8 @@ export default function AuthLayout() {
         <div ref={rightPanelRef} className="w-full max-w-md mx-auto relative z-10">
           {/* Logo for mobile only */}
           <div className="lg:hidden flex justify-center mb-8">
-            <img src="/kaynetics-logo-primary.svg" alt="Kaynetics" className="h-12 w-auto object-contain dark:hidden" />
-            <img src="/kaynetics-logo-dark-bg.svg" alt="Kaynetics" className="h-12 w-auto object-contain hidden dark:block" />
+            <img src="/Kaynetics_logo-removebg-preview.png" alt="Kaynetics" className="w-48 h-auto max-h-20 object-contain dark:hidden" />
+            <img src="/Kaynetics_logo_Dark_-removebg-preview.png" alt="Kaynetics" className="w-48 h-auto max-h-20 object-contain hidden dark:block" />
           </div>
           
           <Outlet />

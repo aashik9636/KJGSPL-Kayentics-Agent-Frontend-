@@ -23,28 +23,31 @@ function getAgentAvatarBySlug(slug) {
   if (DEFAULT_SLUG_AVATARS[s]) {
     return DEFAULT_SLUG_AVATARS[s];
   }
-  if (s.includes('stock') || s.includes('finance')) return '/stock_market_avatar.mp4';
-  if (s.includes('research') || s.includes('writer') || s.includes('campaign')) return '/research_avatar.mp4';
-  if (s.includes('market') || s.includes('image')) return '/market_avatar.mp4';
-  if (s.includes('lead')) return '/lead_gen_avatar.mp4';
-  if (s.includes('recruit')) return '/recruitment_avatar.mp4';
-  if (s.includes('social') || s.includes('trend')) return '/social_trends_avatar.mp4';
-  return '/brain_avatar.mp4';
+  if (s.includes('stock') || s.includes('finance')) return '/MARC.mp4';
+  if (s.includes('research') || s.includes('writer') || s.includes('campaign')) return '/REA.mp4';
+  if (s.includes('market') || s.includes('intelligence')) return '/MIA.mp4';
+  if (s.includes('lead')) return '/LEA.mp4';
+  if (s.includes('recruit')) return '/JOEY.mp4';
+  if (s.includes('social') || s.includes('trend')) return '/BUZZ.mp4';
+  if (s.includes('image')) return '/PIXA.mp4';
+  return '/Brain.mp4';
 }
 
 const STATIC_FALLBACK_AGENTS = [
-  { id: 'brain', name: 'Brain Agent', role: 'Meta-orchestrator & multi-agent planner', img: '/brain_avatar.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
-  { id: 'stock-market', name: 'Stock Market Agent', role: 'Real-time financial & market data', img: '/stock_market_avatar.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'research', name: 'Universal Research Agent', role: 'Deep web scraping and research', img: '/research_avatar.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'market', name: 'Competitor Intelligence Agent', role: 'Market & competitor analysis', img: '/market_avatar.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'lead-generation', name: 'Lead Generation Agent', role: 'B2B lead discovery & prospecting', img: '/lead_gen_avatar.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'recruitment', name: 'Recruitment Agent', role: 'Talent sourcing and outreach', img: '/recruitment_avatar.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'social-trends', name: 'Social Trends Agent', role: 'Social media trend discovery', img: '/social_trends_avatar.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'content-writer', name: 'Content Writer Agent', role: 'AI content creation & copywriting', img: '/research_avatar.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'image-query', name: 'Conversational Image Query', role: 'Interactive visual generation via natural prompt stream', img: '/market_avatar.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'image-generation', name: 'Image Generation Agent', role: 'Direct AI visual generation & brand asset design', img: '/market_avatar.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'campaign-planner', name: 'Campaign Planner Agent', role: 'Multi-channel marketing campaign strategy', img: '/research_avatar.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
-  { id: 'post-scheduler', name: 'Post Scheduler Agent', role: 'Social media calendar & posting automation', img: '/stock_market_avatar.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'brain', name: 'Brain Agent', agent_name: 'BRAIN', role: 'Orchestrator', description: 'Meta-orchestrator and multi-agent planner for complex reasoning and workflow routing.', img: '/Brain.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
+  { id: 'stock-market', name: 'Stock Market Agent', agent_name: 'MARC', role: 'Specialized Agent', description: 'Stock market research and analysis sub-agent.', img: '/MARC.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'research', name: 'Research Agent', agent_name: 'REA', role: 'Specialized Agent', description: 'General-purpose research sub-agent.', img: '/REA.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'market', name: 'Market Agent', agent_name: 'MIA', role: 'Specialized Agent', description: 'Market intelligence and competitor research sub-agent.', img: '/MIA.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'lead-generation', name: 'Lead Generation Agent', agent_name: 'LEA', role: 'Specialized Agent', description: 'Prospect and lead-list research sub-agent.', img: '/LEA.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'recruitment', name: 'Recruitment Agent', agent_name: 'JOEY', role: 'Specialized Agent', description: 'Candidate sourcing and recruitment research sub-agent.', img: '/JOEY.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'social-trends', name: 'Trend Intelligence Agent', agent_name: 'BUZZ', role: 'Specialized Agent', description: 'Discovers active market trends, search volume, Google/web trends, and industry insights for a given topic or keyword.', img: '/BUZZ.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'trends', name: 'Trend Intelligence Agent', agent_name: 'BUZZ', role: 'Specialized Agent', description: 'Discovers active market trends, search volume, Google/web trends, and industry insights for a given topic or keyword.', img: '/BUZZ.mp4', isVideo: true, bg: 'from-[#e0f4fc] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'image-query', name: 'Image Query Agent', agent_name: 'PIXA', role: 'Specialized Agent', description: 'Generates an image from a free-form natural language query, tracked by session_id.', img: '/PIXA.mp4', isVideo: true, bg: 'from-[#fce0f4] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'social-media-agent', name: 'Social Media Orchestrator Agent', agent_name: 'NOVA', role: 'Orchestrator', description: 'Routes a request across the full social media agent pipeline.', img: '/NOVA.mp4', isVideo: true, bg: 'from-[#e0d4ff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 60%' },
+  { id: 'content-writer', name: 'Content Writer Agent', agent_name: 'QUILL', role: 'Specialized Agent', description: 'AI content creation & copywriting', img: '/REA.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'image-generation', name: 'Image Generation Agent', agent_name: 'ART', role: 'Specialized Agent', description: 'Direct AI visual generation & brand asset design', img: '/PIXA.mp4', isVideo: true, bg: 'from-[#ffe0e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'campaign-planner', name: 'Campaign Planner Agent', agent_name: 'STRAT', role: 'Specialized Agent', description: 'Multi-channel marketing campaign strategy', img: '/REA.mp4', isVideo: true, bg: 'from-[#d4f7e0] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
+  { id: 'post-scheduler', name: 'Post Scheduler Agent', agent_name: 'CHRONO', role: 'Specialized Agent', description: 'Social media calendar & posting automation', img: '/MARC.mp4', isVideo: true, bg: 'from-[#e0ebff] to-[#f4f7fe]', comingSoon: false, objectPos: 'center 15%' },
 ];
 
 export default function AgentsDirectory() {
@@ -66,13 +69,29 @@ export default function AgentsDirectory() {
               .map((item) => {
                 const slug = item.slug || item.id;
                 const fallbackItem = STATIC_FALLBACK_AGENTS.find(s => s.id === slug) || {};
-                const imgUrl = getAgentAvatarBySlug(slug);
+                
+                const agentName = item.agent_name || fallbackItem.agent_name || '';
+                let imgUrl = '/Brain.mp4';
+                if (agentName) {
+                  if (agentName.toUpperCase() === 'BRAIN') {
+                    imgUrl = '/Brain.mp4';
+                  } else if (agentName.toUpperCase() === 'PIXA') {
+                    imgUrl = '/PIXA.mp4#t=3';
+                  } else {
+                    imgUrl = `/${agentName.toUpperCase()}.mp4`;
+                  }
+                } else {
+                  imgUrl = getAgentAvatarBySlug(slug);
+                }
+
                 return {
                   id: slug,
                   name: item.name || fallbackItem.name || slug,
+                  agent_name: agentName,
+                  description: item.description || fallbackItem.description || '',
                   role: item.role || item.description || fallbackItem.role || '',
                   img: imgUrl,
-                  isVideo: imgUrl.endsWith('.mp4'),
+                  isVideo: imgUrl.includes('.mp4'),
                   bg: fallbackItem.bg || 'from-[#e0ebff] to-[#f4f7fe]',
                   comingSoon: item.is_coming_soon ?? false,
                   objectPos: fallbackItem.objectPos || (slug === 'brain' ? 'center 60%' : 'center 15%'),
@@ -155,11 +174,11 @@ export default function AgentsDirectory() {
               return (
                 <div 
                 key={agent.id}
-                className="agent-card group bg-white dark:bg-[#111111] rounded-[24px] overflow-hidden border border-neutral-200 dark:border-[#333333] shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 dark:hover:border-indigo-500/30 transition-all duration-500 flex flex-col h-[340px] relative cursor-pointer"
+                className="agent-card group bg-white dark:bg-[#111111] rounded-[24px] overflow-hidden border border-neutral-200 dark:border-[#333333] shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 dark:hover:border-indigo-500/30 transition-all duration-500 flex flex-col h-[380px] relative cursor-pointer"
                 onClick={() => handleChat(agent)}
               >
                   {/* Image Container with Gradient Background */}
-                  <div className={`h-52 w-full bg-gradient-to-b ${agent.bg} relative flex items-center justify-center overflow-hidden`}>
+                  <div className={`h-48 shrink-0 w-full bg-gradient-to-b ${agent.bg} relative flex items-center justify-center overflow-hidden`}>
 
                     {/* Badge */}
                     {isLocked && (
@@ -205,23 +224,24 @@ export default function AgentsDirectory() {
 
                   {/* Content */}
                   <div className="p-6 flex flex-col flex-1 bg-white dark:bg-gradient-to-b dark:from-[#1a1a1a] dark:to-[#111111] border-t-[2px] border-transparent dark:border-[#4F46E5] shadow-[0_-8px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_-12px_30px_rgba(79,70,229,0.25)] relative z-10 -mt-6 rounded-t-[24px]">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-lg font-bold text-neutral-900 dark:text-white font-['Space_Grotesk']">{agent.name}</h3>
+                    <div className="flex items-start justify-between mb-3 min-h-[56px]">
+                      <h3 className="text-[17px] leading-tight font-bold text-neutral-900 dark:text-white font-['Space_Grotesk'] flex flex-col items-start gap-1.5 pr-2">
+                        <span className="uppercase">{agent.agent_name || agent.name}</span>
+                        {agent.agent_name && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 tracking-wider mt-0.5">
+                            {agent.name}
+                          </span>
+                        )}
+                      </h3>
                     </div>
-                    <p className="text-[13px] text-neutral-500 dark:text-neutral-400 font-medium mb-6 flex-1 line-clamp-2">{agent.role}</p>
+                    
+                    <div className="min-h-[40px] mb-6 flex-1">
+                      <p className="text-[12.5px] leading-relaxed text-neutral-500 dark:text-neutral-400 font-medium line-clamp-2 pr-2">
+                        {agent.description}
+                      </p>
+                    </div>
 
-                    <div className="flex items-center justify-between mt-auto">
-                      <div className="flex gap-2">
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-400 bg-neutral-50 dark:bg-[#222222] px-2 py-1 rounded-md">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                          0
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-400 dark:text-neutral-400 bg-neutral-50 dark:bg-[#222222] px-2 py-1 rounded-md">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                          0
-                        </div>
-                      </div>
-
+                    <div className="flex items-center justify-end mt-auto">
                       <button
                         onClick={() => handleChat(agent)}
                         disabled={isLocked}
