@@ -49,13 +49,15 @@ const getAgentTitle = (slug) => {
 
 const getAgentHeroAvatar = (slug) => {
   const s = (slug || '').toLowerCase();
-  if (s === 'stock-market' || s === 'post-scheduler') return '/stock_market_avatar.mp4';
-  if (s === 'research' || s === 'content-writer' || s === 'campaign-planner') return '/research_avatar.mp4';
-  if (s === 'market' || s === 'image-query' || s === 'image-generation') return '/market_avatar.mp4';
-  if (s === 'lead-generation') return '/lead_gen_avatar.mp4';
-  if (s === 'recruitment') return '/recruitment_avatar.mp4';
-  if (s === 'social-trends') return '/social_trends_avatar.mp4';
-  return '/brain_avatar.mp4';
+  if (s === 'stock-market' || s === 'post-scheduler') return '/MARC.mp4';
+  if (s === 'research' || s === 'content-writer' || s === 'campaign-planner') return '/REA.mp4';
+  if (s === 'market' || s === 'image-generation') return '/MIA.mp4';
+  if (s === 'image-query') return '/PIXA.mp4#t=3';
+  if (s === 'lead-generation') return '/LEA.mp4';
+  if (s === 'recruitment') return '/JOEY.mp4';
+  if (s === 'social-trends' || s === 'trends') return '/BUZZ.mp4';
+  if (s === 'social-media-agent') return '/NOVA.mp4';
+  return '/Brain.mp4';
 };
 
 const getAgentTaglines = (slug, name) => {
