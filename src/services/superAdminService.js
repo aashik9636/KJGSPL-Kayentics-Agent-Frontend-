@@ -66,6 +66,11 @@ export const superAdminService = {
     return response.data;
   },
 
+  async getAuditLog(id) {
+    const response = await apiClient.get(`/api/v1/superadmin/audit-logs/${id}`);
+    return response.data;
+  },
+
   // 6. Settings
   async getSettings() {
     const response = await apiClient.get('/api/v1/superadmin/settings');

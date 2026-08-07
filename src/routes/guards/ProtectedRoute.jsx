@@ -1,10 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { useEventStore } from '../../store/eventStore';
 
 export default function ProtectedRoute() {
   const { accessToken, user } = useAuthStore();
+  const { connect, disconnect, isConnected } = useEventStore();
   const location = useLocation();
+
+  useEffect(() => {
+    if (accessToken && !isConnected) {
+      connect(accessToken);
+    }
+    // Note: We don't disconnect on unmount here because ProtectedRoute 
+    // stays mounted as long as the user navigates inside protected areas.
+  }, [accessToken, isConnected, connect]);
 
   if (!accessToken) {
     // Redirect them to the /login page, but save the current location
@@ -36,6 +46,11 @@ export default function ProtectedRoute() {
     if (currentPath !== expectedPath) {
       return <Navigate to={expectedPath} replace />;
     }
+  }
+
+  // Handle Super Admin default route
+  if (user && user.role === 'SUPER_ADMIN' && location.pathname === '/') {
+    return <Navigate to="/superadmin" replace />;
   }
 
   return <Outlet />;

@@ -290,23 +290,17 @@ export default function RightSidebar({
                               className="w-full h-full object-cover" 
                               style={{
                                 objectPosition: agent.id === 'brain' ? 'center 60%' : 'center 15%',
-                                mixBlendMode: agent.id === 'brain' ? 'normal' : 'multiply',
                                 filter: (agent.image?.includes('stock_market') || agent.image?.includes('data_analyst')) ? 'contrast(1.15) brightness(1.06)' : 'none'
                               }}
                             />
                           ) : (
-                            <img src={agent.image} alt={agent.name} className="w-[120%] h-[120%] object-cover object-top mix-blend-multiply" />
+                            <img src={agent.image} alt={agent.name} className="w-[120%] h-[120%] object-cover object-top" />
                           )}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h4 className={`font-semibold text-[13px] mb-0.5 flex items-center ${isActive ? 'text-[#3730B8] dark:text-[#a59ef0]' : 'text-[#14141D] dark:text-white'}`} style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                              {agent.name}
-                              {agent.agent_name && (
-                                <span className={`ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${isActive ? 'bg-[#3730B8]/10 dark:bg-[#a59ef0]/20 text-[#3730B8] dark:text-[#a59ef0]' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400'}`}>
-                                  {agent.agent_name}
-                                </span>
-                              )}
+                              {agent.agent_name || agent.name}
                             </h4>
                             {isLocked && (
                               <span className="text-[9px] font-extrabold bg-[#1a1a1a] dark:bg-neutral-700 text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">Soon</span>

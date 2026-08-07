@@ -71,6 +71,12 @@ export default function AgentsChat() {
     setActiveSessionId(id);
   };
 
+  const handleAgentChange = async (newAgentSlug) => {
+    setSelectedAgent(newAgentSlug);
+    handleNewChat();
+    setActiveTab(null); // Close sidebar on new chat to keep the UI clean
+  };
+
   return (
     <div className="flex h-screen w-full bg-[#f8f9fa] dark:bg-[#000000] p-3 md:p-5 overflow-hidden relative font-sans text-neutral-900 dark:text-neutral-100">
       
@@ -108,7 +114,7 @@ export default function AgentsChat() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             selectedAgent={selectedAgent}
-            setSelectedAgent={setSelectedAgent}
+            setSelectedAgent={handleAgentChange}
           />
         </div>
       </div>

@@ -86,11 +86,9 @@ export const useSubAgentStream = () => {
     const jobId = options.jobId || options.job_id || `job_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const queryText = (message || options.query || options.user_query || options.prompt || '').toString().trim();
 
-    // REST-only agent slug direct dispatch
-    if (agentSlug === 'image-generation') {
-      startBackgroundExecution(agentSlug, sessionId, queryText, jobId, options);
-      return;
-    }
+    // All subagents currently use REST direct dispatch
+    startBackgroundExecution(agentSlug, sessionId, queryText, jobId, options);
+    return;
 
     setStreamState({
       ...initStreamState(),

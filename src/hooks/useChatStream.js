@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
+import { useEventStore } from '../store/eventStore';
 
 export const useChatStream = () => {
   const [messages, setMessages] = useState([]);
@@ -27,6 +28,9 @@ export const useChatStream = () => {
     
     // Add an empty assistant message that will be populated by the stream
     setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+    // Register active job locally
+    useEventStore.getState().addActiveJob(sessionId, sessionId, 'Agent is thinking...', 'Agent Task');
 
     const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
     const socketUrl = `${wsBaseUrl}/conversations/stream?session_id=${sessionId}&token=${accessToken}`;
@@ -82,6 +86,7 @@ export const useChatStream = () => {
             setError(chunk.content || 'An error occurred during generation.');
             setIsStreaming(false);
             setStatus('');
+            useEventStore.getState().removeActiveJob(sessionId);
             socket.close();
             break;
             
@@ -98,10 +103,12 @@ export const useChatStream = () => {
       setError('Connection error occurred.');
       setIsStreaming(false);
       setStatus('');
+      useEventStore.getState().removeActiveJob(sessionId);
     };
 
     socket.onclose = () => {
       setIsStreaming(false);
+      useEventStore.getState().removeActiveJob(sessionId);
     };
   }, []);
 

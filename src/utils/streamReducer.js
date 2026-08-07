@@ -227,10 +227,11 @@ export function applyChunk(state, chunk) {
         }
       });
 
-      // 2. Set answer fallback for agents that return final result in done.metadata
-      const fallbackText = meta.response || meta.message || content || '';
+      // 2. Prioritize the complete final answer sent in the done.metadata as requested by backend
+      const finalMetadataAnswer = meta.final_answer || meta.finalAnswer || meta.response || meta.message;
+      const fallbackText = finalMetadataAnswer || content || nextState.answer || '';
       const imageMarkdown = (meta.image_generated && meta.image_url) ? `![Generated Image](${meta.image_url})\n\n${fallbackText}` : fallbackText;
-      const finalAnswer = nextState.answer || imageMarkdown;
+      const finalAnswer = imageMarkdown;
 
       const settledNodes = { ...nextState.nodes };
       Object.keys(settledNodes).forEach(id => {

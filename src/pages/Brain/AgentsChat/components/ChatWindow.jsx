@@ -26,25 +26,26 @@ function formatAnswers(questions, answers) {
 }
 
 const AGENT_TITLE_MAP = {
-  'brain': 'Brain Agent',
-  'stock-market': 'Stock Market Agent',
-  'research': 'Universal Research Agent',
-  'market': 'Competitor Intelligence Agent',
-  'lead-generation': 'Lead Generation Agent',
-  'recruitment': 'Recruitment Agent',
-  'social-trends': 'Social Trends Agent',
-  'image-generation': 'Image Generation Agent',
-  'post-scheduler': 'Post Scheduler Agent',
-  'campaign-planner': 'Campaign Planner Agent',
-  'campaign-manager': 'Campaign Planner Agent',
-  'business-intelligence': 'Business Intelligence Agent',
-  'content-writer': 'Content Writer Agent',
+  'stock-market': 'Marc (Stock Market)',
+  'research': 'Rea (Research)',
+  'market': 'Mia (Competitor Intelligence)',
+  'lead-generation': 'Lea (Lead Generation)',
+  'recruitment': 'Joey (Recruitment)',
+  'social-trends': 'Buzz (Social Trends)',
+  'image-generation': 'Mia (Image Generation)',
+  'post-scheduler': 'Marc (Post Scheduler)',
+  'campaign-planner': 'Rea (Campaign Planner)',
+  'campaign-manager': 'Rea (Campaign Planner)',
+  'business-intelligence': 'Brain (Business Intelligence)',
+  'content-writer': 'Rea (Content Writer)',
+  'image-query': 'Pixa (Image Query)',
+  'social-media-agent': 'Nova (Social Media)',
 };
 
 const getAgentTitle = (slug) => {
   if (!slug || slug === 'brain') return 'Brain Agent';
   if (AGENT_TITLE_MAP[slug]) return AGENT_TITLE_MAP[slug];
-  return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Agent';
+  return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 };
 
 const getAgentHeroAvatar = (slug) => {
@@ -176,7 +177,12 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       setIsLoadingMessages(true);
       chatService.getMessages(activeConversationId)
         .then(msgs => {
-          const list = Array.isArray(msgs) ? msgs : msgs?.data || [];
+          let list = [];
+          if (Array.isArray(msgs)) list = msgs;
+          else if (Array.isArray(msgs?.data)) list = msgs.data;
+          else if (Array.isArray(msgs?.data?.messages)) list = msgs.data.messages;
+          else if (Array.isArray(msgs?.messages)) list = msgs.messages;
+          
           setMessages(list.map(m => {
             const roleStr = m.role ? m.role.toUpperCase() : (m.senderId ? 'USER' : 'ASSISTANT');
             return {
@@ -317,7 +323,9 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     } catch (err) {
       console.error('Brain agent request failed', err);
       brain.reset();
-      toast.error(err.response?.data?.message || 'Failed to get a response. Please try again.');
+      if (err.message !== 'No response generated.') {
+        toast.error(err.response?.data?.message || 'Failed to get a response. Please try again.');
+      }
     } finally {
       setIsSending(false);
     }
@@ -378,7 +386,9 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     } catch (err) {
       console.error(`${selectedAgent} request failed`, err);
       subAgent.reset();
-      toast.error(err.response?.data?.message || 'Failed to get a response from sub-agent. Please try again.');
+      if (err.message !== 'No response generated.') {
+        toast.error(err.response?.data?.message || 'Failed to get a response from sub-agent. Please try again.');
+      }
     } finally {
       setIsSending(false);
     }
@@ -447,19 +457,37 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
     }
   }, [input, isSending, activeConversationId, inClarifyMode, clarifyQueue, clarifyIndex, clarifyAnswers, callBrainAgent, callSubAgent, selectedAgent, onNewChat]);
 
+  const handleStopSession = useCallback(async () => {
+    if (!activeConversationId) return;
+    try {
+      await chatService.stopBrainSession(activeConversationId);
+      brain.disconnect();
+      subAgent.disconnect();
+      setIsSending(false);
+      toast.success('Active session tasks stopped.');
+    } catch (err) {
+      console.error('Failed to stop session', err);
+      toast.error('Failed to stop active session.');
+    }
+  }, [activeConversationId, brain, subAgent]);
+
   const onFormSubmit = (e) => {
     e.preventDefault();
-    handleSubmit();
+    if (isSending) {
+      handleStopSession();
+    } else {
+      handleSubmit();
+    }
   };
 
   const onKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      if (!isSending) handleSubmit();
     }
   };
 
-  const isInputDisabled = isSending || !activeConversationId || creatingSession;
+  const isInputDisabled = !activeConversationId || creatingSession;
   const isEmpty = messages.length === 0 && !isSending;
   const isCentered = isEmpty && !isSending && (!selectedAgent || selectedAgent === 'brain');
 
@@ -470,7 +498,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       const current = clarifyQueue[clarifyIndex - 1];
       return `Answer: ${current?.question || 'Type your answer...'}`;
     }
-    return 'Ask Brain anything...';
+    const name = getAgentTitle(selectedAgent).split(' ')[0];
+    return `Ask ${name} anything...`;
   })();
 
   return (
@@ -478,16 +507,13 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
       
       {/* ── Top Header ── */}
       <div className="flex items-center justify-between px-6 py-4 flex-shrink-0 z-10 bg-white/60 dark:bg-[#111111]/80 backdrop-blur-xl border-b border-white dark:border-[#262626] shadow-[0_2px_20px_rgba(0,0,0,0.02)]">
-        <div className="flex items-center gap-2.5 text-[15px] font-semibold text-neutral-800 dark:text-neutral-100 bg-white/80 dark:bg-[#111111] hover:bg-white dark:hover:bg-[#262626] px-3 py-1.5 rounded-[14px] cursor-pointer transition-all shadow-sm border border-neutral-100 dark:border-[#262626]">
+        <div className="flex items-center gap-2.5 text-[15px] font-semibold text-neutral-800 dark:text-neutral-100 bg-white/80 dark:bg-[#111111] px-3 py-1.5 rounded-[14px] shadow-sm border border-neutral-100 dark:border-[#262626]">
           <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#1a1a1a] to-[#333333] flex items-center justify-center shadow-inner">
             <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v1m6 11h2m-6 0h-8m0 0H4m4 0h4m-4-8h8m-4 0v8" />
             </svg>
           </div>
           {getAgentTitle(selectedAgent)}
-          <svg className="w-4 h-4 text-neutral-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-          </svg>
         </div>
         
         <div className="flex items-center gap-3.5">
@@ -754,17 +780,20 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
                 e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
               }}
               onKeyDown={onKeyDown}
-              disabled={isInputDisabled}
+              disabled={isSending || isInputDisabled}
               placeholder={placeholder}
               className="flex-1 resize-none bg-transparent text-[14px] sm:text-[15px] text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 outline-none leading-normal py-0.5 font-medium disabled:opacity-40 min-h-[24px] z-10"
               style={{ overflow: 'hidden' }}
             />
 
             <button
-              type="submit"
-              disabled={isInputDisabled || !input.trim()}
-              className="flex-shrink-0 w-9.5 h-9.5 rounded-xl flex items-center justify-center transition-all duration-300 disabled:opacity-50 z-10 hover:shadow-lg hover:-translate-y-0.5"
-              style={{
+              type={isSending ? "button" : "submit"}
+              onClick={isSending ? handleStopSession : undefined}
+              disabled={isInputDisabled || (!isSending && !input.trim())}
+              className={`flex-shrink-0 w-9.5 h-9.5 rounded-xl flex items-center justify-center transition-all duration-300 disabled:opacity-50 z-10 hover:shadow-lg hover:-translate-y-0.5 ${
+                isSending ? 'bg-red-500 hover:bg-red-600 shadow-[0_6px_16px_rgba(239,68,68,0.3)]' : ''
+              }`}
+              style={isSending ? {} : {
                 background: (isInputDisabled || !input.trim())
                   ? '#f3f4f6'
                   : 'linear-gradient(135deg, #262626 0%, #333333 100%)',
@@ -772,9 +801,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
               }}
             >
               {isSending ? (
-                <svg className="animate-spin w-4.5 h-4.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
                 </svg>
               ) : (
                 <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24"

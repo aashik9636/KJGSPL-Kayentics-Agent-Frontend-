@@ -48,6 +48,20 @@ export default function AuditLogs() {
     }
   };
 
+  const handleViewDetails = async (log) => {
+    try {
+      const detailedLog = isSuperAdminPath
+        ? await superAdminService.getAuditLog(log.id)
+        : await auditLogService.getAuditLog(log.id);
+      
+      setSelectedLog({ ...log, ...detailedLog });
+    } catch (err) {
+      console.error('Failed to load audit log details:', err);
+      toast.error('Failed to load audit log details.');
+      setSelectedLog(log); // Fallback to list version
+    }
+  };
+
   const handleResetFilters = () => {
     setUserSearch('');
     setModuleFilter('');
@@ -225,32 +239,32 @@ export default function AuditLogs() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-purple-50 text-[#6c48ff] font-extrabold text-xs flex items-center justify-center border border-purple-100 shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-[#6c48ff] dark:text-purple-300 font-extrabold text-xs flex items-center justify-center border border-purple-100 dark:border-purple-800 shrink-0">
                             {actorEmail[0].toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-bold text-xs text-neutral-900">{actorEmail}</div>
-                            {log.user?.id && <div className="text-[10px] text-neutral-400 font-mono">ID: {log.user.id.substring(0, 8)}...</div>}
+                            <div className="font-bold text-xs text-neutral-900 dark:text-neutral-200">{actorEmail}</div>
+                            {log.user?.id && <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono">ID: {log.user.id.substring(0, 8)}...</div>}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-mono bg-purple-50 text-[#6c48ff] border border-purple-100 font-bold uppercase">
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-mono bg-purple-50 dark:bg-purple-900/30 text-[#6c48ff] dark:text-purple-300 border border-purple-100 dark:border-purple-800 font-bold uppercase">
                           {log.module}
                         </span>
                       </td>
-                      <td className="px-6 py-4 font-semibold text-neutral-900 text-xs uppercase">{log.action}</td>
-                      <td className="px-6 py-4 text-xs font-mono text-neutral-500">
+                      <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-200 text-xs uppercase">{log.action}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-neutral-500 dark:text-neutral-400">
                         <div className="flex items-center gap-1.5">
-                          <Globe className="w-3.5 h-3.5 text-neutral-400" />
+                          <Globe className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500" />
                           <span>{log.ipAddress || '127.0.0.1'}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button
                           type="button"
-                          onClick={() => setSelectedLog(log)}
-                          className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-[#6c48ff] border border-purple-100 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition"
+                          onClick={() => handleViewDetails(log)}
+                          className="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-[#6c48ff] dark:text-purple-300 border border-purple-100 dark:border-purple-800 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>View Details</span>
@@ -268,63 +282,63 @@ export default function AuditLogs() {
       {/* Audit Entry Details Drawer Modal */}
       {selectedLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-fade-in">
-          <div className="bg-white border border-neutral-100 rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+          <div className="bg-white dark:bg-[#111111] border border-neutral-100 dark:border-[#262626] rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-neutral-100 dark:border-[#262626] pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-50 text-[#6c48ff] rounded-2xl border border-purple-100">
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/30 text-[#6c48ff] dark:text-purple-300 rounded-2xl border border-purple-100 dark:border-purple-800">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-neutral-900">Audit Entry Details</h3>
-                  <span className="text-xs text-neutral-400 font-mono">ID: {selectedLog.id}</span>
+                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Audit Entry Details</h3>
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">ID: {selectedLog.id}</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="p-2 text-neutral-400 hover:text-neutral-700 rounded-xl bg-neutral-100 hover:bg-neutral-200 transition"
+                className="p-2 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-[#1a1a1a] dark:hover:bg-[#262626] transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-xs">
-              <div className="bg-neutral-50/80 p-3.5 rounded-2xl border border-neutral-100">
-                <span className="text-neutral-400 font-semibold block mb-1">Actor Email</span>
-                <span className="text-neutral-900 font-bold">{selectedLog.user?.email || 'System'}</span>
+              <div className="bg-neutral-50/80 dark:bg-[#1a1a1a] p-3.5 rounded-2xl border border-neutral-100 dark:border-[#333333]">
+                <span className="text-neutral-400 dark:text-neutral-500 font-semibold block mb-1">Actor Email</span>
+                <span className="text-neutral-900 dark:text-neutral-200 font-bold">{selectedLog.user?.email || 'System'}</span>
               </div>
-              <div className="bg-neutral-50/80 p-3.5 rounded-2xl border border-neutral-100">
-                <span className="text-neutral-400 font-semibold block mb-1">IP Address</span>
-                <span className="text-neutral-900 font-mono">{selectedLog.ipAddress || '127.0.0.1'}</span>
+              <div className="bg-neutral-50/80 dark:bg-[#1a1a1a] p-3.5 rounded-2xl border border-neutral-100 dark:border-[#333333]">
+                <span className="text-neutral-400 dark:text-neutral-500 font-semibold block mb-1">IP Address</span>
+                <span className="text-neutral-900 dark:text-neutral-200 font-mono">{selectedLog.ipAddress || '127.0.0.1'}</span>
               </div>
-              <div className="bg-neutral-50/80 p-3.5 rounded-2xl border border-neutral-100">
-                <span className="text-neutral-400 font-semibold block mb-1">Module</span>
-                <span className="text-[#6c48ff] font-mono font-bold uppercase">{selectedLog.module}</span>
+              <div className="bg-neutral-50/80 dark:bg-[#1a1a1a] p-3.5 rounded-2xl border border-neutral-100 dark:border-[#333333]">
+                <span className="text-neutral-400 dark:text-neutral-500 font-semibold block mb-1">Module</span>
+                <span className="text-[#6c48ff] dark:text-purple-400 font-mono font-bold uppercase">{selectedLog.module}</span>
               </div>
-              <div className="bg-neutral-50/80 p-3.5 rounded-2xl border border-neutral-100">
-                <span className="text-neutral-400 font-semibold block mb-1">Action</span>
-                <span className="text-neutral-900 font-bold uppercase">{selectedLog.action}</span>
+              <div className="bg-neutral-50/80 dark:bg-[#1a1a1a] p-3.5 rounded-2xl border border-neutral-100 dark:border-[#333333]">
+                <span className="text-neutral-400 dark:text-neutral-500 font-semibold block mb-1">Action</span>
+                <span className="text-neutral-900 dark:text-neutral-200 font-bold uppercase">{selectedLog.action}</span>
               </div>
             </div>
 
             {/* Old vs New State Diff */}
             {(selectedLog.oldValue || selectedLog.newValue) && (
               <div className="space-y-3 pt-2">
-                <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider">State Mutation Payload</h4>
+                <h4 className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">State Mutation Payload</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {selectedLog.oldValue && (
                     <div>
-                      <span className="text-[11px] font-bold text-red-600 block mb-1.5">Previous State (oldValue)</span>
-                      <pre className="bg-red-50 p-3 rounded-2xl text-[11px] font-mono text-red-700 overflow-x-auto border border-red-200 max-h-48">
+                      <span className="text-[11px] font-bold text-red-600 dark:text-red-400 block mb-1.5">Previous State (oldValue)</span>
+                      <pre className="bg-red-50 dark:bg-red-950/30 p-3 rounded-2xl text-[11px] font-mono text-red-700 dark:text-red-400 overflow-x-auto border border-red-200 dark:border-red-900/50 max-h-48">
                         {JSON.stringify(selectedLog.oldValue, null, 2)}
                       </pre>
                     </div>
                   )}
                   {selectedLog.newValue && (
                     <div>
-                      <span className="text-[11px] font-bold text-emerald-600 block mb-1.5">New State (newValue)</span>
-                      <pre className="bg-emerald-50 p-3 rounded-2xl text-[11px] font-mono text-emerald-700 overflow-x-auto border border-emerald-200 max-h-48">
+                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 block mb-1.5">New State (newValue)</span>
+                      <pre className="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-2xl text-[11px] font-mono text-emerald-700 dark:text-emerald-400 overflow-x-auto border border-emerald-200 dark:border-emerald-900/50 max-h-48">
                         {JSON.stringify(selectedLog.newValue, null, 2)}
                       </pre>
                     </div>

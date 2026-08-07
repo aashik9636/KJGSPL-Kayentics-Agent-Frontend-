@@ -39,7 +39,7 @@ export const chatService = {
   },
 
   stopBrainSession: async (sessionId) => {
-    const response = await apiClient.post(`/api/brain/stop/${sessionId}`);
+    const response = await apiClient.post(`/api/sessions/${sessionId}/stop`);
     return response.data;
   },
 

@@ -2,7 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/authService';
+import { useEventStore } from '../../store/eventStore';
+import { toast } from 'react-toastify';
 import gsap from 'gsap';
+import ActiveJobsIndicator from '../ActiveJobsIndicator';
+
 
 export default function Sidebar() {
   const location = useLocation();
@@ -10,6 +14,32 @@ export default function Sidebar() {
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
   const refreshToken = useAuthStore(state => state.refreshToken);
+  
+  const activeJobs = useEventStore(state => state.activeJobs);
+  const previousLocation = useRef(location.pathname);
+
+  useEffect(() => {
+    if (previousLocation.current.includes('/chat') && !location.pathname.includes('/chat')) {
+      const jobIds = Object.keys(activeJobs);
+      if (jobIds.length > 0) {
+        toast.info(
+          <div className="flex flex-col">
+            <span className="font-bold">Task is running behind the scenes</span>
+            <span className="text-xs mt-1">Click here to return to the task</span>
+          </div>,
+          {
+            onClick: () => {
+              navigate(`/chat?session=${activeJobs[jobIds[0]].sessionId}`);
+              toast.dismiss('bg-task-nav-toast');
+            },
+            autoClose: false,
+            toastId: 'bg-task-nav-toast'
+          }
+        );
+      }
+    }
+    previousLocation.current = location.pathname;
+  }, [location.pathname, activeJobs, navigate]);
 
   const sidebarRef = useRef(null);
   const [collapsed, setCollapsed] = useState(false);
@@ -153,6 +183,11 @@ export default function Sidebar() {
             </>
           )}
         </Link>
+      </div>
+
+      {/* Active Jobs Widget */}
+      <div className={`mb-4 flex ${collapsed ? 'justify-center' : 'px-5 justify-start'}`}>
+        <ActiveJobsIndicator />
       </div>
 
       {/* Navigation Sections */}
