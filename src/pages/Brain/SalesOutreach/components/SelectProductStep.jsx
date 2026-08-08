@@ -1,120 +1,175 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Plus } from 'lucide-react';
+import { Package, ChevronRight, Building2, Users, Target, BarChart3 } from 'lucide-react';
 import { salesOutreachService } from '../../../../services/salesOutreachService';
-import { useNavigate } from 'react-router-dom';
 
 export default function SelectProductStep({ onSelectProduct }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cloningId, setCloningId] = useState(null);
-  const navigate = useNavigate();
+  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    loadProducts();
+    salesOutreachService.getProducts()
+      .then(data => setProducts(data || []))
+      .catch(err => { console.error(err); setProducts([]); })
+      .finally(() => setLoading(false));
   }, []);
 
-  const loadProducts = async () => {
-    try {
-      const data = await salesOutreachService.getProducts(); // fetch all products
-      setProducts(data || []);
-    } catch (err) {
-      console.error('API failed, using dummy data', err);
-      setProducts([
-        { id: '1', name: 'Kaynetics AI Pro', sku: 'KAY-01', short_description: 'Enterprise analytics AI agent with real-time insights and automated reporting workflows.', status: 'ACTIVE' },
-        { id: '2', name: 'Social Media Auto-Pilot', sku: 'KAY-02', short_description: 'Automated post scheduler that uses generative AI to write engaging linkedin posts.', status: 'ACTIVE' }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelect = async (p) => {
-    try {
-      setCloningId(p.id);
-      // Option A: Create the product in the Sales Catalog first
-      const salesProduct = await salesOutreachService.createProduct({
-        name: p.name,
-        sku: p.sku || 'N/A',
-        category: p.category || 'General',
-        shortDescription: p.short_description || p.shortDescription || 'No description',
-        longDescription: p.long_description || p.longDescription || 'No description',
-        features: p.features || [],
-        benefits: p.benefits || [],
-        usp: p.usp || '',
-        targetAudience: p.target_audience || '',
-        tags: p.tags || [],
-        status: 'ACTIVE'
-      });
-      onSelectProduct(salesProduct);
-    } catch (err) {
-      console.error('Failed to clone product to sales catalog:', err);
-      // Fallback: Proceed with original if clone fails
-      onSelectProduct(p);
-    } finally {
-      setCloningId(null);
-    }
-  };
+  const icp = selected?.icpdata || selected?.icp || null;
 
   return (
-    <div className="flex flex-col h-full animate-fade-in">
-      <div className="mb-10 text-center max-w-2xl mx-auto pt-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6c48ff]/20 to-[#ec4899]/20 mb-6">
-          <Package className="w-8 h-8 text-[#6c48ff]" />
+    <div className="flex flex-col h-full animate-fade-in w-full">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-[#1a1a1a] flex items-center justify-center">
+            <Package className="w-5 h-5 text-[#6c48ff]" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-white tracking-tight">Select Product</h2>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">Choose which product to run outreach for</p>
+          </div>
         </div>
-        <h2 className="text-3xl font-extrabold text-neutral-900 dark:text-white mb-3 tracking-tight">Select a Product</h2>
-        <p className="text-neutral-500 dark:text-neutral-400 text-lg leading-relaxed">
-          Choose which product or service you want to run this outreach campaign for. The AI will use this product's unique selling propositions to draft highly personalized emails.
-        </p>
       </div>
 
       {loading ? (
-        <div className="flex-1 flex justify-center items-center pb-20">
-          <div className="w-10 h-10 border-4 border-[#6c48ff] border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-6 h-6 border-2 border-[#6c48ff] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading products...</p>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto w-full pb-8">
-          {Array.isArray(products) && products.map(p => (
-            <button 
-              key={p.id}
-              onClick={() => handleSelect(p)}
-              disabled={cloningId !== null}
-              className={`text-left p-6 rounded-3xl border-2 border-neutral-100 dark:border-[#262626] bg-white dark:bg-[#151515] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-[#6c48ff]/10 group relative overflow-hidden ${cloningId === p.id ? 'opacity-70 scale-[0.98]' : 'hover:border-[#6c48ff] dark:hover:border-[#6c48ff]'}`}
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#6c48ff]/5 to-transparent rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-              
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div className="w-14 h-14 bg-neutral-50 dark:bg-[#202020] rounded-2xl flex items-center justify-center group-hover:bg-[#6c48ff]/10 transition-colors shadow-sm relative">
-                  {cloningId === p.id ? (
-                    <div className="w-6 h-6 border-2 border-[#6c48ff] border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex gap-6 flex-1 min-h-0">
+          {/* Products Grid */}
+          <div className="w-1/2 overflow-y-auto pr-2 space-y-3">
+            {products.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center p-8 border rounded-xl border-neutral-200 dark:border-neutral-800">
+                <Package className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mb-3" />
+                <p className="font-bold text-neutral-600 dark:text-neutral-400 mb-1">No products found</p>
+                <p className="text-sm text-neutral-400">Create a product in the Product Catalog first.</p>
+              </div>
+            )}
+            {products.map(p => {
+              const isSelected = selected?.id === p.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setSelected(p)}
+                  className={`w-full text-left p-4 rounded-xl border transition-colors relative ${
+                    isSelected
+                      ? 'border-[#6c48ff] bg-[#6c48ff]/5'
+                      : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#111111] hover:border-[#6c48ff]/50'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      isSelected ? 'bg-[#6c48ff] text-white' : 'bg-neutral-100 dark:bg-[#1a1a1a] text-neutral-500'
+                    }`}>
+                      <Package className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-neutral-900 dark:text-white text-sm">{p.name}</p>
+                        {p.status === 'ACTIVE' && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 font-medium rounded uppercase">Live</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-400 mb-2">{p.sku}</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2">
+                        {p.short_description || p.shortDescription || ''}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ICP Preview Panel */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {selected ? (
+              <div className="flex-1 flex flex-col rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#111111] overflow-hidden">
+                <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#141414]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Target className="w-4 h-4 text-neutral-500" />
+                    <span className="text-xs font-semibold text-neutral-500 uppercase">ICP Profile</span>
+                  </div>
+                  <p className="text-sm font-semibold text-neutral-900 dark:text-white">{selected.name}</p>
+                </div>
+
+                <div className="flex-1 p-5 space-y-4 overflow-y-auto">
+                  {icp ? (
+                    <>
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <BarChart3 className="w-4 h-4 text-neutral-400" />
+                          <p className="text-xs font-semibold text-neutral-500 uppercase">Industries</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(icp.industry || '').split(',').map(i => i.trim()).filter(Boolean).map(ind => (
+                            <span key={ind} className="px-2.5 py-1 bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs rounded-md">{ind}</span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Building2 className="w-4 h-4 text-neutral-400" />
+                          <p className="text-xs font-semibold text-neutral-500 uppercase">Company Size</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1 bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 text-center">
+                            <p className="text-xs text-neutral-500 mb-1">Min</p>
+                            <p className="text-base font-semibold text-neutral-900 dark:text-white">{icp.min_employees ?? '—'}</p>
+                          </div>
+                          <span className="text-neutral-300">-</span>
+                          <div className="flex-1 bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 text-center">
+                            <p className="text-xs text-neutral-500 mb-1">Max</p>
+                            <p className="text-base font-semibold text-neutral-900 dark:text-white">{icp.max_employees ?? '—'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {icp.buyer_personas?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Users className="w-4 h-4 text-neutral-400" />
+                            <p className="text-xs font-semibold text-neutral-500 uppercase">Buyer Personas</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {icp.buyer_personas.map(bp => (
+                              <span key={bp} className="px-2.5 py-1 bg-[#6c48ff]/10 text-[#6c48ff] text-xs font-medium rounded-md">{bp}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <Package className="w-7 h-7 text-neutral-600 dark:text-neutral-300 group-hover:text-[#6c48ff]" />
+                    <div className="flex-1 flex flex-col items-center justify-center py-10 text-center text-neutral-400">
+                      <Target className="w-8 h-8 mb-3 opacity-50" />
+                      <p className="text-sm">No ICP linked to this product</p>
+                    </div>
                   )}
                 </div>
-                {p.status === 'ACTIVE' && (
-                  <span className="px-3 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-extrabold uppercase rounded-full">
-                    Active
-                  </span>
-                )}
+
+                <div className="p-4 bg-white dark:bg-[#141414] border-t border-neutral-200 dark:border-neutral-800">
+                  <button
+                    onClick={() => onSelectProduct(selected)}
+                    className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-[#6c48ff] hover:bg-[#5b3df5] text-white rounded-lg font-medium text-sm transition-colors"
+                  >
+                    Start Campaign
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              
-              <div className="relative z-10">
-                <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-1.5">{p.name}</h3>
-                <p className="text-xs font-mono font-bold text-neutral-400 dark:text-neutral-500 mb-3">{p.sku}</p>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">{p.short_description || p.shortDescription || 'No description provided.'}</p>
+            ) : (
+              <div className="flex-1 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl flex flex-col items-center justify-center text-center p-8 bg-neutral-50 dark:bg-[#111111]">
+                <Target className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mb-3" />
+                <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-1">Select a product</p>
+                <p className="text-sm text-neutral-400">ICP details will appear here</p>
               </div>
-            </button>
-          ))}
-          
-          <button 
-            onClick={() => navigate('/products')}
-            className="text-left p-6 rounded-3xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 hover:border-[#6c48ff] dark:hover:border-[#6c48ff] hover:bg-[#6c48ff]/5 flex flex-col items-center justify-center text-center transition-all duration-300 h-full min-h-[240px] group"
-          >
-             <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-[#262626] group-hover:bg-[#6c48ff] flex items-center justify-center mb-4 transition-colors shadow-sm">
-               <Plus className="w-8 h-8 text-neutral-400 group-hover:text-white transition-colors" />
-             </div>
-             <p className="font-bold text-neutral-900 dark:text-white text-lg group-hover:text-[#6c48ff]">Create New Product</p>
-             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2 max-w-[200px]">Head over to the product catalog to create a new offering.</p>
-          </button>
+            )}
+          </div>
         </div>
       )}
     </div>

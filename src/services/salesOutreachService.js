@@ -36,6 +36,11 @@ export const salesOutreachService = {
     return response.data;
   },
 
+  updateICP: async (icpId, data) => {
+    const response = await api.put(`/api/sales/icps/${icpId}`, data);
+    return response.data;
+  },
+
   // Step 4: Lead Discovery & Scraper
   discoverLeads: async (icpId, count = 20) => {
     const response = await api.post(`/api/sales/icps/${icpId}/discover`, { count });
@@ -84,6 +89,12 @@ export const salesOutreachService = {
   // Step 8: Send Outreach
   sendOutreach: async (draftId) => {
     const response = await api.post(`/api/outreach/drafts/${draftId}/send`);
+    return response.data;
+  },
+
+  // Campaign Launch
+  launchCampaign: async (data) => {
+    const response = await api.post('/api/sales/outreach/campaign', data);
     return response.data;
   }
 };

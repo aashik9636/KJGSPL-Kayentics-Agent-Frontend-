@@ -1,21 +1,93 @@
-import React, { useState } from 'react';
-import { Users, MapPin, Building2, Briefcase, Plus, Target, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, MapPin, Building2, Briefcase, Plus, Target, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { salesOutreachService } from '../../../../services/salesOutreachService';
 
 export default function ICPStep({ product, onComplete, onBack }) {
+  const [existingIcpId, setExistingIcpId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
   const [formData, setFormData] = useState({
-    name: `${product?.name || 'Product'} - Core ICP`,
+    name: `${product?.name || 'Product'} - Target ICP`,
     targetRegions: [],
     targetIndustries: [],
-    minCompanySize: 50,
-    maxCompanySize: 500,
-    targetTitles: []
+    minCompanySize: 1,
+    maxCompanySize: 50,
+    targetTitles: [],
+    excludedIndustries: []
   });
-  
+
   const [regionInput, setRegionInput] = useState('');
   const [industryInput, setIndustryInput] = useState('');
   const [titleInput, setTitleInput] = useState('');
+  const [excludedIndustryInput, setExcludedIndustryInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchExistingICP = async () => {
+      try {
+        if (!product?.id) return;
+        const icps = await salesOutreachService.getICPs(product.id);
+        if (icps && icps.length > 0) {
+          const icp = icps[0];
+          setExistingIcpId(icp.id);
+          setFormData({
+            name: icp.name || `${product.name} - Target ICP`,
+            targetRegions: icp.target_regions || [],
+            targetIndustries: icp.target_industries || [],
+            minCompanySize: icp.min_company_size || 1,
+            maxCompanySize: icp.max_company_size || 50,
+            targetTitles: icp.target_titles || [],
+            excludedIndustries: icp.excluded_industries || []
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to fetch existing ICP:', err);
+      }
+      
+      // Fallback to product.icpdata or product.icp if no backend ICP found
+      const fallbackData = product?.icpdata || product?.icp || {};
+      
+      const parseList = (val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+        return [];
+      };
+
+      let minSize = 1;
+      let maxSize = 50;
+      if (fallbackData.min_employees) minSize = parseInt(fallbackData.min_employees, 10);
+      else if (fallbackData.min_company_size) minSize = parseInt(fallbackData.min_company_size, 10);
+      
+      if (fallbackData.max_employees) maxSize = parseInt(fallbackData.max_employees, 10);
+      else if (fallbackData.max_company_size) maxSize = parseInt(fallbackData.max_company_size, 10);
+      
+      if (!fallbackData.min_employees && !fallbackData.max_employees) {
+         const compSize = fallbackData.company_size || fallbackData.companySize;
+         if (compSize) {
+           const parts = String(compSize).split('-');
+           if (parts.length === 2) {
+             minSize = parseInt(parts[0], 10) || minSize;
+             maxSize = parseInt(parts[1], 10) || maxSize;
+           }
+         }
+      }
+
+      setFormData({
+        name: fallbackData.name || `${product?.name || 'Product'} - Target ICP`,
+        targetRegions: parseList(fallbackData.geography || fallbackData.target_regions || fallbackData.targetRegions),
+        targetIndustries: parseList(fallbackData.industry || fallbackData.target_industries || fallbackData.targetIndustries),
+        minCompanySize: minSize,
+        maxCompanySize: maxSize,
+        targetTitles: parseList(fallbackData.buyer_personas || fallbackData.target_titles || fallbackData.targetTitles),
+        excludedIndustries: parseList(fallbackData.excluded_industries || fallbackData.excludedIndustries)
+      });
+      
+    };
+
+    fetchExistingICP().finally(() => setLoading(false));
+  }, [product]);
 
   const handleAdd = (field, value, setInput) => {
     if (value.trim() && !formData[field].includes(value.trim())) {
@@ -39,24 +111,41 @@ export default function ICPStep({ product, onComplete, onBack }) {
     if (formData.targetRegions.length === 0 || formData.targetIndustries.length === 0) return;
     try {
       setSubmitting(true);
-      const icp = await salesOutreachService.createICP({
+      const payload = {
         product_id: product?.id,
         name: formData.name,
         target_regions: formData.targetRegions,
         target_industries: formData.targetIndustries,
         min_company_size: formData.minCompanySize,
         max_company_size: formData.maxCompanySize,
-        target_titles: formData.targetTitles
-      });
+        target_titles: formData.targetTitles,
+        excluded_industries: formData.excludedIndustries
+      };
+      
+      let icp;
+      if (existingIcpId) {
+        icp = await salesOutreachService.updateICP(existingIcpId, payload);
+      } else {
+        icp = await salesOutreachService.createICP(payload);
+      }
       onComplete(icp);
     } catch (err) {
       console.error(err);
-      // Dummy flow if API fails
-      onComplete({ id: 'icp-dummy', ...formData });
+      // Fallback
+      onComplete({ id: existingIcpId || 'fallback-id', ...formData });
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full animate-fade-in relative z-10 w-full max-w-4xl mx-auto py-20 items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#6c48ff] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-neutral-500 font-medium text-sm">Loading Ideal Customer Profile...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full animate-fade-in relative z-10 w-full max-w-4xl mx-auto py-4">
@@ -65,7 +154,7 @@ export default function ICPStep({ product, onComplete, onBack }) {
           <Target className="w-6 h-6 text-[#6c48ff]" /> Define Ideal Customer Profile (ICP)
         </h2>
         <p className="text-neutral-500 dark:text-neutral-400 text-sm">
-          Who are we targeting for <span className="font-bold text-neutral-700 dark:text-neutral-300">{product?.name}</span>? The crawler will use these parameters to discover qualified leads.
+          Who are we targeting for <span className="font-bold text-neutral-700 dark:text-neutral-300">{product?.name}</span>? Review and refine the criteria below.
         </p>
       </div>
 
@@ -105,27 +194,27 @@ export default function ICPStep({ product, onComplete, onBack }) {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Right Col */}
-        <div className="space-y-6">
+          
           <div className="bg-neutral-50 dark:bg-[#151515] p-5 rounded-2xl border border-neutral-200 dark:border-[#262626]">
             <label className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white mb-3">
-              <Briefcase className="w-4 h-4 text-purple-500" /> Job Titles (Decision Makers)
+              <ShieldAlert className="w-4 h-4 text-red-500" /> Excluded Industries
             </label>
             <div className="flex gap-2 mb-3">
-              <input type="text" value={titleInput} onChange={e => setTitleInput(e.target.value)} onKeyDown={e => handleKeyDown(e, 'targetTitles', titleInput, setTitleInput)} placeholder="e.g. CTO, VP of Engineering..." className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl outline-none focus:border-[#6c48ff] text-neutral-900 dark:text-white" />
-              <button onClick={() => handleAdd('targetTitles', titleInput, setTitleInput)} className="px-3 py-2 bg-neutral-200 dark:bg-[#262626] rounded-xl hover:bg-neutral-300 dark:hover:bg-[#333333]"><Plus className="w-4 h-4 text-neutral-700 dark:text-neutral-300" /></button>
+              <input type="text" value={excludedIndustryInput} onChange={e => setExcludedIndustryInput(e.target.value)} onKeyDown={e => handleKeyDown(e, 'excludedIndustries', excludedIndustryInput, setExcludedIndustryInput)} placeholder="e.g. Manufacturing, Non-profit..." className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl outline-none focus:border-[#6c48ff] text-neutral-900 dark:text-white" />
+              <button onClick={() => handleAdd('excludedIndustries', excludedIndustryInput, setExcludedIndustryInput)} className="px-3 py-2 bg-neutral-200 dark:bg-[#262626] rounded-xl hover:bg-neutral-300 dark:hover:bg-[#333333]"><Plus className="w-4 h-4 text-neutral-700 dark:text-neutral-300" /></button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {formData.targetTitles.map(t => (
-                <span key={t} className="px-3 py-1 bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 text-xs font-bold rounded-lg flex items-center gap-1">
-                  {t} <button onClick={() => handleRemove('targetTitles', t)} className="hover:text-purple-900 dark:hover:text-purple-300">&times;</button>
+              {formData.excludedIndustries.map(i => (
+                <span key={i} className="px-3 py-1 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-bold rounded-lg flex items-center gap-1">
+                  {i} <button onClick={() => handleRemove('excludedIndustries', i)} className="hover:text-red-900 dark:hover:text-red-300">&times;</button>
                 </span>
               ))}
             </div>
           </div>
+        </div>
 
+        {/* Right Col */}
+        <div className="space-y-6">
           <div className="bg-neutral-50 dark:bg-[#151515] p-5 rounded-2xl border border-neutral-200 dark:border-[#262626]">
             <label className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white mb-3">
               <Users className="w-4 h-4 text-amber-500" /> Company Size
@@ -139,6 +228,23 @@ export default function ICPStep({ product, onComplete, onBack }) {
                 <p className="text-xs text-neutral-500 mb-1">Max Employees</p>
                 <input type="number" value={formData.maxCompanySize} onChange={e => setFormData({...formData, maxCompanySize: parseInt(e.target.value) || 0})} className="w-full px-3 py-2 text-sm bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl outline-none focus:border-[#6c48ff] text-neutral-900 dark:text-white" />
               </div>
+            </div>
+          </div>
+          
+          <div className="bg-neutral-50 dark:bg-[#151515] p-5 rounded-2xl border border-neutral-200 dark:border-[#262626]">
+            <label className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white mb-3">
+              <Briefcase className="w-4 h-4 text-indigo-500" /> Target Job Titles
+            </label>
+            <div className="flex gap-2 mb-3">
+              <input type="text" value={titleInput} onChange={e => setTitleInput(e.target.value)} onKeyDown={e => handleKeyDown(e, 'targetTitles', titleInput, setTitleInput)} placeholder="e.g. Founder, VP Sales..." className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#333333] rounded-xl outline-none focus:border-[#6c48ff] text-neutral-900 dark:text-white" />
+              <button onClick={() => handleAdd('targetTitles', titleInput, setTitleInput)} className="px-3 py-2 bg-neutral-200 dark:bg-[#262626] rounded-xl hover:bg-neutral-300 dark:hover:bg-[#333333]"><Plus className="w-4 h-4 text-neutral-700 dark:text-neutral-300" /></button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {formData.targetTitles.map(t => (
+                <span key={t} className="px-3 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 text-xs font-bold rounded-lg flex items-center gap-1">
+                  {t} <button onClick={() => handleRemove('targetTitles', t)} className="hover:text-indigo-900 dark:hover:text-indigo-300">&times;</button>
+                </span>
+              ))}
             </div>
           </div>
         </div>

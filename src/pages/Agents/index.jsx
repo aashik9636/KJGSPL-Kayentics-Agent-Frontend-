@@ -133,7 +133,7 @@ export default function AgentsDirectory() {
     if (agent.comingSoon) return;
     
     // Intercept custom agent workflows
-    if (agent.slug === 'sales-outreach' || agent.id === 'sales_outreach') {
+    if (agent.id === 'sales-outreach' || agent.id === 'sales_outreach') {
       navigate('/agents/sales-outreach');
       return;
     }
