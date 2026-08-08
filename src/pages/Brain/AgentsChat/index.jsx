@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import RightSidebar from './components/RightSidebar';
 import ChatWindow from './components/ChatWindow';
 import { chatService } from '../../../services/chatService';
@@ -15,6 +15,7 @@ export default function AgentsChat() {
   const hasAutoStarted = useRef(false);
   const location = useLocation();
   const params = useParams();
+  const navigate = useNavigate();
   const lastProcessedNewChat = useRef(null);
 
   // Fetch conversation history
@@ -61,17 +62,29 @@ export default function AgentsChat() {
       setActiveTab(null); // Close sidebar on new chat just to be clean
     }
     if (params.agentSlug) {
+      if (params.agentSlug === 'sales-outreach' || params.agentSlug === 'sales_outreach') {
+        navigate('/agents/sales-outreach', { replace: true });
+        return;
+      }
       setSelectedAgent(params.agentSlug);
     } else if (location.state?.selectedAgent) {
+      if (location.state.selectedAgent === 'sales-outreach' || location.state.selectedAgent === 'sales_outreach') {
+        navigate('/agents/sales-outreach', { replace: true });
+        return;
+      }
       setSelectedAgent(location.state.selectedAgent);
     }
-  }, [params.agentSlug, location.state?.newChat, location.state?.selectedAgent, creatingSession]);
+  }, [params.agentSlug, location.state?.newChat, location.state?.selectedAgent, creatingSession, navigate]);
 
   const handleSelectConversation = (id) => {
     setActiveSessionId(id);
   };
 
   const handleAgentChange = async (newAgentSlug) => {
+    if (newAgentSlug === 'sales-outreach' || newAgentSlug === 'sales_outreach') {
+      navigate('/agents/sales-outreach');
+      return;
+    }
     setSelectedAgent(newAgentSlug);
     handleNewChat();
     setActiveTab(null); // Close sidebar on new chat to keep the UI clean

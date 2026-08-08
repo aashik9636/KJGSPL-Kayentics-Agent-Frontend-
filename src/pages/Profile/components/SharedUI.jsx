@@ -4,8 +4,8 @@ export function Section({ title, description, children, border = true }) {
   return (
     <div className={`section sec ${border ? '' : 'no-border'}`}>
       <div className="sec-label">
-        <h3>{title}</h3>
-        <p>{description}</p>
+        <h3 className="dark:text-white">{title}</h3>
+        <p className="dark:text-neutral-400">{description}</p>
       </div>
       <div className="sec-fields">
         {children}
@@ -17,7 +17,7 @@ export function Section({ title, description, children, border = true }) {
 export function Field({ label, error, children, full = false, required = false, readonly = false }) {
   return (
     <div className={`field ${full ? 'full' : ''} ${readonly ? 'readonly' : ''}`}>
-      <label>
+      <label className="dark:text-neutral-200">
         {label}
         {required && <span className="req">*</span>}
       </label>

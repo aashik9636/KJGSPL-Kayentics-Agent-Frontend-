@@ -131,6 +131,13 @@ export default function AgentsDirectory() {
 
   const handleChat = (agent) => {
     if (agent.comingSoon) return;
+    
+    // Intercept custom agent workflows
+    if (agent.slug === 'sales-outreach' || agent.id === 'sales_outreach') {
+      navigate('/agents/sales-outreach');
+      return;
+    }
+    
     navigate('/chat', { state: { newChat: Date.now(), selectedAgent: agent.id } });
   };
 

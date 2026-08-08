@@ -27,6 +27,24 @@
   flex-direction: column;
 }
 
+html.dark .profile-app,
+.dark .profile-app {
+  --bg: #0A0A0A !important; 
+  --surface: #111111 !important; 
+  --border: #262626 !important; 
+  --border-2: #333333 !important;
+  --ink: #FFFFFF !important; 
+  --muted: #A3A3A3 !important; 
+  --muted-2: #737373 !important;
+  --primary: #4F46E5 !important; 
+  --primary-dark: #6366F1 !important; 
+  --primary-soft: rgba(79, 70, 229, 0.2) !important;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5) !important;
+  --shadow-md: 0 10px 28px rgba(0,0,0,0.6) !important;
+  --shadow-lg: 0 24px 56px rgba(0,0,0,0.8) !important;
+}
+
+
 /* top tab switcher */
 .concept-nav { 
   display: flex; 
@@ -145,3 +163,39 @@
 .profile-app .savebar .save { background: var(--primary); color: #fff; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
 .profile-app .savebar .save:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); }
 .profile-app .savebar .save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+
+.dark .profile-app .field input,
+.dark .profile-app .field select,
+.dark .profile-app .field textarea {
+  background-color: #111111 !important;
+  border-color: #333333 !important;
+  color: #ffffff !important;
+}
+
+.dark .profile-app .field input:focus,
+.dark .profile-app .field select:focus,
+.dark .profile-app .field textarea:focus {
+  border-color: #6c48ff !important;
+  box-shadow: 0 0 0 4px rgba(108, 72, 255, 0.2) !important;
+}
+
+/* Aggressive Dark Mode Overrides for UI Elements */
+.dark .profile-app .id-card { background: #111111 !important; border-color: #262626 !important; }
+.dark .profile-app .id-card b { color: #ffffff !important; }
+.dark .profile-app .id-card span { color: #a3a3a3 !important; }
+.dark .profile-app .id-btn { background: #262626 !important; color: #ffffff !important; border-color: #333333 !important; }
+.dark .profile-app .id-btn:hover { background: #333333 !important; }
+.dark .profile-app .id-btn.primary { background: #6c48ff !important; border: none !important; }
+.dark .profile-app .id-btn.primary:hover { background: #5a3ce0 !important; }
+
+.dark .profile-app .concept-nav { background: #111111 !important; border-color: #262626 !important; }
+.dark .profile-app .concept-nav button { color: #a3a3a3 !important; }
+.dark .profile-app .concept-nav button.active { color: #ffffff !important; }
+
+.dark .profile-app .page-head h1 { color: #ffffff !important; }
+.dark .profile-app .page-head p { color: #a3a3a3 !important; }
+.dark .profile-app .sec-label h3 { color: #ffffff !important; }
+.dark .profile-app .sec-label p { color: #a3a3a3 !important; }
+.dark .profile-app .field label { color: #e5e5e5 !important; }
+.dark .profile-app .section { border-color: #262626 !important; }

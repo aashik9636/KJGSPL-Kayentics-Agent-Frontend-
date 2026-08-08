@@ -17,12 +17,12 @@ export const useBrainStream = () => {
   const currentJobIdRef = useRef(null);
 
   const startBackgroundExecution = useCallback(async (sessionId, userQuery, jobId) => {
-    setStreamState(prev => ({
-      ...prev,
+    setStreamState({
+      ...initStreamState(),
       isStreaming: false,
       isPendingBackground: true,
       statusText: 'Processing in background...',
-    }));
+    });
 
     try {
       const { organizationId, workspaceId } = useWorkspaceStore.getState();

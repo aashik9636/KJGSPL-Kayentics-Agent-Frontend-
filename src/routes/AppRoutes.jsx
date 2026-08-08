@@ -2,6 +2,7 @@ import { Route } from 'react-router-dom';
 import AppLayout from '../layouts/AppLayout';
 import Dashboard from '../pages/Dashboard';
 import Chat from '../pages/Brain/AgentsChat';
+import SalesOutreach from '../pages/Brain/SalesOutreach';
 import KnowledgeBase from '../pages/Brain/KnowledgeBase';
 import Integrations from '../pages/Integrations';
 import Profile from '../pages/Profile';
@@ -23,6 +24,7 @@ export const AppRoutes = (
     <Route path="/" element={<Dashboard />} />
     <Route path="/chat" element={<Chat />} />
     <Route path="/agents" element={<Agents />} />
+    <Route path="/agents/sales-outreach" element={<SalesOutreach />} />
     <Route path="/agents/:agentSlug" element={<Chat />} />
     <Route path="/knowledge-base" element={<KnowledgeBase />} />
     <Route path="/integrations" element={<Integrations />} />

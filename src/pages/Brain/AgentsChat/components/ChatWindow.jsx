@@ -231,6 +231,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
 
   // ── Brain Agent query: try WebSocket streaming, fall back to REST ────────
   const callBrainAgent = useCallback(async (userQuery, sessionIdOverride) => {
+    brain.reset();
+    subAgent.reset();
     const sessionId = sessionIdOverride || activeConversationId;
     setIsSending(true);
 
@@ -333,6 +335,8 @@ export default function ChatWindow({ activeConversationId, creatingSession, onNe
 
   // ── Sub-Agent direct query handler ─────────────────────────────────────────
   const callSubAgent = useCallback(async (userQuery, sessionIdOverride) => {
+    brain.reset();
+    subAgent.reset();
     const sessionId = sessionIdOverride || activeConversationId;
     setIsSending(true);
 

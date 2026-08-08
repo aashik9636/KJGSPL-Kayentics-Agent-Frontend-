@@ -17,12 +17,13 @@ export const useSubAgentStream = () => {
   const pollIntervalRef = useRef(null);
 
   const startBackgroundExecution = useCallback(async (agentSlug, sessionId, message, jobId, options = {}) => {
-    setStreamState(prev => ({
-      ...prev,
+    setStreamState({
+      ...initStreamState(),
       isStreaming: false,
       isPendingBackground: true,
       statusText: `Processing ${agentSlug} query...`,
-    }));
+    });
+    setSources([]);
 
     try {
       const { organizationId, workspaceId } = useWorkspaceStore.getState();
@@ -31,18 +32,34 @@ export const useSubAgentStream = () => {
       const endpoint = agentSlug === 'image-generation' ? '/api/chat/image-generation' : `/api/chat/${agentSlug}`;
       const payload = agentSlug === 'image-generation' ? {
         prompt_text: message,
+        prompt: message,
+        userQuery: message,
+        user_query: message,
+        message,
         platform: options?.platform || 'instagram',
         companyId: workspaceId || undefined,
+        company_id: workspaceId || undefined,
         organizationId: organizationId || undefined,
         sessionId,
+        session_id: sessionId,
         jobId: jobId || undefined,
+        job_id: jobId || undefined,
       } : {
         message,
         userQuery: message,
+        user_query: message,
+        query: message,
+        prompt: message,
+        request: message,
+        goal: message,
         sessionId,
+        session_id: sessionId,
         jobId: jobId || undefined,
+        job_id: jobId || undefined,
         organizationId,
         workspaceId,
+        companyId: workspaceId || undefined,
+        company_id: workspaceId || undefined,
       };
 
       const res = await apiClient.post(endpoint, payload);

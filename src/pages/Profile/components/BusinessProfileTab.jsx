@@ -1,31 +1,39 @@
 import React from 'react';
 import Select from 'react-select';
 import { Section, Field } from './SharedUI';
+import { useThemeStore } from '../../../store/themeStore';
 import { CURRENCIES } from '../utils';
 
 export default function BusinessProfileTab({ business, errors, onChange, industries }) {
+  const isDark = useThemeStore(s => s.theme) === 'dark';
+
   const newSelectStyles = {
     control: (base, state) => ({
       ...base,
-      border: '1px solid var(--border)',
+      border: isDark ? '1px solid #333333' : '1px solid var(--border)',
       borderRadius: '12px',
       padding: '6px 8px',
       fontSize: '14px',
       fontFamily: 'Inter, sans-serif',
-      boxShadow: state.isFocused ? '0 0 0 4px var(--primary-soft)' : 'none',
-      borderColor: state.isFocused ? 'var(--primary)' : 'var(--border)',
-      backgroundColor: state.isFocused ? 'var(--surface)' : 'var(--bg)',
+      boxShadow: state.isFocused ? '0 0 0 4px rgba(108, 72, 255, 0.2)' : 'none',
+      borderColor: state.isFocused ? '#6c48ff' : isDark ? '#333333' : 'var(--border)',
+      backgroundColor: isDark ? '#111111' : '#FFFFFF',
       '&:hover': {
-        borderColor: state.isFocused ? 'var(--primary)' : 'var(--border)'
+        borderColor: state.isFocused ? '#6c48ff' : isDark ? '#333333' : 'var(--border)'
       }
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: isDark ? '#FFFFFF' : '#14141D',
     }),
     menu: (base) => ({
       ...base,
       zIndex: 9999, // Fix overlap issue
       borderRadius: '12px',
       overflow: 'hidden',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-      border: '1px solid var(--border)',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+      border: isDark ? '1px solid #333333' : '1px solid var(--border)',
+      backgroundColor: isDark ? '#111111' : '#FFFFFF',
     }),
     menuPortal: base => ({ ...base, zIndex: 9999 }),
     option: (base, state) => ({
@@ -33,8 +41,8 @@ export default function BusinessProfileTab({ business, errors, onChange, industr
       fontSize: '14px',
       fontFamily: 'Inter, sans-serif',
       padding: '10px 16px',
-      backgroundColor: state.isSelected ? 'var(--primary)' : state.isFocused ? 'var(--primary-soft)' : 'white',
-      color: state.isSelected ? 'white' : state.isFocused ? 'var(--primary-dark)' : 'var(--ink)',
+      backgroundColor: state.isSelected ? '#6c48ff' : state.isFocused ? (isDark ? '#262626' : '#F5F5FA') : (isDark ? '#111111' : '#FFFFFF'),
+      color: state.isSelected ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#14141D'),
       cursor: 'pointer',
     })
   };

@@ -13,7 +13,6 @@ import './profile-settings.css';
 const TABS = [
   { id: 'profile',  label: 'Personal Profile' },
   { id: 'business', label: 'Business Profile' },
-  { id: 'team',     label: 'Team Members' },
 ];
 
 export default function Profile() {
@@ -199,8 +198,45 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <svg className="animate-spin w-6 h-6 text-neutral-900" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+      <div className="profile-app flex-col items-center">
+        <div className="set-body w-full flex-1">
+          <div className="set-scroll" style={{ overflow: 'hidden' }}>
+            <div className="flex justify-between items-end mb-8">
+              <div className="w-1/2">
+                <div className="h-3 w-20 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse mb-3"></div>
+                <div className="h-7 w-48 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse mb-3"></div>
+                <div className="h-4 w-64 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse"></div>
+              </div>
+              <div className="h-10 w-64 bg-neutral-200 dark:bg-neutral-800 rounded-full animate-pulse"></div>
+            </div>
+
+            <div className="mt-8 space-y-8">
+              <div className="flex gap-12 border-b border-neutral-100 dark:border-neutral-800/50 pb-8">
+                <div className="w-[28%] flex-shrink-0">
+                  <div className="h-5 w-24 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse mb-3"></div>
+                  <div className="h-4 w-40 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse"></div>
+                </div>
+                <div className="flex-1 grid grid-cols-2 gap-5">
+                  <div className="h-[46px] w-full bg-neutral-200 dark:bg-neutral-800 rounded-xl animate-pulse"></div>
+                  <div className="h-[46px] w-full bg-neutral-200 dark:bg-neutral-800 rounded-xl animate-pulse"></div>
+                  <div className="h-[46px] w-full bg-neutral-200 dark:bg-neutral-800 rounded-xl animate-pulse col-span-2"></div>
+                  <div className="h-[46px] w-full bg-neutral-200 dark:bg-neutral-800 rounded-xl animate-pulse col-span-2"></div>
+                </div>
+              </div>
+              
+              <div className="flex gap-12 pb-8">
+                <div className="w-[28%] flex-shrink-0">
+                  <div className="h-5 w-32 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse mb-3"></div>
+                  <div className="h-4 w-48 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse"></div>
+                </div>
+                <div className="flex-1 grid grid-cols-2 gap-5">
+                  <div className="h-[46px] w-full bg-neutral-200 dark:bg-neutral-800 rounded-xl animate-pulse"></div>
+                  <div className="h-[46px] w-full bg-neutral-200 dark:bg-neutral-800 rounded-xl animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -216,13 +252,13 @@ export default function Profile() {
             <div className="page-head" style={{ marginBottom: 0 }}>
               <div className="eyebrow">
                 <span className="ln"></span>
-                {activeTab === 'profile' ? 'Account' : activeTab === 'business' ? 'Workspace' : 'Organization'}
+                {activeTab === 'profile' ? 'Account' : 'Workspace'}
               </div>
-              <h1>{activeTab === 'profile' ? 'Personal profile' : activeTab === 'business' ? 'Business profile' : 'Team Members'}</h1>
-              <p>{activeTab === 'profile' ? 'Update your personal information and contact details.' : activeTab === 'business' ? 'Basic details about your organization to inform AI contexts.' : 'Manage organization seats, user roles, and team invitations.'}</p>
+              <h1 className="dark:text-white">{activeTab === 'profile' ? 'Personal profile' : 'Business profile'}</h1>
+              <p className="dark:text-neutral-400">{activeTab === 'profile' ? 'Manage your account settings and preferences.' : 'Basic details about your organization to inform AI contexts.'}</p>
             </div>
             
-            <div className="concept-nav" ref={navRef} style={{ margin: 0 }}>
+            <div className="concept-nav dark:bg-[#111111] dark:border-[#262626]" ref={navRef} style={{ margin: 0 }}>
               <div className="nav-pill" ref={pillRef}></div>
               {TABS.map((tab, idx) => (
                 <button
@@ -243,15 +279,6 @@ export default function Profile() {
                 <span>75% complete</span>
               </div>
 
-              <div className="id-card ic1">
-                <div className="id-avatar">{(profile.firstName?.[0] || '') + (profile.lastName?.[0] || '')}</div>
-                <div className="id-info">
-                  <b>{profile.firstName} {profile.lastName}</b>
-                  <span>{profile.email}</span>
-                </div>
-                <div className="id-actions"><button className="id-btn">Remove</button><button className="id-btn primary">Upload photo</button></div>
-              </div>
-
               <PersonalProfileTab 
                 profile={profile} 
                 errors={errors} 
@@ -265,15 +292,6 @@ export default function Profile() {
               <div className="completeness">
                 <div className="cbar"><div className="cbar-fill" id="fillB" style={{ width: '0%' }}></div></div>
                 <span>90% complete</span>
-              </div>
-
-              <div className="id-card ic2">
-                <div className="id-logo">🏢</div>
-                <div className="id-info">
-                  <b>{business.companyName || 'Company Name'}</b>
-                  <span>{business.industry || 'Industry'} · {business.businessType || 'B2B'}</span>
-                </div>
-                <div className="id-actions"><button className="id-btn">Remove</button><button className="id-btn primary">Upload logo</button></div>
               </div>
 
               <BusinessProfileTab 
